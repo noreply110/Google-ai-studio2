@@ -1,0 +1,6 @@
+{
+  "name": "BinaryForge IDE",
+  "description": "Interactive Binary Reverse Engineering and CPU Stack Emulator with AI Analysis",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
