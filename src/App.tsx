@@ -48,41 +48,6 @@ interface SpamReport {
   tips: string[];
 }
 
-interface TrackingEvent {
-  timestamp: string;
-  ip: string;
-  userAgent: string;
-  isBot?: boolean;
-  botName?: string;
-  device?: string;
-  os?: string;
-  browser?: string;
-}
-
-interface ClickEvent {
-  url: string;
-  timestamp: string;
-  ip: string;
-  userAgent: string;
-  isBot?: boolean;
-  botName?: string;
-  device?: string;
-  os?: string;
-  browser?: string;
-}
-
-interface TrackedEmail {
-  id: string;
-  recipient: string;
-  subject: string;
-  sentAt: string;
-  status: "sent" | "opened" | "clicked";
-  opensCount: number;
-  openEvents: TrackingEvent[];
-  clickEvents: ClickEvent[];
-  smtpUser: string;
-}
-
 interface BankingNotification {
   id: string;
   type: "sent" | "opened" | "clicked";
@@ -107,16 +72,10 @@ export default function App() {
   const [passcodeError, setPasscodeError] = useState(false);
 
   // --- Navigation & Core Views ---
-  const [activeTab, setActiveTab] = useState<"send" | "templates" | "tracking" | "terminal" | "accounts">("send");
+  const [activeTab, setActiveTab] = useState<"send" | "templates" | "terminal" | "accounts">("send");
 
   // --- Email Tracking State ---
-  const [trackedEmails, setTrackedEmails] = useState<TrackedEmail[]>([]);
-  const [isLoadingTracking, setIsLoadingTracking] = useState(false);
-  const [trackingSearch, setTrackingSearch] = useState("");
-  const [selectedTrackedId, setSelectedTrackedId] = useState<string | null>(null);
   const [bankingNotifications, setBankingNotifications] = useState<BankingNotification[]>([]);
-  const processedEmailStatesRef = useRef<Record<string, { openEventsCount: number; clickEventsCount: number }>>({});
-  const isInitialLoadRef = useRef(true);
 
   // --- Email Composer State ---
   const [emailForm, setEmailForm] = useState({
@@ -199,162 +158,6 @@ export default function App() {
   useEffect(() => {
     checkBackendHealth();
     addLog("info", "G-Swift Relay active. System ready.");
-  }, []);
-
-  const triggerBankingNotification = (notif: BankingNotification) => {
-    setBankingNotifications((prev) => [...prev, notif]);
-    // Auto-dismiss after 6 seconds
-    setTimeout(() => {
-      setBankingNotifications((prev) => prev.filter((n) => n.id !== notif.id));
-    }, 6000);
-  };
-
-  const checkNewEventsRefBased = (newList: TrackedEmail[]) => {
-    if (newList.length === 0) {
-      processedEmailStatesRef.current = {};
-      return;
-    }
-
-    // 1. If it's the initial load of the session, populate reference state without firing alerts for old logs
-    if (isInitialLoadRef.current) {
-      const initialMap: Record<string, { openEventsCount: number; clickEventsCount: number }> = {};
-      newList.forEach((email) => {
-        initialMap[email.id] = {
-          openEventsCount: email.openEvents.length,
-          clickEventsCount: email.clickEvents.length
-        };
-      });
-      processedEmailStatesRef.current = initialMap;
-      isInitialLoadRef.current = false;
-      return;
-    }
-
-    // Clean up deleted logs from reference storage
-    const newKeys = new Set(newList.map((e) => e.id));
-    Object.keys(processedEmailStatesRef.current).forEach((key) => {
-      if (!newKeys.has(key)) {
-        delete processedEmailStatesRef.current[key];
-      }
-    });
-
-    // 2. Loop through latest emails to check for status transitions
-    newList.forEach((newEmail) => {
-      const prevState = processedEmailStatesRef.current[newEmail.id];
-
-      if (!prevState) {
-        // Completely new email sent (e.g. from background sync or other sessions).
-        // Silently register it to reference state so we can track subsequent opens/clicks without double "Sent" alerts.
-        processedEmailStatesRef.current[newEmail.id] = {
-          openEventsCount: newEmail.openEvents.length,
-          clickEventsCount: newEmail.clickEvents.length
-        };
-      } else {
-        // Check if openEvents length increased
-        if (newEmail.openEvents.length > prevState.openEventsCount) {
-          // Process all new open events since the last checked state
-          for (let i = prevState.openEventsCount; i < newEmail.openEvents.length; i++) {
-            const evt = newEmail.openEvents[i];
-            if (evt) {
-              const isBot = !!evt.isBot;
-              const isBotPrefetch = evt.botName === "Bot Pre-fetch";
-
-              if (isBot) {
-                // If it is a "Bot Pre-fetch" (Gmail / bot prefetch), DO NOT send any notification
-                if (isBotPrefetch) {
-                  continue;
-                }
-                // Trigger regular security bot scan warning
-                triggerBankingNotification({
-                  id: Math.random().toString(36).substring(7),
-                  type: "opened",
-                  title: "PELACAKAN - SCAN KEAMANAN",
-                  message: `Sistem keamanan / pre-fetch (${evt.botName || "Bot/Proxy"}) mendeteksi pixel email ke ${newEmail.recipient}.`,
-                  subject: newEmail.subject,
-                  recipient: newEmail.recipient,
-                  ip: evt.ip,
-                  timestamp: new Date().toLocaleTimeString("id-ID")
-                });
-              } else {
-                // Opened by a real human!
-                // Only send real-time notification for the FIRST human open (Max 1 notification per email)
-                const previousHumanOpens = newEmail.openEvents.slice(0, i).filter(e => !e.isBot);
-                if (previousHumanOpens.length === 0) {
-                  const deviceDetails = evt.device && evt.os && evt.browser 
-                    ? `${evt.device} (${evt.os}, ${evt.browser})` 
-                    : "Desktop PC / Web Client";
-                  
-                  triggerBankingNotification({
-                    id: Math.random().toString(36).substring(7),
-                    type: "opened",
-                    title: "SISTEM PELACAKAN - PESAN DIBACA",
-                    message: `Pesan "${newEmail.subject.substring(0, 18)}${newEmail.subject.length > 18 ? "..." : ""}" dibuka oleh ${newEmail.recipient}. Perangkat: ${deviceDetails}.`,
-                    subject: newEmail.subject,
-                    recipient: newEmail.recipient,
-                    ip: evt.ip,
-                    timestamp: new Date().toLocaleTimeString("id-ID")
-                  });
-                }
-              }
-            }
-          }
-          prevState.openEventsCount = newEmail.openEvents.length;
-        }
-
-        // Keep clickEventsCount synchronized without triggering any toast notification for link clicks
-        if (newEmail.clickEvents.length > prevState.clickEventsCount) {
-          prevState.clickEventsCount = newEmail.clickEvents.length;
-        }
-      }
-    });
-  };
-
-  const fetchTrackingStats = async (silent = false) => {
-    if (!silent) setIsLoadingTracking(true);
-    try {
-      const res = await fetch("/api/tracking-stats");
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      const json = await res.json();
-      if (json.success && json.data) {
-        setTrackedEmails(json.data);
-        checkNewEventsRefBased(json.data);
-      }
-    } catch (err) {
-      // Log transient connection issues as info/warning to prevent triggering false-alarm error overlays
-      console.log("Email tracking stats are currently unreachable (server may be restarting):", err);
-    } finally {
-      if (!silent) setIsLoadingTracking(false);
-    }
-  };
-
-  const deleteTrackingLog = async (id?: string, clearAll = false) => {
-    try {
-      const res = await fetch("/api/tracking-delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, clearAll })
-      });
-      const json = await res.json();
-      if (json.success) {
-        addLog("success", clearAll ? "Semua log pelacakan berhasil dibersihkan." : "Log pelacakan berhasil dihapus.");
-        fetchTrackingStats();
-        if (id === selectedTrackedId || clearAll) {
-          setSelectedTrackedId(null);
-        }
-      }
-    } catch (err) {
-      addLog("error", "Gagal menghapus log pelacakan.");
-    }
-  };
-
-  // Real-time tracking polling globally in the background for instant banking notifications
-  useEffect(() => {
-    fetchTrackingStats(true);
-    const interval = setInterval(() => {
-      fetchTrackingStats(true);
-    }, 3000);
-    return () => clearInterval(interval);
   }, []);
 
   // BeforeUnload confirm warning for unsaved drafts
@@ -525,14 +328,6 @@ export default function App() {
 
       setSuccessBanner("Email berhasil dikirim!");
       addLog("success", `Relay sukses. MessageID: ${data.messageId}`);
-
-      const trkId = data.trackingId || `trk_${Math.random().toString(36).substring(2, 11)}_${Date.now()}`;
-
-      // Register the state in ref immediately so subsequent polls don't trigger sent alert
-      processedEmailStatesRef.current[trkId] = {
-        openEventsCount: 0,
-        clickEventsCount: 0
-      };
 
       return true;
     } catch (err: any) {
@@ -942,7 +737,6 @@ export default function App() {
           {[
             { id: "send", icon: Send, label: "Kirim" },
             { id: "templates", icon: FileText, label: "Templates" },
-            { id: "tracking", icon: Activity, label: "Tracking Email" },
             { id: "terminal", icon: TerminalIcon, label: "Relay Terminal" },
             { id: "accounts", icon: Settings, label: "Pengaturan SMTP" }
           ].map((item) => (
@@ -1094,87 +888,64 @@ export default function App() {
         </AnimatePresence>
 
         {/* --- DYNAMIC APP HEADER --- */}
-        <header className="h-14 bg-white border-b border-slate-100 px-4 flex items-center justify-between shrink-0 shadow-sm z-30 relative">
-          <div className="flex items-center gap-3">
+        <header className="h-14 bg-white border-b border-slate-100 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-sm z-30 relative">
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
             {activeTab !== "send" && (
               <button 
                 onClick={() => setActiveTab("send")}
-                className="p-2 hover:bg-slate-100 rounded-full lg:hidden transition-colors"
+                className="p-1.5 hover:bg-slate-100 rounded-full lg:hidden transition-colors shrink-0"
+                aria-label="Kembali"
               >
                 <ChevronLeft className="w-5 h-5 text-slate-600" />
               </button>
             )}
-            <h1 className="text-sm font-extrabold text-[#003A8F] uppercase tracking-tight truncate">
-              {activeTab === "accounts" 
-                ? "Pengaturan SMTP" 
-                : activeTab === "terminal" 
-                ? "Relay Terminal" 
-                : activeTab === "templates" 
-                ? "Templates" 
-                : activeTab === "tracking"
-                ? "Tracking Email (Real-Time)"
-                : "Pengirim"}
-            </h1>
+            
+            <div className="flex items-center gap-2 min-w-0 truncate">
+              {smtpConfig.logoUrl ? (
+                <img 
+                  src={smtpConfig.logoUrl} 
+                  alt="Brand Logo" 
+                  className="h-6 sm:h-8 w-auto object-contain shrink-0 max-w-[80px] xs:max-w-[120px]"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/1024px-Bank_Mandiri_logo_2016.svg.png";
+                  }}
+                />
+              ) : (
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 shrink-0">
+                  <Mail className="w-4 h-4 text-[#003A8F]" />
+                </div>
+              )}
+              
+              <span className="h-4 w-px bg-slate-200 hidden xs:inline shrink-0" />
+              
+              <h1 className="text-xs sm:text-sm font-extrabold text-[#003A8F] uppercase tracking-tight truncate">
+                {activeTab === "accounts" 
+                  ? "SMTP" 
+                  : activeTab === "terminal" 
+                  ? "Terminal" 
+                  : activeTab === "templates" 
+                  ? "Templates" 
+                  : "Pengirim"}
+              </h1>
+            </div>
           </div>
 
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center">
-            {smtpConfig.logoUrl ? (
-              <img 
-                src={smtpConfig.logoUrl} 
-                alt="Brand Logo" 
-                className="h-7 sm:h-9 w-auto object-contain transition-all"
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/1024px-Bank_Mandiri_logo_2016.svg.png";
-                }}
-              />
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <Mail className="w-4 h-4 text-[#003A8F]" />
-                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest hidden sm:inline">
-                  G-Swift Relay
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={handleLogout}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-1.5 rounded-lg text-[9px] font-bold transition-colors shadow-sm uppercase cursor-pointer"
-            >
-              Keluar
-            </button>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {activeTab === "accounts" && (
               <button 
                 onClick={handleSmtpSave}
-                className="bg-[#0050b3] hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-[9px] font-bold transition-colors shadow-sm uppercase cursor-pointer"
+                className="bg-[#0050b3] hover:bg-blue-700 text-white px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold transition-colors shadow-sm uppercase cursor-pointer"
               >
                 Simpan
               </button>
             )}
-            {activeTab === "tracking" && (
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => fetchTrackingStats()}
-                  disabled={isLoadingTracking}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-[9px] font-bold transition-colors shadow-sm uppercase cursor-pointer flex items-center gap-1"
-                >
-                  <RefreshCw className={`w-3 h-3 ${isLoadingTracking ? "animate-spin" : ""}`} />
-                  Refresh
-                </button>
-                <button 
-                  onClick={() => {
-                    if (window.confirm("Apakah Anda yakin ingin menghapus semua log pelacakan email?")) {
-                      deleteTrackingLog(undefined, true);
-                    }
-                  }}
-                  className="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-1.5 rounded-lg text-[9px] font-bold transition-colors shadow-sm uppercase cursor-pointer"
-                >
-                  Hapus Semua
-                </button>
-              </div>
-            )}
+            <button 
+              onClick={handleLogout}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold transition-colors shadow-sm uppercase cursor-pointer"
+            >
+              Keluar
+            </button>
           </div>
         </header>
 
@@ -1507,7 +1278,7 @@ export default function App() {
                       layout
                       className="bg-white border-2 border-white rounded-[28px] overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,58,143,0.18)] hover:shadow-[0_30px_70px_-12px_rgba(0,58,143,0.35)] transition-all group hover:-translate-y-1 ring-1 ring-blue-100/30"
                     >
-                      <div className="p-6 flex flex-col h-full justify-between">
+                      <div className="p-4 sm:p-6 flex flex-col h-full justify-between">
                         <div>
                           <div className="flex justify-between items-start mb-4">
                             <span className="px-3 py-1 bg-blue-50 text-blue-800 text-[10px] font-extrabold uppercase rounded-full">
@@ -1515,7 +1286,7 @@ export default function App() {
                             </span>
                             <button 
                               onClick={() => deleteTemplate(t.id)}
-                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -1529,34 +1300,34 @@ export default function App() {
                           </p>
                         </div>
 
-                        <div className="pt-4 border-t border-slate-100 flex gap-2">
+                        <div className="pt-4 border-t border-slate-100 flex gap-1.5 xs:gap-2 items-center">
                           <button 
                             onClick={() => startEditTemplate(t)}
-                            className="w-10 h-10 bg-slate-100 text-blue-700 rounded-xl hover:bg-blue-50 transition-all flex items-center justify-center"
+                            className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 text-blue-700 rounded-xl hover:bg-blue-50 transition-all flex items-center justify-center shrink-0"
                             title="Edit Draft"
                           >
-                            <Pen className="w-4 h-4" />
+                            <Pen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </button>
                           <button 
                             onClick={() => setPreviewTemplate(t)}
-                            className="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center"
+                            className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center shrink-0"
                             title="Pratinjau"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </button>
                           <button 
                             onClick={() => {
                               setQuickTestTemplate(t);
                               setQuickTestRecipient("");
                             }}
-                            className="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center"
+                            className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center shrink-0"
                             title="Kirim Tes"
                           >
-                            <Send className="w-3.5 h-3.5 text-slate-500" />
+                            <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500" />
                           </button>
                           <button 
                             onClick={() => useTemplateContent(t)}
-                            className="flex-1 h-10 bg-[#0050b3] text-white text-[10px] font-black rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center shadow-md shadow-blue-500/20"
+                            className="flex-1 h-8 sm:h-10 bg-[#0050b3] text-white text-[9px] sm:text-[10px] font-black rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center shadow-md shadow-blue-500/20 truncate px-1"
                           >
                             PAKAI TEMPLATE
                           </button>
@@ -1579,355 +1350,6 @@ export default function App() {
                 )}
               </motion.div>
             )}
-
-            {/* View: Real-Time Email Tracking Panel */}
-            {activeTab === "tracking" && (
-              <motion.div
-                key="tracking-view"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="p-4 sm:p-6 lg:p-8 space-y-6 pb-24"
-              >
-                {/* 1. Summary Cards */}
-                {(() => {
-                  const total = trackedEmails.length;
-                  const opened = trackedEmails.filter(e => e.status === "opened" || e.status === "clicked").length;
-                  const clicked = trackedEmails.filter(e => e.status === "clicked").length;
-
-                  return (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Pesan Terkirim */}
-                      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Pesan Terkirim</span>
-                          <span className="text-3xl font-black text-slate-900 mt-1 block">{total} <span className="text-xs text-slate-400 font-bold">Email</span></span>
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
-                          <Send className="w-5 h-5" />
-                        </div>
-                      </div>
-
-                      {/* Pesan Dibaca */}
-                      <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 shadow-sm flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider block">Pesan Dibaca</span>
-                          <span className="text-3xl font-black text-[#0050b3] mt-1 block">{opened} <span className="text-xs text-blue-400 font-bold">Email</span></span>
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-blue-100/50 flex items-center justify-center text-[#0050b3]">
-                          <Eye className="w-5 h-5" />
-                        </div>
-                      </div>
-
-                      {/* Link Diklik */}
-                      <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-5 shadow-sm flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider block">Link Diklik</span>
-                          <span className="text-3xl font-black text-emerald-700 mt-1 block">{clicked} <span className="text-xs text-emerald-400 font-bold">Email</span></span>
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-emerald-100/50 flex items-center justify-center text-emerald-700">
-                          <MousePointer className="w-5 h-5" />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* 2. Main Content Layout (Table & Details Pane) */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                  {/* Left Column: Email Tracking List */}
-                  <div className="xl:col-span-2 bg-slate-50 border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-sm space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div>
-                        <h2 className="text-sm font-black text-slate-800 uppercase tracking-wide">
-                          Status Laporan Pengiriman & Pembacaan
-                        </h2>
-                        <p className="text-[11px] text-slate-500 font-medium">
-                          Pelacakan status kirim, pesan dibuka/dibaca, dan link diklik secara langsung.
-                        </p>
-                      </div>
-                      {/* Search Filter */}
-                      <div className="relative max-w-xs w-full">
-                        <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                          type="text"
-                          value={trackingSearch}
-                          onChange={(e) => setTrackingSearch(e.target.value)}
-                          placeholder="Cari penerima atau judul..."
-                          className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:border-[#0050b3] shadow-inner font-semibold"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="overflow-hidden border border-slate-200/60 rounded-2xl bg-white shadow-inner">
-                      {(() => {
-                        const filtered = trackedEmails.filter(e => 
-                          e.recipient.toLowerCase().includes(trackingSearch.toLowerCase()) ||
-                          e.subject.toLowerCase().includes(trackingSearch.toLowerCase())
-                        );
-
-                        if (filtered.length === 0) {
-                          return (
-                            <div className="py-12 text-center text-slate-400 space-y-2">
-                              <Activity className="w-8 h-8 mx-auto text-slate-300 stroke-[1.5]" />
-                              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Belum Ada Email Terkirim</p>
-                              <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
-                                Kirim email melalui tab "Kirim". Aplikasi akan melacak status dibaca & diklik secara live di sini.
-                              </p>
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
-                            {filtered.map((item) => {
-                              const isSelected = selectedTrackedId === item.id;
-                              return (
-                                <div
-                                  key={item.id}
-                                  onClick={() => setSelectedTrackedId(item.id)}
-                                  className={hn(
-                                    "flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3 cursor-pointer transition-all hover:bg-slate-50",
-                                    isSelected && "bg-blue-50/50 border-l-4 border-l-[#0050b3]"
-                                  )}
-                                >
-                                  <div className="flex-1 min-w-0 space-y-1">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="text-xs font-extrabold text-slate-800 truncate block max-w-xs">
-                                        {item.recipient}
-                                      </span>
-                                      <span className="text-[9px] font-bold text-slate-400 font-mono">
-                                        {new Date(item.sentAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                                      </span>
-                                    </div>
-                                    <p className="text-[11px] font-semibold text-slate-500 truncate">
-                                      {item.subject}
-                                    </p>
-                                    <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
-                                      <span>ID: {item.id.substring(0, 14)}...</span>
-                                      <span>•</span>
-                                      <span>Relay: {item.smtpUser}</span>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                                    {/* Status Badge with custom simplified styling */}
-                                    <div className="flex items-center gap-1.5">
-                                      {item.status === "clicked" ? (
-                                        <span className="px-3 py-1 text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200 flex items-center gap-1">
-                                          <MousePointer className="w-2.5 h-2.5" />
-                                          LINK DIKLIK
-                                        </span>
-                                      ) : item.status === "opened" ? (
-                                        <span className="px-3 py-1 text-[10px] font-black uppercase bg-blue-100 text-[#003A8F] rounded-full border border-blue-200 flex items-center gap-1">
-                                          <Eye className="w-2.5 h-2.5" />
-                                          PESAN DIBACA
-                                        </span>
-                                      ) : (
-                                        <span className="px-3 py-1 text-[10px] font-black uppercase bg-slate-100 text-slate-700 rounded-full border border-slate-200">
-                                          PESAN TERKIRIM
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    {/* Trash / Delete individual */}
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (window.confirm("Hapus log pelacakan email ini?")) {
-                                          deleteTrackingLog(item.id);
-                                        }
-                                      }}
-                                      className="p-1.5 bg-white border border-slate-200 text-slate-400 hover:text-rose-500 rounded-lg hover:border-rose-200 transition-colors cursor-pointer"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-
-                  {/* Right Column: Tracking Event Timeline Details */}
-                  <div className="bg-slate-50 border border-slate-200/80 rounded-3xl p-4 sm:p-5 shadow-sm space-y-4">
-                    <h2 className="text-sm font-black text-slate-800 uppercase tracking-wide">
-                      Detail Pemeriksaan Aktivitas
-                    </h2>
-
-                    {(() => {
-                      const selectedEmail = trackedEmails.find(e => e.id === selectedTrackedId);
-
-                      if (!selectedEmail) {
-                        return (
-                          <div className="py-20 text-center text-slate-400 space-y-2 bg-white rounded-2xl border border-slate-100 shadow-inner">
-                            <Activity className="w-6 h-6 mx-auto text-slate-300" />
-                            <p className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">Pilih Transaksi Email</p>
-                            <p className="text-[10px] text-slate-500 px-6">
-                              Klik salah satu log pengiriman email di sebelah kiri untuk melihat detail log pembacaan, informasi IP address, browser, dan klik link secara real-time.
-                            </p>
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <div className="space-y-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-inner max-h-[560px] overflow-y-auto">
-                          {/* Main metadata block */}
-                          <div className="space-y-2 pb-3 border-b border-slate-100">
-                            <div>
-                              <span className="text-[8px] font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase tracking-wider block w-fit mb-1">
-                                ID: {selectedEmail.id}
-                              </span>
-                              <h3 className="text-xs font-black text-slate-800 truncate">
-                                {selectedEmail.recipient}
-                              </h3>
-                              <p className="text-[11px] font-bold text-slate-500 truncate">
-                                Subjek: {selectedEmail.subject}
-                              </p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 pt-1">
-                              <div className="p-2 bg-slate-50 rounded-xl border border-slate-200/40">
-                                <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">Waktu Kirim</span>
-                                <p className="text-[10px] font-extrabold text-slate-700 mt-0.5">
-                                  {new Date(selectedEmail.sentAt).toLocaleDateString("id-ID")}<br />
-                                  {new Date(selectedEmail.sentAt).toLocaleTimeString("id-ID")}
-                                </p>
-                              </div>
-                              <div className="p-2 bg-slate-50 rounded-xl border border-slate-200/40">
-                                <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">Total Dibuka</span>
-                                <p className="text-[10px] font-black text-slate-700 mt-0.5">
-                                  {selectedEmail.opensCount} Kali Pembacaan
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Open Events Timeline */}
-                          <div className="space-y-2">
-                            <h4 className="text-[10px] font-extrabold text-[#003A8F] uppercase tracking-wider flex items-center gap-1.5">
-                              <Eye className="w-3.5 h-3.5 text-blue-500" />
-                              Log Pembacaan Email ({selectedEmail.openEvents.length})
-                            </h4>
-
-                            {selectedEmail.openEvents.length === 0 ? (
-                              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center text-[10px] italic font-semibold text-slate-400">
-                                Belum ada aktivitas pembacaan terdeteksi.
-                              </div>
-                            ) : (
-                              <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-                                {selectedEmail.openEvents.map((evt, idx) => (
-                                  <div 
-                                    key={idx} 
-                                    className={hn(
-                                      "p-2 rounded-xl border text-[10px] space-y-1 transition-colors",
-                                      evt.isBot 
-                                        ? "bg-amber-50/50 border-amber-200/60" 
-                                        : "bg-slate-50 border-slate-200/60"
-                                    )}
-                                  >
-                                    <div className="flex items-center justify-between font-black text-slate-700">
-                                      <span className="flex items-center gap-1">
-                                        <Globe className="w-3 h-3 text-slate-400" />
-                                        IP: {evt.ip}
-                                      </span>
-                                      <span className="text-[9px] font-bold text-slate-400 font-mono">
-                                        {new Date(evt.timestamp).toLocaleTimeString("id-ID")}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-2 text-[9px] font-semibold">
-                                      <div className="flex items-center gap-1 text-slate-500 truncate">
-                                        <Laptop className="w-3 h-3 text-slate-400 shrink-0" />
-                                        <span>Device/Proxy: </span>
-                                        <span className="truncate max-w-[130px] inline-block font-extrabold text-slate-700">
-                                          {evt.isBot ? evt.botName : (() => {
-                                            if (evt.device && evt.os && evt.browser) {
-                                              return `${evt.device} - ${evt.os} (${evt.browser})`;
-                                            }
-                                            const ua = evt.userAgent;
-                                            if (ua.includes("Mobile") || ua.includes("Android") || ua.includes("iPhone")) {
-                                              if (ua.includes("iPhone")) return "iPhone / iOS";
-                                              if (ua.includes("Android")) return "Android Phone";
-                                              return "Mobile Device";
-                                            }
-                                            if (ua.includes("Windows")) return "Windows PC";
-                                            if (ua.includes("Macintosh")) return "MacBook / macOS";
-                                            if (ua.includes("Linux")) return "Linux PC";
-                                            return "Web Client / OS";
-                                          })()}
-                                        </span>
-                                      </div>
-                                      {evt.isBot && (
-                                        <span className="bg-amber-100 text-amber-800 text-[8px] font-black uppercase px-1.5 py-0.5 rounded shrink-0">
-                                          BOT TERDETEKSI
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Click Events Timeline */}
-                          <div className="space-y-2 pt-2 border-t border-slate-100">
-                            <h4 className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
-                              <MousePointer className="w-3.5 h-3.5 text-emerald-500" />
-                              Log Clicks Tautan / Link ({selectedEmail.clickEvents.length})
-                            </h4>
-
-                            {selectedEmail.clickEvents.length === 0 ? (
-                              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center text-[10px] italic font-semibold text-slate-400">
-                                Belum ada aktivitas klik tautan terdeteksi.
-                              </div>
-                            ) : (
-                              <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-                                {selectedEmail.clickEvents.map((evt, idx) => (
-                                  <div 
-                                    key={idx} 
-                                    className={hn(
-                                      "p-2 rounded-xl border text-[10px] space-y-1 transition-colors",
-                                      evt.isBot 
-                                        ? "bg-rose-50/50 border-rose-200/50" 
-                                        : "bg-emerald-50/40 border-emerald-100/50"
-                                    )}
-                                  >
-                                    <div className="flex items-center justify-between font-black text-slate-700">
-                                      <span className="flex items-center gap-1 text-emerald-700">
-                                        <ArrowUpRight className="w-3 h-3" />
-                                        IP: {evt.ip}
-                                      </span>
-                                      <span className="text-[9px] font-bold text-slate-400 font-mono">
-                                        {new Date(evt.timestamp).toLocaleTimeString("id-ID")}
-                                      </span>
-                                    </div>
-                                    <div className="text-[9px] text-slate-500 font-mono break-all bg-white p-1 rounded border border-slate-100">
-                                      {evt.url}
-                                    </div>
-                                    {evt.isBot && (
-                                      <div className="flex justify-end pt-1">
-                                        <span className="bg-rose-100 text-rose-800 text-[8px] font-black uppercase px-1.5 py-0.5 rounded">
-                                          BOT SCAN ({evt.botName})
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-
-              </motion.div>
-            )}
-
             {/* View 3: Terminal Console logs */}
             {activeTab === "terminal" && (
               <motion.div
@@ -2143,24 +1565,24 @@ export default function App() {
                   </div>
 
                   {/* Action buttons row */}
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <button 
                       onClick={testSmtpConnection}
                       disabled={isSending}
-                      className="flex-1 py-4 bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-700 font-extrabold rounded-[28px] shadow-xl shadow-blue-100/40 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                      className="flex-1 py-3.5 bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-700 font-extrabold rounded-[28px] shadow-lg shadow-blue-100/30 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer text-xs"
                     >
                       {isSending ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <ShieldCheck className="w-5 h-5" />
+                        <ShieldCheck className="w-4 h-4" />
                       )}
                       Test Koneksi
                     </button>
                     <button 
                       onClick={handleSmtpSave}
-                      className="flex-1 py-3 bg-gradient-to-b from-[#0050b3] to-[#003a8f] hover:from-[#003a8f] hover:to-[#002150] text-white font-black rounded-[28px] shadow-2xl shadow-blue-500/40 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer"
+                      className="flex-1 py-3.5 bg-gradient-to-b from-[#0050b3] to-[#003a8f] hover:from-[#003a8f] hover:to-[#002150] text-white font-black rounded-[28px] shadow-xl shadow-blue-500/30 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer text-xs"
                     >
-                      <CheckCircle className="w-5 h-5" /> Simpan & Selesai
+                      <CheckCircle className="w-4 h-4" /> Simpan & Selesai
                     </button>
                   </div>
                 </div>
@@ -2404,7 +1826,6 @@ export default function App() {
           {[
             { id: "send", icon: Send, label: "Kirim" },
             { id: "templates", icon: FileText, label: "Templates" },
-            { id: "tracking", icon: Activity, label: "Tracking" },
             { id: "terminal", icon: TerminalIcon, label: "Logs" },
             { id: "accounts", icon: Settings, label: "Akun" }
           ].map((item) => {
