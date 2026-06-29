@@ -8,7 +8,8 @@ import {
   Send, Terminal as TerminalIcon, FileText, Settings, ShieldCheck, 
   Trash2, Plus, Pen, Search, Eye, AlertCircle, CheckCircle, 
   ChevronLeft, Info, Loader2, AlertTriangle, Mail,
-  Activity, MousePointer, Laptop, Globe, RefreshCw, Clock, ArrowUpRight
+  Activity, MousePointer, Laptop, Globe, RefreshCw, Clock, ArrowUpRight,
+  Sparkles, KeyRound
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -70,6 +71,17 @@ export default function App() {
   const [passcode, setPasscode] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [passcodeError, setPasscodeError] = useState(false);
+  const [savedPasscode, setSavedPasscode] = useState(() => {
+    return localStorage.getItem("app_passcode") || "Jefri110";
+  });
+
+  // --- Passcode Change States ---
+  const [currentPasscodeForm, setCurrentPasscodeForm] = useState("");
+  const [newPasscodeForm, setNewPasscodeForm] = useState("");
+  const [confirmPasscodeForm, setConfirmPasscodeForm] = useState("");
+  const [passcodeChangeError, setPasscodeChangeError] = useState<string | null>(null);
+  const [passcodeChangeSuccess, setPasscodeChangeSuccess] = useState<string | null>(null);
+  const [showPasscodeModal, setShowPasscodeModal] = useState(false);
 
   // --- Navigation & Core Views ---
   const [activeTab, setActiveTab] = useState<"send" | "templates" | "terminal" | "accounts">("send");
@@ -141,6 +153,12 @@ export default function App() {
     };
   });
 
+  const [logoLoadError, setLogoLoadError] = useState(false);
+
+  useEffect(() => {
+    setLogoLoadError(false);
+  }, [smtpConfig.logoUrl]);
+
   // --- Spam Score Calculation ---
   const [spamReport, setSpamReport] = useState<SpamReport>({
     score: 100,
@@ -148,6 +166,17 @@ export default function App() {
     color: "text-emerald-500",
     tips: []
   });
+
+  // --- Smart SMTP Detection State ---
+  const [isDetectingSmtp, setIsDetectingSmtp] = useState(false);
+  const [smtpRecommendation, setSmtpRecommendation] = useState<{
+    host: string;
+    port: string;
+    connectionType: "STARTTLS" | "SSL" | "NONE";
+    providerName: string;
+    emailDetected: string;
+  } | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Scroll to terminal bottom on log stream
   useEffect(() => {
@@ -236,6 +265,77 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, [emailForm.subject, emailForm.message]);
+
+  // Real-time SMTP Auto-Detection Handler
+  const handleDetectSmtp = async (email: string) => {
+    if (!email || !email.includes("@")) {
+      setSmtpRecommendation(null);
+      return;
+    }
+
+    setIsDetectingSmtp(true);
+    try {
+      const response = await fetch("/api/detect-smtp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSmtpRecommendation({
+          host: data.host,
+          port: data.port,
+          connectionType: data.connectionType as "STARTTLS" | "SSL" | "NONE",
+          providerName: data.providerName,
+          emailDetected: email
+        });
+        
+        // Auto-apply SMTP settings directly
+        setSmtpConfig(prev => ({
+          ...prev,
+          host: data.host,
+          port: data.port,
+          connectionType: data.connectionType as any
+        }));
+
+        addLog("info", `Deteksi SMTP Cerdas: Terdeteksi ${data.providerName}`);
+        addLog("success", `Konfigurasi server ${data.host}:${data.port} (${data.connectionType}) diterapkan otomatis.`);
+      } else {
+        setSmtpRecommendation(null);
+      }
+    } catch (err: any) {
+      console.error("Gagal mendeteksi SMTP:", err);
+      setSmtpRecommendation(null);
+    } finally {
+      setIsDetectingSmtp(false);
+    }
+  };
+
+  // Debounced Effect for Auto SMTP Detection
+  useEffect(() => {
+    const email = smtpConfig.username.trim();
+    if (!email || !email.includes("@")) {
+      setSmtpRecommendation(null);
+      return;
+    }
+
+    // Simple email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return;
+    }
+
+    // If already detected for this email, skip to avoid duplicate requests
+    if (smtpRecommendation && smtpRecommendation.emailDetected === email) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      handleDetectSmtp(email);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [smtpConfig.username]);
 
   const addLog = (type: "info" | "success" | "error" | "warning", msg: string) => {
     const timestamp = new Date().toLocaleTimeString("en-US", { hour12: false });
@@ -388,6 +488,7 @@ export default function App() {
     }
 
     setIsSending(true);
+    setShowRocketScreen(true);
     setErrorBanner(null);
     setSuccessBanner(null);
     addLog("info", "Sedang menguji koneksi SMTP...");
@@ -418,9 +519,11 @@ export default function App() {
 
       setSuccessBanner("Test koneksi SMTP berhasil!");
       addLog("success", "Uji coba SMTP berhasil. Silakan cek inbox email pengirim.");
+      setTimeout(() => setShowRocketScreen(false), 800);
     } catch (err: any) {
       setErrorBanner(`Koneksi Gagal: ${err.message}`);
       addLog("error", `SMTP Test Gagal: ${err.message}`);
+      setShowRocketScreen(false);
     } finally {
       setIsSending(false);
     }
@@ -497,7 +600,7 @@ export default function App() {
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode === "Panel123") {
+    if (passcode === savedPasscode) {
       setIsLoggedIn(true);
       if (rememberMe) {
         localStorage.setItem("admin_logged_in", "true");
@@ -508,6 +611,44 @@ export default function App() {
     }
   };
 
+  const handleChangePasscode = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasscodeChangeError(null);
+    setPasscodeChangeSuccess(null);
+
+    if (currentPasscodeForm !== savedPasscode) {
+      setPasscodeChangeError("Passcode sekarang tidak benar.");
+      addLog("error", "Gagal mengganti passcode: Passcode lama salah.");
+      return;
+    }
+
+    if (!newPasscodeForm) {
+      setPasscodeChangeError("Passcode baru tidak boleh kosong.");
+      return;
+    }
+
+    if (newPasscodeForm.length < 4) {
+      setPasscodeChangeError("Passcode baru minimal 4 karakter.");
+      return;
+    }
+
+    if (newPasscodeForm !== confirmPasscodeForm) {
+      setPasscodeChangeError("Konfirmasi passcode baru tidak cocok.");
+      return;
+    }
+
+    // Save
+    localStorage.setItem("app_passcode", newPasscodeForm);
+    setSavedPasscode(newPasscodeForm);
+    setPasscodeChangeSuccess("Passcode berhasil diperbarui!");
+    addLog("success", "Passcode keamanan panel berhasil diubah.");
+    
+    // Clear fields
+    setCurrentPasscodeForm("");
+    setNewPasscodeForm("");
+    setConfirmPasscodeForm("");
+  };
+
   // Filter templates list
   const filteredTemplates = templates
     .filter((t) => t.name.toLowerCase().includes(templateSearch.toLowerCase()))
@@ -516,7 +657,7 @@ export default function App() {
   // --- RENDER 1: MAINTENANCE PAGE ---
   if (maintenance && localStorage.getItem("bypass_maintenance") !== "active") {
     return (
-      <div className="flex h-screen bg-slate-50 items-center justify-center p-4 relative overflow-hidden font-sans">
+      <div className="flex h-screen bg-gradient-to-tr from-[#d6e6ff] via-[#f0f5ff] to-[#fafcff] items-center justify-center p-4 relative overflow-hidden font-sans">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,66,122,0.05),transparent)] pointer-events-none" />
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#FFD700] via-[#FFC000] to-[#E6AC00] z-[60]" />
         
@@ -532,19 +673,24 @@ export default function App() {
             </div>
           </div>
 
-          {smtpConfig.logoUrl ? (
+          {smtpConfig.logoUrl && !logoLoadError ? (
             <img 
               src={smtpConfig.logoUrl} 
               alt="Logo" 
-              className="h-10 w-auto mb-6 object-contain"
+              className="h-14 w-auto mb-6 object-contain max-h-16"
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/1024px-Bank_Mandiri_logo_2016.svg.png";
+              onError={() => {
+                setLogoLoadError(true);
               }}
             />
           ) : (
-            <div className="w-10 h-10 bg-blue-50 text-[#003A8F] rounded-full flex items-center justify-center mb-6">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="flex items-center gap-2 mb-6 select-none bg-blue-50/50 px-4 py-2 rounded-2xl border border-blue-100/30 shadow-sm">
+              <div className="w-9 h-9 bg-gradient-to-tr from-[#0050b3] to-blue-600 text-white rounded-xl flex items-center justify-center shadow-sm">
+                <Mail className="w-4.5 h-4.5" />
+              </div>
+              <span className="font-black text-slate-800 tracking-tight text-base uppercase">
+                Swift<span className="text-[#0050b3]">Relay</span>
+              </span>
             </div>
           )}
 
@@ -601,7 +747,7 @@ export default function App() {
   // --- RENDER 2: LOGIN PAGE ---
   if (!isLoggedIn) {
     return (
-      <div className="flex h-screen bg-gradient-to-b from-[#0050b3] via-blue-50 to-slate-50 items-center justify-center p-4 relative overflow-hidden font-sans">
+      <div className="flex h-screen bg-gradient-to-tr from-[#d6e6ff] via-[#f0f5ff] to-[#fafcff] items-center justify-center p-4 relative overflow-hidden font-sans">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-700 via-blue-400 to-blue-500 z-[60] shadow-[0_1px_3px_rgba(0,0,0,0.1)]" />
         
         <motion.div 
@@ -609,19 +755,24 @@ export default function App() {
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl border border-white flex flex-col items-center ring-1 ring-blue-100/50 relative z-10"
         >
-          {smtpConfig.logoUrl ? (
+          {smtpConfig.logoUrl && !logoLoadError ? (
             <img 
               src={smtpConfig.logoUrl} 
               alt="Logo" 
-              className="h-10 w-auto object-contain mb-8"
+              className="h-14 w-auto object-contain mb-8 max-h-16"
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/1024px-Bank_Mandiri_logo_2016.svg.png";
+              onError={() => {
+                setLogoLoadError(true);
               }}
             />
           ) : (
-            <div className="w-12 h-12 bg-blue-50 text-[#003A8F] rounded-full flex items-center justify-center mb-8">
-              <ShieldCheck className="w-8 h-8" />
+            <div className="flex items-center gap-2 mb-8 select-none bg-blue-50/50 px-4 py-2 rounded-2xl border border-blue-100/30 shadow-sm">
+              <div className="w-9 h-9 bg-gradient-to-tr from-[#0050b3] to-blue-600 text-white rounded-xl flex items-center justify-center shadow-sm">
+                <Mail className="w-4.5 h-4.5" />
+              </div>
+              <span className="font-black text-slate-800 tracking-tight text-base uppercase">
+                Swift<span className="text-[#0050b3]">Relay</span>
+              </span>
             </div>
           )}
 
@@ -703,57 +854,106 @@ export default function App() {
 
   // --- RENDER 3: MAIN SYSTEM APLET ---
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden relative">
+    <div className="flex h-screen bg-gradient-to-tr from-[#d6e6ff] via-[#f0f5ff] to-[#fafcff] font-sans text-slate-800 overflow-hidden relative">
       {/* Top glowing bar */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-700 via-blue-400 to-blue-500 z-[60] shadow-[0_1px_3px_rgba(0,0,0,0.1)]" />
 
       {/* --- SIDEBAR DESKTOP VIEW --- */}
       <aside className="hidden lg:flex w-64 bg-slate-950 flex-col text-slate-200">
         <div className="p-6 flex flex-col gap-4 border-b border-slate-800/50">
-          {smtpConfig.logoUrl ? (
-            <img 
-              src={smtpConfig.logoUrl} 
-              alt="Logo" 
-              className="h-10 w-auto object-contain brightness-0 invert"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/1024px-Bank_Mandiri_logo_2016.svg.png";
-              }}
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                <Mail className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-white tracking-tight">RELAY CONSOLE</span>
+          <div className="flex items-center justify-between gap-3 w-full">
+            <div className="min-w-0">
+              {smtpConfig.logoUrl && !logoLoadError ? (
+                <img 
+                  src={smtpConfig.logoUrl} 
+                  alt="Logo" 
+                  className="h-12 w-auto object-contain brightness-0 invert shrink-0 max-h-14"
+                  referrerPolicy="no-referrer"
+                  onError={() => {
+                    setLogoLoadError(true);
+                  }}
+                />
+              ) : (
+                <div className="flex items-center gap-2 select-none">
+                  <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-[#0050b3] text-white rounded-xl flex items-center justify-center shadow-md shrink-0">
+                    <Mail className="w-4.5 h-4.5" />
+                  </div>
+                  <span className="font-black text-white tracking-tight text-base uppercase shrink-0">
+                    Swift<span className="text-blue-400">Relay</span>
+                  </span>
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Passcode key icon */}
+            <button 
+              onClick={() => {
+                setPasscodeChangeError(null);
+                setPasscodeChangeSuccess(null);
+                setShowPasscodeModal(true);
+              }}
+              className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800/80 hover:border-slate-700 text-amber-400 hover:text-amber-300 rounded-xl transition-all cursor-pointer shadow-sm relative group shrink-0"
+              title="Ganti Passcode Panel"
+            >
+              <KeyRound className="w-4 h-4" />
+              <span className="absolute left-1/2 -translate-x-1/2 -bottom-9 px-2 py-1 bg-slate-900 border border-slate-850 text-[9px] font-bold text-white uppercase tracking-widest rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg z-50">
+                Ganti Passcode
+              </span>
+            </button>
+          </div>
           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
             Sistem Relay Email Cepat
           </span>
         </div>
 
-        <nav className="flex-1 p-4 space-y-0.5">
+        <nav className="flex-1 p-4 space-y-1 relative">
           {[
             { id: "send", icon: Send, label: "Kirim" },
             { id: "templates", icon: FileText, label: "Templates" },
             { id: "terminal", icon: TerminalIcon, label: "Relay Terminal" },
             { id: "accounts", icon: Settings, label: "Pengaturan SMTP" }
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id as any)}
-              className={hn(
-                "w-full px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition-all text-[13px] font-bold",
-                activeTab === item.id
-                  ? "bg-gradient-to-r from-[#0050b3] to-[#003a8f] text-white shadow-lg shadow-blue-900/20 border-t border-white/10"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800/80"
-              )}
-            >
-              <item.icon className="w-3.5 h-3.5" />
-              {item.label}
-            </button>
-          ))}
+          ].map((item) => {
+            const isTabActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id as any)}
+                className={hn(
+                  "relative w-full px-4 py-3 rounded-xl flex items-center gap-3 transition-all text-[13.5px] font-bold outline-none cursor-pointer overflow-hidden group",
+                  isTabActive
+                    ? "text-white font-black"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/20"
+                )}
+              >
+                {/* Active Tab sliding background pill */}
+                {isTabActive && (
+                  <motion.div
+                    layoutId="activeSidebarTab"
+                    className="absolute inset-0 bg-gradient-to-r from-[#0050b3] to-[#003a8f] rounded-xl border-t border-white/15 shadow-md shadow-blue-950/40 z-0"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+                
+                {/* Active Indicator moving bar */}
+                {isTabActive && (
+                  <motion.div
+                    layoutId="activeSidebarBar"
+                    className="absolute left-1 top-2.5 bottom-2.5 w-1 bg-gradient-to-b from-amber-400 to-yellow-300 rounded-full z-10 shadow-[0_0_8px_rgba(251,191,36,0.8)]"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+
+                {/* Content wrapper with z-10 to stay above the sliding pill */}
+                <div className="relative flex items-center gap-3 z-10 w-full">
+                  <item.icon className={hn(
+                    "w-4 h-4 transition-transform duration-300", 
+                    isTabActive ? "text-amber-300 scale-110 animate-pulse" : "text-slate-400 group-hover:scale-110 group-hover:text-slate-200"
+                  )} />
+                  <span className="truncate">{item.label}</span>
+                </div>
+              </button>
+            );
+          })}
         </nav>
 
         <div className="p-4 border-t border-slate-800/50">
@@ -814,20 +1014,23 @@ export default function App() {
                     boxShadow: ["0 0 30px rgba(0, 103, 172, 0.5)", "0 0 90px rgba(0, 103, 172, 0.8)", "0 0 30px rgba(0, 103, 172, 0.5)"]
                   }}
                   transition={{ duration: 0.6, repeat: 1 / 0 }}
-                  className="w-28 h-28 bg-white rounded-full flex items-center justify-center relative z-10 border-4 border-[#003A8F] shadow-2xl overflow-hidden p-0"
+                  className="w-32 h-32 bg-white rounded-full flex items-center justify-center relative z-10 border-4 border-[#003A8F] shadow-2xl overflow-hidden p-0"
                 >
-                  {smtpConfig.logoUrl ? (
+                  {smtpConfig.logoUrl && !logoLoadError ? (
                     <img 
                       src={smtpConfig.logoUrl} 
                       alt="Relay Logo" 
-                      className="w-full h-full object-contain p-2"
+                      className="w-full h-full object-contain p-3"
                       referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/1024px-Bank_Mandiri_logo_2016.svg.png";
+                      onError={() => {
+                        setLogoLoadError(true);
                       }}
                     />
                   ) : (
-                    <Mail className="w-12 h-12 text-[#003A8F]" />
+                    <div className="flex flex-col items-center justify-center text-[#003A8F] p-3">
+                      <Mail className="w-10 h-10 mb-1 animate-bounce" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#003A8F]/70">Swift</span>
+                    </div>
                   )}
                   <motion.div 
                     animate={{ x: ["100%", "-100%"] }}
@@ -901,19 +1104,24 @@ export default function App() {
             )}
             
             <div className="flex items-center gap-2 min-w-0 truncate">
-              {smtpConfig.logoUrl ? (
+              {smtpConfig.logoUrl && !logoLoadError ? (
                 <img 
                   src={smtpConfig.logoUrl} 
                   alt="Brand Logo" 
-                  className="h-6 sm:h-8 w-auto object-contain shrink-0 max-w-[80px] xs:max-w-[120px]"
+                  className="h-10 sm:h-12 w-auto object-contain shrink-0 max-w-[120px] xs:max-w-[160px] max-h-14"
                   referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bank_Mandiri_logo_2016.svg/1024px-Bank_Mandiri_logo_2016.svg.png";
+                  onError={() => {
+                    setLogoLoadError(true);
                   }}
                 />
               ) : (
-                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 shrink-0">
-                  <Mail className="w-4 h-4 text-[#003A8F]" />
+                <div className="flex items-center gap-2 select-none">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-tr from-[#0050b3] to-blue-600 text-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                    <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <span className="font-black text-slate-800 tracking-tight text-sm sm:text-base uppercase shrink-0">
+                    Swift<span className="text-[#0050b3]">Relay</span>
+                  </span>
                 </div>
               )}
               
@@ -940,6 +1148,17 @@ export default function App() {
                 Simpan
               </button>
             )}
+            <button 
+              onClick={() => {
+                setPasscodeChangeError(null);
+                setPasscodeChangeSuccess(null);
+                setShowPasscodeModal(true);
+              }}
+              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-amber-500 hover:text-amber-600 rounded-lg transition-colors cursor-pointer"
+              title="Ganti Passcode Panel"
+            >
+              <KeyRound className="w-4 h-4" />
+            </button>
             <button 
               onClick={handleLogout}
               className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold transition-colors shadow-sm uppercase cursor-pointer"
@@ -1445,124 +1664,271 @@ export default function App() {
                       Konfigurasi SMTP
                     </h2>
                     <p className="text-xs text-slate-500 font-semibold">
-                      Atur server pengiriman email kustom dan detail identitas sender.
+                      Pengaturan super cerdas dengan deteksi otomatis dan status transmisi aktif.
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  {/* Branding info block */}
-                  <div className="bg-white rounded-3xl p-6 border-2 border-white shadow-[0_15px_50px_-5px_rgba(0,58,143,0.25)] ring-1 ring-blue-100/50">
-                    <h3 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">
-                      Branding & Identitas
-                    </h3>
+                  
+                  {/* --- INTEGRATED FORM & STATUS CARD --- */}
+                  <div className="bg-white rounded-3xl p-6 border-2 border-white shadow-[0_15px_50px_-5px_rgba(0,58,143,0.18)] ring-1 ring-blue-100/50 space-y-5">
                     
-                    <div className="space-y-4">
+                    {/* --- SEAMLESS LIVE ANIMATED SMTP CONNECTION STATUS INDICATOR --- */}
+                    {smtpConfig.username && smtpConfig.password ? (
+                      <div className="relative overflow-hidden bg-emerald-50/40 rounded-2xl p-4 border border-emerald-100/80">
+                        {/* High-tech animated signal wave sweep */}
+                        <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-60 animate-[shimmer_2s_infinite]" style={{ backgroundSize: '200% 100%' }} />
+                        
+                        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-10">
+                          <div className="flex items-center gap-3.5">
+                            {/* Professional Radar Light */}
+                            <div className="relative w-9 h-9 flex items-center justify-center shrink-0 bg-white rounded-xl border border-emerald-200 shadow-sm">
+                              <span className="absolute w-7 h-7 rounded-full bg-emerald-500/20 animate-ping" style={{ animationDuration: "2s" }} />
+                              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm shadow-emerald-500/30">
+                                <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                              </div>
+                            </div>
+
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[9px] font-black text-emerald-600 tracking-wider uppercase bg-white px-2 py-0.5 rounded-md border border-emerald-100 shadow-sm">
+                                  RELAY SMTP AKTIF
+                                </span>
+                                <span className="flex h-1.5 w-1.5 relative">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                                </span>
+                              </div>
+                              <h4 className="text-xs font-black text-slate-800 font-mono truncate max-w-[180px] sm:max-w-xs">
+                                {smtpConfig.username}
+                              </h4>
+                              <p className="text-[10px] text-slate-500 font-bold">
+                                Server: <span className="text-[#0050b3] font-mono">{smtpConfig.host || "smtp.gmail.com"}</span>:<span className="text-[#0050b3] font-mono">{smtpConfig.port || "587"}</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Dynamic Signal Indicator with highly prominent animation */}
+                          <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center sm:text-right sm:border-l sm:border-slate-100 sm:pl-3 min-w-[100px] border-t border-slate-100 pt-2 sm:pt-0 sm:border-t-0">
+                            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest hidden sm:inline">
+                              Sinyal Transmisi
+                            </span>
+                            <div className="flex items-end gap-1 h-5 mt-1">
+                              <motion.div 
+                                animate={{ height: ["8px", "18px", "8px"] }}
+                                transition={{ repeat: Infinity, duration: 0.8, ease: "easeInOut" }}
+                                className="w-1 bg-emerald-500 rounded-full" 
+                              />
+                              <motion.div 
+                                animate={{ height: ["14px", "6px", "14px"] }}
+                                transition={{ repeat: Infinity, duration: 1.1, ease: "easeInOut" }}
+                                className="w-1 bg-emerald-400 rounded-full" 
+                              />
+                              <motion.div 
+                                animate={{ height: ["6px", "20px", "6px"] }}
+                                transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut" }}
+                                className="w-1 bg-emerald-500 rounded-full" 
+                              />
+                              <motion.div 
+                                animate={{ height: ["16px", "10px", "16px"] }}
+                                transition={{ repeat: Infinity, duration: 1.3, ease: "easeInOut" }}
+                                className="w-1 bg-emerald-400 rounded-full" 
+                              />
+                            </div>
+                            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest font-mono ml-auto sm:ml-0 sm:mt-1 bg-white px-1.5 py-0.5 rounded border border-emerald-100 shadow-sm">
+                              READY
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative overflow-hidden bg-slate-50/60 rounded-2xl p-4 border border-dashed border-slate-200 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center shrink-0 shadow-sm">
+                          <AlertCircle className="w-4 h-4 text-slate-400 animate-bounce" />
+                        </div>
+                        <div className="space-y-0.5">
+                          <h3 className="text-[11px] font-black text-slate-700 uppercase tracking-wider">
+                            Sistem Menunggu Kredensial
+                          </h3>
+                          <p className="text-[10px] text-slate-500 font-bold leading-normal">
+                            Isi email kustom dan password Anda di bawah. Server SMTP akan terdeteksi secara otomatis secara real-time.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    <hr className="border-slate-100" />
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* 1. Nama Pengirim */}
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] font-extrabold text-[#003A8F] px-1">
-                          Nama Pengirim (Sender Name)
+                        <label className="text-[11px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider flex items-center gap-1">
+                          Nama Pengirim
                         </label>
                         <input 
                           type="text" 
                           value={smtpConfig.fromName}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, fromName: e.target.value })}
-                          placeholder="Masukkan nama pengirim / instansi Anda..."
-                          className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
+                          placeholder="Contoh: Info Layanan"
+                          className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
                         />
                       </div>
+
+                      {/* 2. Logo URL */}
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] font-extrabold text-[#003A8F] px-1">
-                          Logo URL (Untuk disematkan di Template)
+                        <label className="text-[11px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider flex items-center gap-1">
+                          Logo URL
                         </label>
                         <input 
                           type="text" 
                           value={smtpConfig.logoUrl}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, logoUrl: e.target.value })}
-                          placeholder="Masukkan tautan HTTPS logo brand Anda (Contoh: https://domain.com/logo.png)..."
-                          className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
+                          placeholder="https://linklogo.com/logo.png"
+                          className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
                         />
                       </div>
                     </div>
-                  </div>
 
-                  {/* Server Details block */}
-                  <div className="bg-white rounded-3xl p-6 border-2 border-white shadow-[0_15px_50px_-5px_rgba(0,58,143,0.25)] ring-1 ring-blue-100/50">
-                    <h3 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">
-                      Detail Server SMTP
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-1.5">
-                          <label className="text-[11px] font-extrabold text-[#003A8F] px-1">
-                            Host Server
-                          </label>
+                    <hr className="border-slate-100" />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* 3. Email Pengirim (Username) */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[11px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider flex items-center gap-1">
+                          Email SMTP
+                        </label>
+                        <div className="relative">
                           <input 
-                            type="text" 
-                            value={smtpConfig.host}
-                            onChange={(e) => setSmtpConfig({ ...smtpConfig, host: e.target.value })}
-                            placeholder="smtp.gmail.com"
-                            className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
+                            type="email" 
+                            value={smtpConfig.username}
+                            onChange={(e) => setSmtpConfig({ ...smtpConfig, username: e.target.value })}
+                            placeholder="user@domain.com"
+                            className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
                           />
                         </div>
-                        <div className="flex flex-col gap-1.5">
-                          <label className="text-[11px] font-extrabold text-[#003A8F] px-1">
-                            Port
-                          </label>
-                          <input 
-                            type="text" 
-                            value={smtpConfig.port}
-                            onChange={(e) => setSmtpConfig({ ...smtpConfig, port: e.target.value })}
-                            placeholder="587"
-                            className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] font-extrabold text-[#003A8F] px-1">
-                          Limit Harian (Daily Limit)
-                        </label>
-                        <input 
-                          type="number" 
-                          value={smtpConfig.dailyLimit}
-                          onChange={(e) => setSmtpConfig({ ...smtpConfig, dailyLimit: e.target.value })}
-                          className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Kredensial */}
-                  <div className="bg-white rounded-3xl p-6 border-2 border-white shadow-[0_15px_50px_-5px_rgba(0,58,143,0.25)] ring-1 ring-blue-100/50">
-                    <h3 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">
-                      Kredensial Akun
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] font-extrabold text-[#003A8F] px-1">
-                          Username / Email Pengirim
-                        </label>
-                        <input 
-                          type="email" 
-                          value={smtpConfig.username}
-                          onChange={(e) => setSmtpConfig({ ...smtpConfig, username: e.target.value })}
-                          placeholder="user@gmail.com"
-                          className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
-                        />
+                        {/* Smart SMTP Auto-detection Loading */}
+                        {isDetectingSmtp && (
+                          <div className="flex items-center gap-1.5 mt-2 px-1 text-[10px] text-blue-600 font-extrabold">
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>MENGANALISIS SERVER DOMAIN...</span>
+                          </div>
+                        )}
+
+                        {/* Smart SMTP Auto-detection Applied Indicator */}
+                        {!isDetectingSmtp && smtpRecommendation && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-2.5 p-3 bg-blue-50/70 border border-blue-100 rounded-2xl flex flex-col gap-1.5 shadow-sm"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black uppercase text-blue-800 tracking-wider flex items-center gap-1.5">
+                                <motion.span
+                                  animate={{ rotate: 360 }}
+                                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                                  className="inline-block shrink-0"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                                </motion.span>
+                                SMTP Terdeteksi Otomatis
+                              </span>
+                              <span className="text-[8px] font-extrabold px-2 py-0.5 bg-emerald-500 text-white rounded-full uppercase tracking-wider">
+                                APPLIED
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-700">
+                              Server: <strong className="text-[#003A8F]">{smtpRecommendation.providerName}</strong> ({smtpConfig.host}:{smtpConfig.port})
+                            </span>
+                          </motion.div>
+                        )}
                       </div>
+
+                      {/* 4. App Password */}
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] font-extrabold text-[#003A8F] px-1">
-                          App Password
+                        <label className="text-[11px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider">
+                          Password / App Password
                         </label>
                         <input 
                           type="password" 
                           value={smtpConfig.password}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, password: e.target.value as any })}
                           placeholder="••••••••••••••••"
-                          className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm font-mono"
+                          className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm font-mono"
                         />
                       </div>
                     </div>
+
+                    {/* --- ADVANCED COLLAPSIBLE DRAWER --- */}
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        className="w-full py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Settings className="w-3.5 h-3.5" />
+                        {showAdvanced ? "Sembunyikan Server Override" : "Tampilkan Detail Server (Manual Override)"}
+                      </button>
+
+                      <AnimatePresence>
+                        {showAdvanced && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pt-4 grid grid-cols-2 gap-4 pb-1">
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Host SMTP</label>
+                                <input 
+                                  type="text" 
+                                  value={smtpConfig.host}
+                                  onChange={(e) => setSmtpConfig({ ...smtpConfig, host: e.target.value })}
+                                  placeholder="smtp.gmail.com"
+                                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Port SMTP</label>
+                                <input 
+                                  type="text" 
+                                  value={smtpConfig.port}
+                                  onChange={(e) => setSmtpConfig({ ...smtpConfig, port: e.target.value })}
+                                  placeholder="587"
+                                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Enkripsi</label>
+                                <select 
+                                  value={smtpConfig.connectionType}
+                                  onChange={(e) => setSmtpConfig({ ...smtpConfig, connectionType: e.target.value as any })}
+                                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold outline-none"
+                                >
+                                  <option value="STARTTLS">STARTTLS</option>
+                                  <option value="SSL">SSL</option>
+                                  <option value="NONE">NONE</option>
+                                </select>
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Limit Harian</label>
+                                <input 
+                                  type="number" 
+                                  value={smtpConfig.dailyLimit}
+                                  onChange={(e) => setSmtpConfig({ ...smtpConfig, dailyLimit: e.target.value })}
+                                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold"
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
                   </div>
+
 
                   {/* Action buttons row */}
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -1820,6 +2186,142 @@ export default function App() {
           )}
         </AnimatePresence>
 
+        {/* --- DYNAMIC PASSCODE CHANGE MODAL --- */}
+        <AnimatePresence>
+          {showPasscodeModal && (
+            <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+              {/* Backdrop */}
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowPasscodeModal(false)}
+                className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+              />
+
+              {/* Modal Box */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative bg-white w-full max-w-md rounded-3xl p-6 border border-slate-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] z-[1000] overflow-hidden"
+              >
+                {/* Accent Line */}
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-700 via-blue-500 to-amber-500" />
+
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 border border-amber-100 shadow-sm shrink-0">
+                      <KeyRound className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-[#003A8F] uppercase tracking-wider">
+                        Ganti Passcode Panel
+                      </h3>
+                      <p className="text-[10px] text-slate-500 font-semibold leading-none mt-0.5">
+                        Amankan akses konsol admin Anda
+                      </p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setShowPasscodeModal(false)}
+                    className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-5 h-5 rotate-45" />
+                  </button>
+                </div>
+
+                <hr className="border-slate-100 mb-4" />
+
+                <form onSubmit={handleChangePasscode} className="space-y-4">
+                  {passcodeChangeError && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-[11px] font-bold flex items-center gap-2"
+                    >
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                      <span>{passcodeChangeError}</span>
+                    </motion.div>
+                  )}
+
+                  {passcodeChangeSuccess && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-2xl text-[11px] font-bold flex items-center gap-2"
+                    >
+                      <CheckCircle className="w-4 h-4 shrink-0 text-emerald-500" />
+                      <span>{passcodeChangeSuccess}</span>
+                    </motion.div>
+                  )}
+
+                  <div className="space-y-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider">
+                        Passcode Saat Ini
+                      </label>
+                      <input 
+                        type="password" 
+                        required
+                        value={currentPasscodeForm}
+                        onChange={(e) => setCurrentPasscodeForm(e.target.value)}
+                        placeholder="Masukkan passcode lama Anda"
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-mono font-semibold focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider">
+                        Passcode Baru
+                      </label>
+                      <input 
+                        type="password" 
+                        required
+                        value={newPasscodeForm}
+                        onChange={(e) => setNewPasscodeForm(e.target.value)}
+                        placeholder="Minimal 4 karakter"
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-mono font-semibold focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider">
+                        Ulangi Passcode Baru
+                      </label>
+                      <input 
+                        type="password" 
+                        required
+                        value={confirmPasscodeForm}
+                        onChange={(e) => setConfirmPasscodeForm(e.target.value)}
+                        placeholder="Ketik ulang passcode baru Anda"
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-mono font-semibold focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2 gap-2">
+                    <button 
+                      type="button"
+                      onClick={() => setShowPasscodeModal(false)}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
+                    >
+                      Batal
+                    </button>
+                    <button 
+                      type="submit"
+                      className="px-5 py-2.5 bg-gradient-to-r from-blue-700 to-[#0050b3] hover:from-blue-800 hover:to-[#003a8f] text-white text-[10px] font-black rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                    >
+                      <KeyRound className="w-3.5 h-3.5" />
+                      Perbarui
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
         {/* --- BOTTOM RESPONSIVE VIEWBAR FOR MOBILE/TABLET --- */}
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-[64px] flex items-center justify-around z-50 lg:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.1)] px-2 safe-area-bottom overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-blue-700 via-blue-400 to-blue-500 z-10" />
@@ -1837,13 +2339,13 @@ export default function App() {
                 className="relative flex flex-col items-center justify-center gap-0.5 w-16 h-full transition-all duration-300"
               >
                 <div className={hn(
-                  "p-1 rounded-xl transition-all duration-300",
+                  "p-1.5 rounded-xl transition-all duration-300 relative z-10",
                   isTabActive ? "bg-blue-50 text-[#0050b3] shadow-sm" : "text-slate-400 hover:text-slate-800"
                 )}>
-                  <item.icon className={hn("w-5 h-5 transition-transform", isTabActive && "scale-105")} />
+                  <item.icon className={hn("w-5 h-5 transition-transform", isTabActive && "scale-110 animate-pulse")} />
                 </div>
                 <span className={hn(
-                  "text-[9px] font-black transition-all uppercase tracking-tighter",
+                  "text-[9px] font-black transition-all uppercase tracking-tighter relative z-10",
                   isTabActive ? "text-[#0050b3]" : "text-slate-600"
                 )}>
                   {item.label}
@@ -1851,7 +2353,8 @@ export default function App() {
                 {isTabActive && (
                   <motion.div 
                     layoutId="activeTabMobile" 
-                    className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-[#0050b3] to-[#003a8f] rounded-t-full shadow-[0_-5px_15px_rgba(0,58,143,0.3)]"
+                    className="absolute bottom-0 w-12 h-1.5 bg-gradient-to-r from-[#0050b3] to-[#003a8f] rounded-t-full shadow-[0_-5px_15px_rgba(0,58,143,0.3)]"
+                    transition={{ type: "spring", stiffness: 380, damping: 25 }}
                   />
                 )}
               </button>

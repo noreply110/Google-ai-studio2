@@ -4,6 +4,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import nodemailer from "nodemailer";
 import fs from "fs";
+import { promises as dnsPromises } from "dns";
 
 const app = express();
 app.set("trust proxy", true);
@@ -130,6 +131,165 @@ app.post("/api/chat-assistant", async (req, res) => {
   } catch (error: any) {
     console.error("Gemini Assistant Error:", error);
     res.status(500).json({ error: "Failed to communicate with AI: " + error.message });
+  }
+});
+
+// API Endpoint: Detect SMTP configuration based on email/domain
+app.post("/api/detect-smtp", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({ error: "Email tidak valid atau tidak lengkap." });
+    }
+
+    const domain = email.split("@")[1].trim().toLowerCase();
+
+    // 1. Check common standard providers first to be extremely fast
+    const standardProviders: Record<string, { host: string; port: string; connectionType: "STARTTLS" | "SSL" | "NONE"; providerName: string }> = {
+      "gmail.com": { host: "smtp.gmail.com", port: "587", connectionType: "STARTTLS", providerName: "Google Mail (Gmail)" },
+      "yahoo.com": { host: "smtp.mail.yahoo.com", port: "465", connectionType: "SSL", providerName: "Yahoo Mail" },
+      "ymail.com": { host: "smtp.mail.yahoo.com", port: "465", connectionType: "SSL", providerName: "Yahoo Mail" },
+      "outlook.com": { host: "smtp.office365.com", port: "587", connectionType: "STARTTLS", providerName: "Microsoft Outlook" },
+      "hotmail.com": { host: "smtp.office365.com", port: "587", connectionType: "STARTTLS", providerName: "Microsoft Hotmail" },
+      "live.com": { host: "smtp.office365.com", port: "587", connectionType: "STARTTLS", providerName: "Microsoft Live" },
+      "icloud.com": { host: "smtp.mail.me.com", port: "587", connectionType: "STARTTLS", providerName: "Apple iCloud" },
+      "zoho.com": { host: "smtp.zoho.com", port: "465", connectionType: "SSL", providerName: "Zoho Mail" },
+      "zoho.in": { host: "smtp.zoho.in", port: "465", connectionType: "SSL", providerName: "Zoho Mail India" },
+      "yandex.com": { host: "smtp.yandex.com", port: "465", connectionType: "SSL", providerName: "Yandex Mail" },
+      "mail.ru": { host: "smtp.mail.ru", port: "465", connectionType: "SSL", providerName: "Mail.ru" },
+      "protonmail.com": { host: "127.0.0.1", port: "1025", connectionType: "NONE", providerName: "ProtonMail Bridge" },
+      "proton.me": { host: "127.0.0.1", port: "1025", connectionType: "NONE", providerName: "ProtonMail Bridge" },
+    };
+
+    if (standardProviders[domain]) {
+      return res.json({
+        success: true,
+        source: "standard_directory",
+        ...standardProviders[domain]
+      });
+    }
+
+    // 2. Perform MX lookup for custom domains
+    let mxRecords: any[] = [];
+    try {
+      mxRecords = await dnsPromises.resolveMx(domain);
+    } catch (dnsErr) {
+      console.warn(`DNS MX resolution failed for ${domain}:`, dnsErr);
+    }
+
+    // Sort MX records by priority (lower is higher priority)
+    mxRecords.sort((a, b) => a.priority - b.priority);
+    const mxHosts = mxRecords.map(r => r.exchange.toLowerCase());
+
+    console.log(`MX hosts for ${domain}:`, mxHosts);
+
+    // Check if MX records match any standard enterprise providers
+    for (const host of mxHosts) {
+      if (host.includes("google.com") || host.includes("aspmx.l.google.com") || host.includes("googlemail.com")) {
+        return res.json({
+          success: true,
+          source: "mx_lookup",
+          providerName: `Google Workspace Custom Email`,
+          host: "smtp.gmail.com",
+          port: "587",
+          connectionType: "STARTTLS"
+        });
+      }
+      if (host.includes("outlook.com") || host.includes("mail.protection.outlook.com")) {
+        return res.json({
+          success: true,
+          source: "mx_lookup",
+          providerName: `Microsoft 365 Custom Email`,
+          host: "smtp.office365.com",
+          port: "587",
+          connectionType: "STARTTLS"
+        });
+      }
+      if (host.includes("zoho.com") || host.includes("zoho.eu")) {
+        return res.json({
+          success: true,
+          source: "mx_lookup",
+          providerName: `Zoho Mail Custom Email`,
+          host: "smtp.zoho.com",
+          port: "465",
+          connectionType: "SSL"
+        });
+      }
+      if (host.includes("secureserver.net")) {
+        return res.json({
+          success: true,
+          source: "mx_lookup",
+          providerName: `GoDaddy Custom Email`,
+          host: "smtpout.secureserver.net",
+          port: "465",
+          connectionType: "SSL"
+        });
+      }
+      if (host.includes("yandex")) {
+        return res.json({
+          success: true,
+          source: "mx_lookup",
+          providerName: `Yandex Connect Custom Email`,
+          host: "smtp.yandex.com",
+          port: "465",
+          connectionType: "SSL"
+        });
+      }
+    }
+
+    // 3. Fallback to Gemini AI for smart reasoning on custom/complex domains!
+    if (process.env.GEMINI_API_KEY) {
+      const ai = getGeminiClient();
+      const prompt = `Analyze the email domain "${domain}" and its MX records: ${JSON.stringify(mxHosts)}.
+Based on this information, recommend the most likely SMTP host server, Port, and Connection Type (STARTTLS, SSL, or NONE).
+If it looks like a standard cPanel / self-hosted mail server (which is common for custom domains with local MX records like "mail.${domain}" or "smtp.${domain}"), recommend "mail.${domain}" with port "587" and "STARTTLS" as the connection type.
+
+You MUST respond strictly with a valid JSON object matching this schema (do NOT include markdown formatting wrappers, only raw JSON):
+{
+  "host": "string (the smtp server host, e.g. smtp.example.com or mail.example.com)",
+  "port": "string (the port, e.g. '587' or '465')",
+  "connectionType": "STARTTLS or SSL or NONE",
+  "providerName": "string (a descriptive name of the provider or cPanel custom server)"
+}`;
+
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: prompt,
+          config: {
+            temperature: 0.1,
+            responseMimeType: "application/json"
+          }
+        });
+
+        const jsonText = response.text.trim();
+        const detected = JSON.parse(jsonText);
+        return res.json({
+          success: true,
+          source: "gemini_ai",
+          host: detected.host || `mail.${domain}`,
+          port: detected.port || "587",
+          connectionType: detected.connectionType || "STARTTLS",
+          providerName: detected.providerName || `Custom Server (${domain})`
+        });
+      } catch (aiErr) {
+        console.error("Gemini SMTP detection failed, falling back to standard cPanel guess:", aiErr);
+      }
+    }
+
+    // 4. Default cPanel/standard fallback if Gemini fails or is not available
+    return res.json({
+      success: true,
+      source: "heuristic_fallback",
+      providerName: `Custom Server (${domain})`,
+      host: `mail.${domain}`,
+      port: "587",
+      connectionType: "STARTTLS"
+    });
+
+  } catch (error: any) {
+    console.error("SMTP detection error:", error);
+    res.status(500).json({ error: "Gagal mendeteksi pengaturan SMTP: " + error.message });
   }
 });
 
