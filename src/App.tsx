@@ -102,6 +102,87 @@ export default function App() {
   const [apiStatus, setApiStatus] = useState<any>(null);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+  const [smtpTestError, setSmtpTestError] = useState<string | null>(null);
+  const [smtpTestSuccess, setSmtpTestSuccess] = useState<boolean>(false);
+
+  const getSmtpDiagnostic = (errorStr: string) => {
+    const err = errorStr.toLowerCase();
+    
+    if (err.includes("smtpclientauthentication is disabled") || err.includes("smtp_auth_disabled")) {
+      return {
+        title: "SmtpClientAuthentication Disabled (Microsoft 365 / Outlook)",
+        reason: "Fitur Authenticated SMTP dinonaktifkan oleh kebijakan keamanan administrator (Security Defaults) di penyewa Microsoft 365 / Exchange Online Anda.",
+        steps: [
+          "Minta Administrator IT Anda membuka Admin Center Microsoft 365 (admin.microsoft.com).",
+          "Buka Pengguna Aktif (Active Users) > pilih nama pengguna Anda > tab Email > Kelola aplikasi email (Manage email apps).",
+          "Beri tanda centang pada 'SMTP Terautentikasi' (Authenticated SMTP) lalu simpan perubahan.",
+          "Alternatif (PowerShell): Jalankan perintah 'Set-CASMailbox -Identity \"email@domain.com\" -SmtpClientAuthenticationDisabled $false'.",
+          "Tunggu 5-15 menit agar Microsoft menerapkan perubahan sebelum mencoba kembali."
+        ]
+      };
+    }
+    
+    if (err.includes("app-specific password") || err.includes("application-specific password") || err.includes("app password") || (err.includes("gmail") && err.includes("535")) || (err.includes("google") && err.includes("535"))) {
+      return {
+        title: "Diperlukan Sandi Aplikasi (Gmail / Google Workspace)",
+        reason: "Google melarang login menggunakan password utama demi keamanan Anda, kecuali menggunakan Sandi Aplikasi khusus.",
+        steps: [
+          "Buka setelan Akun Google Anda (myaccount.google.com).",
+          "Aktifkan Verifikasi 2 Langkah (2-Step Verification) jika belum aktif.",
+          "Masuk ke Keamanan (Security) > cari/pilih 'Sandi Aplikasi' (App Passwords).",
+          "Buat sandi baru untuk aplikasi 'Lainnya' (Sebut saja 'Relay Panel') lalu klik Buat.",
+          "Salin kode 16 digit yang muncul, lalu gunakan kode tersebut sebagai password SMTP di sini (tanpa spasi)."
+        ]
+      };
+    }
+    
+    if (err.includes("zoho") && err.includes("535")) {
+      return {
+        title: "Diperlukan Sandi Aplikasi Zoho Mail",
+        reason: "Akun Zoho Anda mengaktifkan Autentikasi Dua Faktor (2FA) atau mewajibkan Sandi Aplikasi khusus untuk integrasi SMTP.",
+        steps: [
+          "Masuk ke Zoho Directory / Zoho Mail Control Panel.",
+          "Buka My Account > Security > Application-Specific Passwords.",
+          "Buat sandi baru, beri nama 'Relay Panel'.",
+          "Salin sandi aplikasi tersebut dan masukkan sebagai Password SMTP Anda di panel ini."
+        ]
+      };
+    }
+
+    if (err.includes("timeout") || err.includes("refused") || err.includes("econnrefused") || err.includes("etimedout")) {
+      return {
+        title: "Koneksi Terputus / Timeout (Blokir Port)",
+        reason: "Server tidak merespons atau menolak koneksi pada port yang ditentukan. Banyak penyedia jaringan/cloud memblokir port SMTP default untuk mencegah spam.",
+        steps: [
+          "Pastikan Host SMTP dan Port yang Anda masukkan sudah benar.",
+          "Port 25 seringkali diblokir total oleh penyedia internet/cloud. Gunakan Port 465 (dengan SSL) atau Port 587 (dengan STARTTLS).",
+          "Periksa apakah kombinasi Port dan Tipe Enkripsi cocok: SSL untuk port 465, STARTTLS untuk port 587."
+        ]
+      };
+    }
+
+    if (err.includes("invalid login") || err.includes("authentication unsuccessful") || err.includes("535 5.7.8") || err.includes("authentication failed")) {
+      return {
+        title: "Username atau Password Salah (Kredensial Tidak Valid)",
+        reason: "Server SMTP menolak kombinasi email dan password yang Anda masukkan.",
+        steps: [
+          "Periksa kembali apakah penulisan email/username SMTP sudah benar-benar sesuai.",
+          "Pastikan tidak ada salah ketik (typo) atau spasi ekstra di awal atau akhir password Anda.",
+          "Jika akun Anda menggunakan otentikasi Single Sign-On (SSO) or 2FA, pastikan menggunakan Sandi Aplikasi (App Password), bukan password utama Anda."
+        ]
+      };
+    }
+
+    return {
+      title: "Kegagalan Pengiriman / Otentikasi Umum",
+      reason: "Server SMTP merespons dengan kesalahan yang mencegah pengiriman email pengetesan.",
+      steps: [
+        "Periksa kembali pengaturan Host, Port, dan Protokol Keamanan Anda.",
+        "Coba gunakan kombinasi port lain (misal beralih dari Port 587 ke Port 465).",
+        "Pastikan akun email pengirim Anda aktif dan tidak dalam keadaan ditangguhkan (suspended)."
+      ]
+    };
+  };
 
   // --- Streaming Terminal Logs ---
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -175,6 +256,8 @@ export default function App() {
     connectionType: "STARTTLS" | "SSL" | "NONE";
     providerName: string;
     emailDetected: string;
+    layer?: number;
+    source?: string;
   } | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -287,7 +370,9 @@ export default function App() {
           port: data.port,
           connectionType: data.connectionType as "STARTTLS" | "SSL" | "NONE",
           providerName: data.providerName,
-          emailDetected: email
+          emailDetected: email,
+          layer: data.layer || 1,
+          source: data.source
         });
         
         // Auto-apply SMTP settings directly
@@ -298,7 +383,9 @@ export default function App() {
           connectionType: data.connectionType as any
         }));
 
-        addLog("info", `Deteksi SMTP Cerdas: Terdeteksi ${data.providerName}`);
+        const layerNum = data.layer || 1;
+        const sourceName = data.source || "Unknown";
+        addLog("info", `Deteksi SMTP Cerdas (Layer ${layerNum} - ${sourceName}): Terdeteksi ${data.providerName}`);
         addLog("success", `Konfigurasi server ${data.host}:${data.port} (${data.connectionType}) diterapkan otomatis.`);
       } else {
         setSmtpRecommendation(null);
@@ -491,6 +578,8 @@ export default function App() {
     setShowRocketScreen(true);
     setErrorBanner(null);
     setSuccessBanner(null);
+    setSmtpTestError(null);
+    setSmtpTestSuccess(false);
     addLog("info", "Sedang menguji koneksi SMTP...");
 
     try {
@@ -518,10 +607,12 @@ export default function App() {
       }
 
       setSuccessBanner("Test koneksi SMTP berhasil!");
+      setSmtpTestSuccess(true);
       addLog("success", "Uji coba SMTP berhasil. Silakan cek inbox email pengirim.");
       setTimeout(() => setShowRocketScreen(false), 800);
     } catch (err: any) {
       setErrorBanner(`Koneksi Gagal: ${err.message}`);
+      setSmtpTestError(err.message);
       addLog("error", `SMTP Test Gagal: ${err.message}`);
       setShowRocketScreen(false);
     } finally {
@@ -1821,7 +1912,7 @@ export default function App() {
                           <motion.div 
                             initial={{ opacity: 0, y: -5 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="mt-2.5 p-3 bg-blue-50/70 border border-blue-100 rounded-2xl flex flex-col gap-1.5 shadow-sm"
+                            className="mt-2.5 p-3.5 bg-[#f0f7ff] border border-blue-200 rounded-2xl flex flex-col gap-2.5 shadow-sm"
                           >
                             <div className="flex items-center justify-between">
                               <span className="text-[9px] font-black uppercase text-blue-800 tracking-wider flex items-center gap-1.5">
@@ -1838,9 +1929,55 @@ export default function App() {
                                 APPLIED
                               </span>
                             </div>
-                            <span className="text-[11px] font-bold text-slate-700">
-                              Server: <strong className="text-[#003A8F]">{smtpRecommendation.providerName}</strong> ({smtpConfig.host}:{smtpConfig.port})
-                            </span>
+                            
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[12px] font-bold text-slate-800">
+                                Server: <strong className="text-[#003A8F]">{smtpRecommendation.providerName}</strong> ({smtpConfig.host}:{smtpConfig.port})
+                              </span>
+                              
+                              {/* Layer Detection Visual Pipeline */}
+                              <div className="mt-1.5 pt-2 border-t border-blue-100/70">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
+                                  Sumber Deteksi (Strategi Hibrida):
+                                </span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {[
+                                    { num: 1, label: "L1: DB Pusat / MX", key: ["database_pusat", "mx_signature"] },
+                                    { num: 2, label: "L2: Mozilla XML", key: ["mozilla_autoconfig"] },
+                                    { num: 3, label: "L3: MS Autodiscover", key: ["microsoft_autodiscover"] },
+                                    { num: 4, label: "L4: DNS SRV", key: ["dns_srv_records"] },
+                                    { num: 5, label: "L5: Active Probing", key: ["active_probing"] },
+                                    { num: 6, label: "L6: AI Fallback", key: ["gemini_ai_fallback"] },
+                                    { num: 7, label: "L7: Heuristic", key: ["heuristic_fallback"] },
+                                  ].map((layerItem) => {
+                                    const isActive = smtpRecommendation.layer === layerItem.num || layerItem.key.includes(smtpRecommendation.source || "");
+                                    return (
+                                      <span 
+                                        key={layerItem.num}
+                                        className={`text-[8px] font-black px-2 py-1 rounded-lg transition-all ${
+                                          isActive 
+                                            ? "bg-[#003A8F] text-white ring-2 ring-blue-200 scale-105 shadow-sm" 
+                                            : "bg-slate-100 text-slate-400"
+                                        }`}
+                                      >
+                                        {layerItem.label}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                                <span className="text-[10px] text-blue-700/85 font-semibold mt-2 block italic">
+                                  * Berhasil dikonfigurasi melalui <strong>{
+                                    smtpRecommendation.layer === 1 ? "Layer 1 (Database Pusat / MX Record)" :
+                                    smtpRecommendation.layer === 2 ? "Layer 2 (Protokol Mozilla Autoconfig)" :
+                                    smtpRecommendation.layer === 3 ? "Layer 3 (Microsoft Autodiscover XML)" :
+                                    smtpRecommendation.layer === 4 ? "Layer 4 (DNS SRV Records RFC 6186)" :
+                                    smtpRecommendation.layer === 5 ? "Layer 5 (Smart Guessing & Active Port Probing)" :
+                                    smtpRecommendation.layer === 6 ? "Layer 6 (AI-Powered Gemini Intuition)" :
+                                    "Layer 7 (Default Heuristic Fallback)"
+                                  }</strong>.
+                                </span>
+                              </div>
+                            </div>
                           </motion.div>
                         )}
                       </div>
@@ -1928,6 +2065,65 @@ export default function App() {
                     </div>
 
                   </div>
+
+
+                  {/* Smart Diagnostic Alert for SMTP testing */}
+                  {smtpTestSuccess && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex flex-col gap-2 shadow-sm text-xs"
+                    >
+                      <div className="flex items-center gap-2 text-emerald-800 font-extrabold uppercase tracking-wider">
+                        <CheckCircle className="w-4 h-4 text-emerald-600" />
+                        Uji Koneksi Berhasil!
+                      </div>
+                      <p className="text-emerald-700 font-semibold leading-relaxed">
+                        Server SMTP berhasil menerima koneksi dan mengirim email uji coba. Konfigurasi Anda sudah 100% benar dan siap digunakan.
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {smtpTestError && (() => {
+                    const diagnostic = getSmtpDiagnostic(smtpTestError);
+                    return (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-4.5 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col gap-3 shadow-md text-xs"
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <AlertTriangle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
+                          <div className="flex-1">
+                            <h4 className="text-rose-900 font-black uppercase tracking-wider text-[11px]">
+                              {diagnostic.title}
+                            </h4>
+                            <p className="text-rose-700 font-semibold mt-1 leading-relaxed">
+                              {diagnostic.reason}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-white/80 rounded-xl border border-rose-100 flex flex-col gap-2">
+                          <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block">
+                            Langkah Solusi Pemecahan Masalah:
+                          </span>
+                          <ol className="list-decimal list-inside space-y-1.5 text-slate-700 font-medium leading-relaxed">
+                            {diagnostic.steps.map((step, idx) => (
+                              <li key={idx} className="pl-1">
+                                <span className="text-slate-800 font-semibold">{step}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+
+                        <div className="pt-2 border-t border-rose-100/80 flex flex-col gap-1 text-[10px] text-rose-600/80 font-mono">
+                          <span className="font-bold uppercase tracking-wider text-[8px]">LOG ERROR SYSTEM:</span>
+                          <span className="break-all">{smtpTestError}</span>
+                        </div>
+                      </motion.div>
+                    );
+                  })()}
 
 
                   {/* Action buttons row */}

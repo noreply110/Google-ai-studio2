@@ -33,106 +33,173 @@ function getGeminiClient(): GoogleGenAI {
   return aiClient;
 }
 
-// API Endpoint: Analyze binary using Gemini API
-app.post("/api/analyze-binary", async (req, res) => {
-  try {
-    const { fileName, fileSize, fileType, hexSnippet, strings, customPrompt } = req.body;
+import net from "net";
 
-    if (!hexSnippet) {
-      return res.status(400).json({ error: "Missing binary hex snippet for analysis" });
-    }
-
-    const ai = getGeminiClient();
-    if (!process.env.GEMINI_API_KEY) {
-      return res.json({
-        analysis: "### [AI Analysis Unavailable]\n\nGEMINI_API_KEY is not set. Please configure your API key in **Settings > Secrets** to enable advanced AI reverse engineering capabilities.\n\nHere is a local analysis of the uploaded file:\n" +
-          `- **File Name:** ${fileName || "unknown"}\n` +
-          `- **File Size:** ${fileSize || 0} bytes\n` +
-          `- **Inferred Signature:** ${fileType || "Unknown binary"}\n` +
-          `- **Bytes Snippet:** \`${hexSnippet.substring(0, 100)}...\``
-      });
-    }
-
-    const systemPrompt = 
-      "You are an expert security researcher and reverse engineer. " +
-      "Your job is to analyze the provided hex bytes, file metadata, and extracted printable strings " +
-      "of a compiled binary file (or challenge) to reconstruct its behavior, decompile key functions " +
-      "into pseudo-C, identify security vulnerabilities (like buffer overflows, hardcoded credentials, " +
-      "cryptographic flaws), and explain how a reverse engineer would approach analyzing or patching this application.";
-
-    const contents = `
-File Name: ${fileName || "unknown"}
-File Size: ${fileSize || 0} bytes
-File Type: ${fileType || "unknown/binary"}
-
-Hex Snippet (First 256 bytes):
-${hexSnippet}
-
-Extracted Strings:
-${strings && strings.length > 0 ? strings.join("\n") : "[No printable strings found]"}
-
-${customPrompt ? `User Specific Question:\n${customPrompt}` : "Please perform a complete static reverse engineering analysis of this binary. Break it down into: 1. File Type & Header Analysis, 2. Extracted Strings context, 3. Visualized C-Pseudo-code of key functions based on headers/strings, 4. Potential Vulnerabilities or Secrets, 5. Patching instructions (e.g. bypass validation logic)."}
-`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: contents,
-      config: {
-        systemInstruction: systemPrompt,
-        temperature: 0.3,
-      },
+// Helper: TCP Socket Port Probing to check if host is listening on specific port
+function probeTcpPort(host: string, port: number, timeout = 1200): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = net.connect({ host, port, timeout }, () => {
+      socket.end();
+      resolve(true);
     });
-
-    res.json({ analysis: response.text });
-  } catch (error: any) {
-    console.error("Gemini API Error:", error);
-    res.status(500).json({ error: "Failed to analyze binary: " + error.message });
-  }
-});
-
-// API Endpoint: Ask Gemini specific questions (Chat assistant for the reversing workspace)
-app.post("/api/chat-assistant", async (req, res) => {
-  try {
-    const { history, message, context } = req.body;
-
-    const ai = getGeminiClient();
-    if (!process.env.GEMINI_API_KEY) {
-      return res.json({
-        text: "Interactive AI Chat requires a GEMINI_API_KEY. Please set up your key in AI Studio Secrets."
-      });
-    }
-
-    // Prepare system instructions with current debugging context
-    const systemInstruction = 
-      "You are the BinaryForge AI Reverse Engineering Assistant. You are embedded in an interactive " +
-      "reverse engineering environment featuring a Hex Editor, Disassembler, Decompiler, and CPU Register/Stack Emulator. " +
-      "The user is debugging a binary program. Use your knowledge of x86 assembly, reverse engineering tools (IDA, Ghidra), " +
-      "vulnerabilities (Buffer overflows, XOR encodings, logic bypasses), and standard debugging concepts " +
-      "to answer questions clearly, write snippets of assembly, or explain how registers change.\n\n" +
-      `CURRENT DEBUGGING WORKSPACE CONTEXT:\n${context || "No binary file is selected currently."}`;
-
-    // Prepare chat messages
-    const chat = ai.chats.create({
-      model: "gemini-3.5-flash",
-      config: {
-        systemInstruction: systemInstruction,
-        temperature: 0.7,
-      },
+    socket.on("error", () => {
+      socket.destroy();
+      resolve(false);
     });
+    socket.on("timeout", () => {
+      socket.destroy();
+      resolve(false);
+    });
+  });
+}
 
-    // Send history to establish context if provided
-    if (history && history.length > 0) {
-      // For simple conversation handling in REST, we can feed previous rounds
-      // but to keep it simple, we can send the message directly with a summary of context.
+// Helper: Query Mozilla Thunderbird ISPDB
+async function fetchMozillaConfig(domain: string): Promise<{ host: string; port: string; connectionType: "STARTTLS" | "SSL" | "NONE"; providerName: string } | null> {
+  try {
+    const url = `https://autoconfig.thunderbird.net/v1.1/${domain}`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const xmlText = await response.text();
+
+    const smtpBlockRegex = /<outgoingServer\s+type="smtp">([\s\S]*?)<\/outgoingServer>/i;
+    const match = xmlText.match(smtpBlockRegex);
+    if (match) {
+      const block = match[1];
+      const hostMatch = block.match(/<hostname>([^<]+)<\/hostname>/i);
+      const portMatch = block.match(/<port>([^<]+)<\/port>/i);
+      const socketTypeMatch = block.match(/<socketType>([^<]+)<\/socketType>/i);
+      
+      if (hostMatch && portMatch) {
+        const host = hostMatch[1].trim();
+        const port = portMatch[1].trim();
+        let connectionType: "STARTTLS" | "SSL" | "NONE" = "STARTTLS";
+        const socketType = socketTypeMatch ? socketTypeMatch[1].trim().toUpperCase() : "";
+        if (socketType === "SSL" || socketType === "TLS") {
+          connectionType = "SSL";
+        } else if (socketType === "STARTTLS") {
+          connectionType = "STARTTLS";
+        } else if (socketType === "PLAIN") {
+          connectionType = "NONE";
+        } else {
+          connectionType = port === "465" ? "SSL" : "STARTTLS";
+        }
+
+        const providerMatch = xmlText.match(/<displayName>([^<]+)<\/displayName>/i);
+        const providerName = providerMatch ? providerMatch[1].trim() : `${domain} (Mozilla ISPDB)`;
+
+        return { host, port, connectionType, providerName };
+      }
     }
-
-    const response = await chat.sendMessage({ message: message });
-    res.json({ text: response.text });
-  } catch (error: any) {
-    console.error("Gemini Assistant Error:", error);
-    res.status(500).json({ error: "Failed to communicate with AI: " + error.message });
+  } catch (err) {
+    console.warn("Mozilla ISPDB query failed:", err);
   }
-});
+  return null;
+}
+
+// Helper: DNS SRV Lookup
+async function lookupDnsSrv(domain: string): Promise<{ host: string; port: string; connectionType: "STARTTLS" | "SSL" | "NONE"; providerName: string } | null> {
+  const services = [
+    { name: `_smtps._tcp.${domain}`, defaultPort: "465", connectionType: "SSL" as const },
+    { name: `_submission._tcp.${domain}`, defaultPort: "587", connectionType: "STARTTLS" as const },
+  ];
+
+  for (const service of services) {
+    try {
+      const records = await dnsPromises.resolveSrv(service.name);
+      if (records && records.length > 0) {
+        records.sort((a, b) => a.priority - b.priority || b.weight - a.weight);
+        const bestRecord = records[0];
+        const host = bestRecord.name.replace(/\.$/, "");
+        const port = String(bestRecord.port || service.defaultPort);
+        return {
+          host,
+          port,
+          connectionType: service.connectionType,
+          providerName: `${domain} (DNS SRV)`
+        };
+      }
+    } catch (e) {
+      // ignore and try next
+    }
+  }
+  return null;
+}
+
+// Helper: Query Microsoft Autodiscover protocol XML endpoints
+async function fetchMicrosoftAutodiscover(email: string, domain: string): Promise<{ host: string; port: string; connectionType: "STARTTLS" | "SSL" | "NONE"; providerName: string } | null> {
+  try {
+    const urls = [
+      `https://autodiscover.${domain}/autodiscover/autodiscover.xml`,
+      `https://${domain}/autodiscover/autodiscover.xml`
+    ];
+
+    const xmlPayload = `<?xml version="1.0" encoding="utf-8"?>
+<Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/outlook/requestschema/2006">
+  <Request>
+    <EMailAddress>${email}</EMailAddress>
+    <AcceptableResponseSchema>http://schemas.microsoft.com/exchange/autodiscover/outlook/responseschema/2006a</AcceptableResponseSchema>
+  </Request>
+</Autodiscover>`;
+
+    for (const url of urls) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/xml; charset=utf-8",
+          },
+          body: xmlPayload,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) continue;
+        const text = await response.text();
+
+        if (text.includes("SMTP") || text.includes("smtp")) {
+          const protocolBlocks = text.split(/<Protocol>/i);
+          for (const block of protocolBlocks) {
+            if (block.match(/<Type>SMTP<\/Type>/i) || block.match(/<Type>smtp<\/Type>/i)) {
+              const serverMatch = block.match(/<Server>([^<]+)<\/Server>/i);
+              const portMatch = block.match(/<Port>([^<]+)<\/Port>/i);
+              const sslMatch = block.match(/<SSL>([^<]+)<\/SSL>/i);
+              const encryptionMatch = block.match(/<EncryptionScheme>([^<]+)<\/EncryptionScheme>/i);
+
+              if (serverMatch) {
+                const host = serverMatch[1].trim();
+                const port = portMatch ? portMatch[1].trim() : "587";
+                let connectionType: "STARTTLS" | "SSL" | "NONE" = "STARTTLS";
+                
+                const useSsl = sslMatch ? sslMatch[1].trim().toLowerCase() : "";
+                const encScheme = encryptionMatch ? encryptionMatch[1].trim().toLowerCase() : "";
+
+                if (useSsl === "yes" || useSsl === "on" || port === "465" || encScheme === "ssl" || encScheme === "tls") {
+                  connectionType = "SSL";
+                } else if (useSsl === "no" && encScheme === "none") {
+                  connectionType = "NONE";
+                }
+
+                return {
+                  host,
+                  port,
+                  connectionType,
+                  providerName: `${domain} (Microsoft Autodiscover)`
+                };
+              }
+            }
+          }
+        }
+      } catch (err) {
+        // fail silently and try next candidate URL
+      }
+    }
+  } catch (err) {
+    console.warn("Microsoft Autodiscover lookup failed:", err);
+  }
+  return null;
+}
 
 // API Endpoint: Detect SMTP configuration based on email/domain
 app.post("/api/detect-smtp", async (req, res) => {
@@ -144,7 +211,11 @@ app.post("/api/detect-smtp", async (req, res) => {
 
     const domain = email.split("@")[1].trim().toLowerCase();
 
-    // 1. Check common standard providers first to be extremely fast
+    // ==========================================
+    // LAYER 1: DATABASE PUSAT BERBASIS MX RECORD (Paling Cepat & Akurat)
+    // ==========================================
+    
+    // 1.1 Local Central Database of Standard Providers
     const standardProviders: Record<string, { host: string; port: string; connectionType: "STARTTLS" | "SSL" | "NONE"; providerName: string }> = {
       "gmail.com": { host: "smtp.gmail.com", port: "587", connectionType: "STARTTLS", providerName: "Google Mail (Gmail)" },
       "yahoo.com": { host: "smtp.mail.yahoo.com", port: "465", connectionType: "SSL", providerName: "Yahoo Mail" },
@@ -155,21 +226,29 @@ app.post("/api/detect-smtp", async (req, res) => {
       "icloud.com": { host: "smtp.mail.me.com", port: "587", connectionType: "STARTTLS", providerName: "Apple iCloud" },
       "zoho.com": { host: "smtp.zoho.com", port: "465", connectionType: "SSL", providerName: "Zoho Mail" },
       "zoho.in": { host: "smtp.zoho.in", port: "465", connectionType: "SSL", providerName: "Zoho Mail India" },
+      "zoho.eu": { host: "smtp.zoho.eu", port: "465", connectionType: "SSL", providerName: "Zoho Mail Europe" },
       "yandex.com": { host: "smtp.yandex.com", port: "465", connectionType: "SSL", providerName: "Yandex Mail" },
       "mail.ru": { host: "smtp.mail.ru", port: "465", connectionType: "SSL", providerName: "Mail.ru" },
       "protonmail.com": { host: "127.0.0.1", port: "1025", connectionType: "NONE", providerName: "ProtonMail Bridge" },
       "proton.me": { host: "127.0.0.1", port: "1025", connectionType: "NONE", providerName: "ProtonMail Bridge" },
+      "gmx.com": { host: "mail.gmx.com", port: "587", connectionType: "STARTTLS", providerName: "GMX Mail" },
+      "gmx.net": { host: "mail.gmx.net", port: "587", connectionType: "STARTTLS", providerName: "GMX Mail (DE)" },
+      "web.de": { host: "smtp.web.de", port: "587", connectionType: "STARTTLS", providerName: "WEB.DE" },
+      "mail.com": { host: "smtp.mail.com", port: "587", connectionType: "STARTTLS", providerName: "Mail.com" },
+      "fastmail.com": { host: "smtp.fastmail.com", port: "465", connectionType: "SSL", providerName: "Fastmail" },
+      "aol.com": { host: "smtp.aol.com", port: "465", connectionType: "SSL", providerName: "AOL Mail" },
     };
 
     if (standardProviders[domain]) {
       return res.json({
         success: true,
-        source: "standard_directory",
+        source: "database_pusat",
+        layer: 1,
         ...standardProviders[domain]
       });
     }
 
-    // 2. Perform MX lookup for custom domains
+    // 1.2 Enterprise/Hosting Signature Mapping via MX Records
     let mxRecords: any[] = [];
     try {
       mxRecords = await dnsPromises.resolveMx(domain);
@@ -177,18 +256,17 @@ app.post("/api/detect-smtp", async (req, res) => {
       console.warn(`DNS MX resolution failed for ${domain}:`, dnsErr);
     }
 
-    // Sort MX records by priority (lower is higher priority)
     mxRecords.sort((a, b) => a.priority - b.priority);
     const mxHosts = mxRecords.map(r => r.exchange.toLowerCase());
 
     console.log(`MX hosts for ${domain}:`, mxHosts);
 
-    // Check if MX records match any standard enterprise providers
     for (const host of mxHosts) {
       if (host.includes("google.com") || host.includes("aspmx.l.google.com") || host.includes("googlemail.com")) {
         return res.json({
           success: true,
-          source: "mx_lookup",
+          source: "mx_signature",
+          layer: 1,
           providerName: `Google Workspace Custom Email`,
           host: "smtp.gmail.com",
           port: "587",
@@ -198,27 +276,30 @@ app.post("/api/detect-smtp", async (req, res) => {
       if (host.includes("outlook.com") || host.includes("mail.protection.outlook.com")) {
         return res.json({
           success: true,
-          source: "mx_lookup",
+          source: "mx_signature",
+          layer: 1,
           providerName: `Microsoft 365 Custom Email`,
           host: "smtp.office365.com",
           port: "587",
           connectionType: "STARTTLS"
         });
       }
-      if (host.includes("zoho.com") || host.includes("zoho.eu")) {
+      if (host.includes("zoho.com") || host.includes("zoho.eu") || host.includes("zoho.in")) {
         return res.json({
           success: true,
-          source: "mx_lookup",
+          source: "mx_signature",
+          layer: 1,
           providerName: `Zoho Mail Custom Email`,
           host: "smtp.zoho.com",
           port: "465",
           connectionType: "SSL"
         });
       }
-      if (host.includes("secureserver.net")) {
+      if (host.includes("secureserver.net") || host.includes("godaddy")) {
         return res.json({
           success: true,
-          source: "mx_lookup",
+          source: "mx_signature",
+          layer: 1,
           providerName: `GoDaddy Custom Email`,
           host: "smtpout.secureserver.net",
           port: "465",
@@ -228,16 +309,164 @@ app.post("/api/detect-smtp", async (req, res) => {
       if (host.includes("yandex")) {
         return res.json({
           success: true,
-          source: "mx_lookup",
+          source: "mx_signature",
+          layer: 1,
           providerName: `Yandex Connect Custom Email`,
           host: "smtp.yandex.com",
           port: "465",
           connectionType: "SSL"
         });
       }
+      if (host.includes("hostinger")) {
+        return res.json({
+          success: true,
+          source: "mx_signature",
+          layer: 1,
+          providerName: `Hostinger Custom Email`,
+          host: "smtp.hostinger.com",
+          port: "465",
+          connectionType: "SSL"
+        });
+      }
+      if (host.includes("migadu")) {
+        return res.json({
+          success: true,
+          source: "mx_signature",
+          layer: 1,
+          providerName: `Migadu Custom Email`,
+          host: "smtp.migadu.com",
+          port: "465",
+          connectionType: "SSL"
+        });
+      }
+      if (host.includes("fastmail")) {
+        return res.json({
+          success: true,
+          source: "mx_signature",
+          layer: 1,
+          providerName: `Fastmail Custom Email`,
+          host: "smtp.fastmail.com",
+          port: "465",
+          connectionType: "SSL"
+        });
+      }
+      if (host.includes("mailgun")) {
+        return res.json({
+          success: true,
+          source: "mx_signature",
+          layer: 1,
+          providerName: `Mailgun Custom Email`,
+          host: "smtp.mailgun.org",
+          port: "587",
+          connectionType: "STARTTLS"
+        });
+      }
+      if (host.includes("sendgrid")) {
+        return res.json({
+          success: true,
+          source: "mx_signature",
+          layer: 1,
+          providerName: `SendGrid Custom Email`,
+          host: "smtp.sendgrid.net",
+          port: "587",
+          connectionType: "STARTTLS"
+        });
+      }
+      if (host.includes("ovh")) {
+        return res.json({
+          success: true,
+          source: "mx_signature",
+          layer: 1,
+          providerName: `OVH Custom Email`,
+          host: "ssl0.ovh.net",
+          port: "465",
+          connectionType: "SSL"
+        });
+      }
     }
 
-    // 3. Fallback to Gemini AI for smart reasoning on custom/complex domains!
+    // ==========================================
+    // LAYER 2: PROTOKOL MOZILLA AUTOCONFIG (Thunderbird Standard)
+    // ==========================================
+    const mozillaConfig = await fetchMozillaConfig(domain);
+    if (mozillaConfig) {
+      const isReachable = await probeTcpPort(mozillaConfig.host, parseInt(mozillaConfig.port), 1000);
+      if (isReachable) {
+        return res.json({
+          success: true,
+          source: "mozilla_autoconfig",
+          layer: 2,
+          ...mozillaConfig,
+          providerName: `${mozillaConfig.providerName} (Terverifikasi)`
+        });
+      }
+    }
+
+    // ==========================================
+    // LAYER 3: PROTOKOL MICROSOFT AUTODISCOVER
+    // ==========================================
+    const autodiscoverConfig = await fetchMicrosoftAutodiscover(email, domain);
+    if (autodiscoverConfig) {
+      const isReachable = await probeTcpPort(autodiscoverConfig.host, parseInt(autodiscoverConfig.port), 1000);
+      if (isReachable) {
+        return res.json({
+          success: true,
+          source: "microsoft_autodiscover",
+          layer: 3,
+          ...autodiscoverConfig,
+          providerName: `${autodiscoverConfig.providerName} (Terverifikasi)`
+        });
+      }
+    }
+
+    // ==========================================
+    // LAYER 4: DNS SRV RECORDS (RFC 6186)
+    // ==========================================
+    const srvConfig = await lookupDnsSrv(domain);
+    if (srvConfig) {
+      return res.json({
+        success: true,
+        source: "dns_srv_records",
+        layer: 4,
+        ...srvConfig
+      });
+    }
+
+    // ==========================================
+    // LAYER 5: TEBAKAN CERDAS & PEMINDAIAN PORT AKTIF (Smart Guessing & Active Probing)
+    // ==========================================
+    const candidates = [
+      { host: `smtp.${domain}`, port: 465, connectionType: "SSL" as const },
+      { host: `smtp.${domain}`, port: 587, connectionType: "STARTTLS" as const },
+      { host: `mail.${domain}`, port: 465, connectionType: "SSL" as const },
+      { host: `mail.${domain}`, port: 587, connectionType: "STARTTLS" as const },
+      { host: domain, port: 465, connectionType: "SSL" as const },
+      { host: domain, port: 587, connectionType: "STARTTLS" as const },
+    ];
+
+    const probePromises = candidates.map(async (c) => {
+      const isOpen = await probeTcpPort(c.host, c.port, 1200);
+      return { ...c, isOpen };
+    });
+    
+    const probeResults = await Promise.all(probePromises);
+    const successfulProbe = probeResults.find(r => r.isOpen);
+    
+    if (successfulProbe) {
+      return res.json({
+        success: true,
+        source: "active_probing",
+        layer: 5,
+        providerName: `Custom Mail Server (Verifikasi Port Aktif)`,
+        host: successfulProbe.host,
+        port: String(successfulProbe.port),
+        connectionType: successfulProbe.connectionType
+      });
+    }
+
+    // ==========================================
+    // LAYER 6: AI-POWERED INTUITION (Gemini Smart Fallback)
+    // ==========================================
     if (process.env.GEMINI_API_KEY) {
       const ai = getGeminiClient();
       const prompt = `Analyze the email domain "${domain}" and its MX records: ${JSON.stringify(mxHosts)}.
@@ -266,7 +495,8 @@ You MUST respond strictly with a valid JSON object matching this schema (do NOT 
         const detected = JSON.parse(jsonText);
         return res.json({
           success: true,
-          source: "gemini_ai",
+          source: "gemini_ai_fallback",
+          layer: 6,
           host: detected.host || `mail.${domain}`,
           port: detected.port || "587",
           connectionType: detected.connectionType || "STARTTLS",
@@ -277,10 +507,13 @@ You MUST respond strictly with a valid JSON object matching this schema (do NOT 
       }
     }
 
-    // 4. Default cPanel/standard fallback if Gemini fails or is not available
+    // ==========================================
+    // LAYER 7: DEFAULT HEURISTIC FALLBACK
+    // ==========================================
     return res.json({
       success: true,
       source: "heuristic_fallback",
+      layer: 7,
       providerName: `Custom Server (${domain})`,
       host: `mail.${domain}`,
       port: "587",
