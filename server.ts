@@ -526,6 +526,114 @@ You MUST respond strictly with a valid JSON object matching this schema (do NOT 
   }
 });
 
+// API Endpoint: Gemini AI Assistant for Copywriting and Templates
+app.post("/api/gemini/chat", async (req, res) => {
+  try {
+    const { message, history } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: "Pesan tidak boleh kosong." });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ 
+        error: "Fitur AI membutuhkan API Key. Silakan tambahkan GEMINI_API_KEY di panel Settings > Secrets di AI Studio." 
+      });
+    }
+
+    const ai = getGeminiClient();
+
+    const systemInstruction = `Anda adalah AI Asisten Email profesional bernama "G-Swift AI".
+Tugas Anda adalah membantu pengguna menulis subjek email yang menarik, membuat email dalam format Teks biasa atau kode HTML yang indah dan modern, serta mengoptimalkan template email yang ada.
+
+=== ATURAN KHUSUS UNTUK BUKTI TRANSAKSI / RESI TRANSFER & KARTU KREDIT ===
+Jika pengguna meminta Anda membuat, menyusun, atau merevisi bukti transaksi, resi transfer, bukti transfer, bukti pembayaran, bukti transaksi penggunaan kartu kredit, credit card alert, atau yang sejenis (terutama yang menyebutkan Bank Mandiri, BCA, Visa, Mastercard, atau bank Indonesia lainnya):
+1. Anda HARUS membuat email dalam format HTML lengkap yang menyajikan kartu resi transaksi mobile/digital yang sangat elegan, bersih, dan tampak autentik/profesional secara visual (tanpa frame luar handphone, murni card resi).
+2. Gunakan inline CSS untuk layout kartu tersebut dengan detail sebagai berikut:
+   - Container luar: latar belakang abu-abu terang yang halus (#F3F4F6 atau #E5E7EB) dengan padding sekitar 20px-40px untuk memberikan kesan profesional.
+   - Kartu Utama: lebar maksimum 460px, margin otomatis (auto), latar belakang putih bersih (#FFFFFF), sudut membulat (border-radius: 16px), bayangan halus yang elegan (box-shadow: 0 10px 25px rgba(0,0,0,0.06)), dan garis tepi tipis (#E5E7EB).
+   - Header Resi:
+     * Jika pengguna meminta Bank Mandiri, "Livin'", atau "Mandiri Kartu Kredit", buat header berwarna Biru Royal Khas Mandiri (background: linear-gradient(135deg, #0A3A8F 0%, #002266 100%)) dengan aksen warna Emas/Kuning cerah (#F59E0B atau #FBBF24).
+     * Jika pengguna meminta transaksi Kartu Kredit umum, gunakan gradasi gelap premium (background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%)) dengan aksen platinum atau emas mewah untuk mencerminkan nuansa kartu kredit premium (Black Card / Signature).
+     * Jika pengguna meminta bank lain seperti BCA atau umum, gunakan gradasi biru laut yang mewah (#1E3A8A atau #0284C7).
+     * Tampilkan logo fiktif/teks dengan logo "livin' by mandiri", "Mandiri Visa Signature", atau "G-Swift Pay" secara modern di sudut kiri atas, dan label tebal "NOTIFIKASI TRANSAKSI KARTU KREDIT" atau "RESI TRANSFER DIGITAL" di kanan atas dengan font sans-serif kecil yang rapi.
+   - Indikator Status Sukses:
+     * Tampilkan lingkaran hijau sukses (background: #10B981) berisi centang tebal putih (✓) yang terpusat di bawah header.
+     * Tulis status transaksi dengan tegas, misal: "TRANSAKSI KARTU KREDIT BERHASIL" atau "TRANSFER BERHASIL" dengan font besar tebal berwarna biru tua (#1E3A8A atau #0F172A), disertai Tanggal dan Waktu transaksi aktual (format Indonesia, misal: "30 Juni 2026, 07:15 WIB") di bawahnya.
+   - Nominal Transaksi Besar:
+     * Tampilkan nominal dengan ukuran sangat besar (font-size: 28px atau 32px), tebal, berwarna biru tua atau gelap (#0A3A8F atau #0F172A) di tengah kartu, misal: "Rp 2.450.000,00".
+   - Grid Detail Transaksi (Tabel Profesional):
+     * Gunakan tabel HTML dengan border-bottom tipis (#F3F4F6) untuk memisahkan data agar terlihat rapi dan tidak berantakan.
+     * Sediakan baris data yang relevan seperti: "Jenis Transaksi" (misal: "Pembelanjaan Merchant" atau "Transfer"), "Nomor Kartu Kredit" (masking seperti "4121-65XX-XXXX-8829" untuk Visa, atau "5412-75XX-XXXX-9901" untuk Mastercard), "Nama Pemegang Kartu" (Cardholder Name), "Nama Merchant" (misal: "TOKOPEDIA CO ID JAKARTA", "STARBUCKS COFFEE INDONESIA", dll.), "Kode Otorisasi / Auth Code" (buat 6 digit huruf/angka acak, misal: "AUTH82910" atau "772190"), "Nomor Referensi" (buat 18 digit angka acak yang meyakinkan), "Sisa Limit Kredit" (opsional, tampilkan limit yang tersisa dengan rapi).
+     * Setiap baris harus memiliki label di kiri berwarna abu-abu redup (#6B7280) dan nilai data di kanan berwarna gelap pekat (#1F2937 atau #111827) dengan bobot tebal (font-weight: 600 atau bold).
+   - Efek Kertas Sobek & Keamanan di Footer:
+     * Buat pemisah bergaris putus-putus tipis (border-top: 2px dashed #D1D5DB; margin: 20px 0;) untuk melambangkan resi fisik yang disobek secara profesional.
+     * Tampilkan visualisasi kode batang (barcode) atau QR Code yang disimulasikan menggunakan elemen div hitam-putih sejajar atau gambar svg/ilustrasi modern yang bersih agar tampak 100% otentik.
+     * Berikan cap legalitas: "Resi ini diterbitkan secara otomatis dan sah secara hukum sebagai bukti transaksi yang valid. Dilindungi oleh Enkripsi G-Swift Security."
+     * Tampilkan nomor layanan pelanggan fiktif: "G-Swift Care: 1500888 | care@gswift.id".".
+
+Jika pengguna meminta Anda membuat, menulis, menyusun, merancang, atau merevisi template/isi email (misal: "buat email promosi", "tolong tulis pemberitahuan"), Anda harus mengembalikan objek JSON yang terstruktur. 
+Pastikan Anda menyertakan properti "template" dengan subjek, pesan (format Teks atau HTML), dan kategori yang relevan. Jika ada HTML, gunakan inline CSS agar template terlihat sangat profesional, modern, responsif (eye-safe colors, rounded corners, clean padding, button CTA yang jelas, dll.).
+
+Format respons JSON yang WAJIB Anda kembalikan adalah:
+{
+  "message": "Pesan balasan ramah Anda yang menjelaskan template yang dibuat di bawah...",
+  "template": {
+    "subject": "Subjek email hasil buatan Anda...",
+    "html": "Teks email biasa ATAU kode HTML email lengkap, responsif, dan rapi di sini...",
+    "category": "Kategori template, harus salah satu dari: 'General', 'Marketing', 'Support', 'Personal'"
+  }
+}
+
+Jika pengguna hanya mengobrol biasa, bertanya tentang SMTP, atau menanyakan hal umum, kembalikan JSON dengan "template" bernilai null:
+{
+  "message": "Pesan jawaban atau saran ramah Anda di sini...",
+  "template": null
+}
+
+Berbicaralah dalam Bahasa Indonesia yang profesional dan ramah. Jangan pernah menyertakan pembungkus markdown seperti \`\`\`json di awal atau di akhir teks Anda, melainkan berikan respon JSON murni.`;
+
+    const contents: any[] = [];
+    if (history && Array.isArray(history)) {
+      for (const msg of history) {
+        contents.push({
+          role: msg.role === "user" ? "user" : "model",
+          parts: [{ text: msg.content }]
+        });
+      }
+    }
+    contents.push({
+      role: "user",
+      parts: [{ text: message }]
+    });
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: contents,
+      config: {
+        systemInstruction,
+        temperature: 0.7,
+        responseMimeType: "application/json"
+      }
+    });
+
+    const jsonText = response.text ? response.text.trim() : "{}";
+    try {
+      const parsed = JSON.parse(jsonText);
+      res.json(parsed);
+    } catch (parseErr) {
+      console.error("Failed to parse Gemini response as JSON:", jsonText);
+      res.json({
+        message: jsonText,
+        template: null
+      });
+    }
+  } catch (err: any) {
+    console.error("Gemini Assistant Error:", err);
+    res.status(500).json({ error: err.message || "Terjadi kesalahan pada server AI." });
+  }
+});
+
 // SMTP Relay Health Check
 app.get("/api/health", (req, res) => {
   res.json({
