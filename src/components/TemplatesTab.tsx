@@ -99,7 +99,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({
           <motion.div 
             key={t.id}
             layout
-            className="bg-white border-2 border-white rounded-[28px] overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,58,143,0.18)] hover:shadow-[0_30px_70px_-12px_rgba(0,58,143,0.35)] transition-all group hover:-translate-y-1 ring-1 ring-blue-100/30"
+            className="bg-white border-2 border-slate-400/80 rounded-[28px] overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,58,143,0.18)] hover:shadow-[0_30px_70px_-12px_rgba(0,58,143,0.35)] transition-all group hover:-translate-y-1 ring-1 ring-slate-300"
           >
             <div className="p-4 sm:p-6 flex flex-col h-full justify-between">
               <div>

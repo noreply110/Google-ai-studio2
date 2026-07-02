@@ -108,7 +108,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   return (
-    <div className="w-full flex flex-col border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-inner ring-1 ring-slate-100">
+    <div className="w-full h-full flex flex-col border border-slate-200 rounded-2xl bg-white overflow-hidden shadow-inner ring-1 ring-slate-100">
       {/* Toolbar */}
       <div className="flex items-center justify-between p-1.5 bg-slate-50 border-b border-slate-200 select-none overflow-hidden">
         {!isHtmlMode ? (

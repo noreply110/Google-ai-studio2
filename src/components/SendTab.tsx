@@ -390,13 +390,13 @@ export const SendTab: React.FC<SendTabProps> = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98 }}
-        className="p-1.5 sm:p-4 max-w-md mx-auto flex flex-col w-full h-full min-h-0 overflow-hidden"
+        className="p-4 sm:p-6 max-w-md mx-auto flex flex-col w-full h-full min-h-0 overflow-hidden"
       >
         <div className="flex-1 flex flex-col w-full min-h-0 overflow-hidden">
-          <div className="bg-white rounded-2xl border border-white shadow-[0_20px_50px_rgba(0,58,143,0.18)] ring-1 ring-blue-100/50 flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="bg-white rounded-2xl border-2 border-slate-400/80 shadow-[0_25px_60px_-15px_rgba(0,30,100,0.22),_0_10px_20px_rgba(0,0,0,0.06)] ring-1 ring-slate-300 flex-1 flex flex-col min-h-0 overflow-hidden">
             
             {/* Floating Scan Header Banner */}
-            <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/80 flex flex-col gap-1.5 relative shrink-0">
+            <div className="px-3.5 py-2.5 border-b-2 border-slate-300/80 bg-slate-100/60 flex flex-col gap-1.5 relative shrink-0">
               <div className="flex justify-between items-center">
                 <h2 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
                   <div className="relative flex items-center justify-center w-2 h-2">
@@ -416,18 +416,8 @@ export const SendTab: React.FC<SendTabProps> = ({
               {/* Display current active sender SMTP account */}
               {smtpConfig.username ? (
                 <div className="flex items-center gap-2 bg-gradient-to-r from-[#0050b3] to-[#003a8f] p-2 rounded-xl shadow-md border border-blue-400/30 group transition-all">
-                  <div className="w-7 h-7 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner overflow-hidden shrink-0">
-                    {smtpConfig.logoUrl && !logoLoadError ? (
-                      <img 
-                        src={smtpConfig.logoUrl} 
-                        alt="Sender Profile" 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                        onError={() => setLogoLoadError(true)}
-                      />
-                    ) : (
-                      <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                    )}
+                  <div className="w-7 h-7 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/25 shadow-inner shrink-0">
+                    <ShieldCheck className="w-3.5 h-3.5 text-white animate-pulse" />
                   </div>
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="text-[6.5px] font-black text-blue-200 uppercase tracking-wider">
@@ -590,7 +580,7 @@ export const SendTab: React.FC<SendTabProps> = ({
                 </AnimatePresence>
 
                 {/* HTML Message Textarea */}
-                <div className="flex flex-col gap-2 flex-1 min-h-[160px] sm:min-h-[220px]">
+                <div className="flex flex-col gap-2 flex-1 min-h-[380px] sm:min-h-[480px]">
                   <div className="flex items-center justify-between px-1 shrink-0">
                     <label className="text-[11px] font-extrabold text-[#003A8F] uppercase tracking-widest">
                       Isi Pesan (Mendukung HTML & Teks)
@@ -615,7 +605,7 @@ export const SendTab: React.FC<SendTabProps> = ({
                       value={emailForm.message}
                       onChange={(val) => setEmailForm({ ...emailForm, message: val })}
                       placeholder="Tulis pesan Anda... (Mendukung paste Rich Text / HTML)"
-                      minHeight="100%"
+                      minHeight="320px"
                     />
                   </div>
                 </div>

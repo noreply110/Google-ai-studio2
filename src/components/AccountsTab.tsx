@@ -285,22 +285,10 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                 transition={{ duration: 0.6, repeat: Infinity }}
                 className="w-32 h-32 bg-white rounded-full flex items-center justify-center relative z-10 border-4 border-[#003A8F] shadow-2xl overflow-hidden p-0"
               >
-                {smtpConfig.logoUrl && !logoLoadError ? (
-                  <img 
-                    src={smtpConfig.logoUrl} 
-                    alt="Relay Logo" 
-                    className="w-full h-full object-contain p-3"
-                    referrerPolicy="no-referrer"
-                    onError={() => {
-                      setLogoLoadError(true);
-                    }}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-[#003A8F] p-3">
-                    <Mail className="w-10 h-10 mb-1 animate-bounce" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#003A8F]/70">Swift</span>
-                  </div>
-                )}
+                <div className="flex flex-col items-center justify-center text-[#003A8F] p-3">
+                  <Mail className="w-10 h-10 mb-1 animate-bounce" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#003A8F]/70">Swift</span>
+                </div>
                 <motion.div 
                   animate={{ x: ["100%", "-100%"] }}
                   transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
@@ -391,7 +379,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
         <div className="space-y-4">
           
           {/* --- INTEGRATED FORM & STATUS CARD --- */}
-          <div className="bg-white rounded-3xl p-6 border-2 border-white shadow-[0_15px_50px_-5px_rgba(0,58,143,0.18)] ring-1 ring-blue-100/50 space-y-5">
+          <div className="bg-white rounded-3xl p-6 border-2 border-slate-400/80 shadow-[0_25px_60px_-15px_rgba(0,30,100,0.22),_0_10px_20px_rgba(0,0,0,0.06)] ring-1 ring-slate-300 space-y-5">
             
             {/* --- SEAMLESS LIVE ANIMATED SMTP CONNECTION STATUS INDICATOR --- */}
             {smtpConfig.username && smtpConfig.password ? (
@@ -401,23 +389,9 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                 
                 <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-10">
                   <div className="flex items-center gap-3.5">
-                    {/* Professional Radar Light / Profile Photo */}
-                    <div className="relative w-10 h-10 flex items-center justify-center shrink-0 bg-white rounded-full border-2 border-emerald-200 shadow-sm overflow-hidden">
-                      {smtpConfig.logoUrl && !logoLoadError ? (
-                        <img 
-                          src={smtpConfig.logoUrl} 
-                          alt="Sender Profile" 
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
-                          onError={() => setLogoLoadError(true)}
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-slate-300 text-white flex items-center justify-center select-none overflow-hidden">
-                          <svg className="w-full h-full scale-105 mt-1" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                          </svg>
-                        </div>
-                      )}
+                    {/* Professional Radar Light / Profile Photo Fallback Icon */}
+                    <div className="relative w-10 h-10 flex items-center justify-center shrink-0 bg-slate-100 rounded-full border-2 border-emerald-200 shadow-sm overflow-hidden text-emerald-600">
+                      <ShieldCheck className="w-5 h-5 text-emerald-600" />
                       <span className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-pulse opacity-45 pointer-events-none" />
                     </div>
 
@@ -475,7 +449,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
 
             <hr className="border-slate-100" />
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {/* 1. Nama Pengirim */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider flex items-center gap-1">
@@ -488,39 +462,6 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                   placeholder="Contoh: Info Layanan"
                   className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
                 />
-              </div>
-
-              {/* 2. Logo / Foto Profil URL */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider flex items-center gap-1">
-                  URL Foto Profil / Logo
-                </label>
-                <div className="flex gap-3 items-center">
-                  <input 
-                    type="text" 
-                    value={smtpConfig.logoUrl}
-                    onChange={(e) => setSmtpConfig({ ...smtpConfig, logoUrl: e.target.value })}
-                    placeholder="https://linklogo.com/foto_profil.png"
-                    className="flex-1 px-4 py-3.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
-                  />
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-200 shadow-inner shrink-0 flex items-center justify-center">
-                    {smtpConfig.logoUrl && !logoLoadError ? (
-                      <img 
-                        src={smtpConfig.logoUrl} 
-                        alt="Preview" 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                        onError={() => setLogoLoadError(true)}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-slate-300 text-white flex items-center justify-center select-none overflow-hidden">
-                        <svg className="w-full h-full scale-105 mt-1" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
 

@@ -27,9 +27,9 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ logs, setLogs }) => {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.02 }}
-      className="p-4 max-w-lg mx-auto h-full flex flex-col gap-4"
+      className="p-4 sm:p-6 w-full max-w-md mx-auto h-full flex flex-col gap-4"
     >
-      <div className="bg-[#020617] rounded-[24px] border border-slate-800 shadow-2xl flex flex-col h-[70vh] overflow-hidden">
+      <div className="bg-[#020617] rounded-[24px] border border-slate-800 shadow-2xl flex flex-col h-[70vh] overflow-hidden w-full">
         <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
           <div className="flex flex-col">
             <h2 className="text-[10px] font-extrabold text-slate-300 uppercase tracking-widest flex items-center gap-2">
@@ -58,7 +58,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ logs, setLogs }) => {
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[size:100%_4px] opacity-15 z-10" />
 
           {logs.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-3 relative z-10">
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600/60 gap-3 pointer-events-none select-none z-0">
               <TerminalIcon className="w-8 h-8 opacity-20" />
               <p className="italic text-xs font-semibold">Console idle...</p>
             </div>
