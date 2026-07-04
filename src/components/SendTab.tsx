@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   Send, ShieldCheck, Trash2, Plus, AlertCircle, CheckCircle, Info, 
-  Loader2, AlertTriangle, Mail
+  Loader2, AlertTriangle, Mail, Sparkles, Wand2, Gauge, Languages, X, Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { RichTextEditor } from "./RichTextEditor";
@@ -11,6 +11,47 @@ import { EmailTemplate, SmtpConfig, SpamReport } from "../types";
 function hn(...args: any[]) {
   return args.filter(Boolean).join(" ");
 }
+
+// Helper to extract links from an HTML string using DOMParser
+const getHtmlLinks = (html: string) => {
+  if (typeof window === "undefined" || !html) return [];
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const anchors = doc.querySelectorAll("a");
+    const result: Array<{ text: string; href: string; index: number }> = [];
+    anchors.forEach((a, index) => {
+      result.push({
+        text: a.textContent || a.innerText || `Link ${index + 1}`,
+        href: a.getAttribute("href") || "",
+        index
+      });
+    });
+    return result;
+  } catch (e) {
+    return [];
+  }
+};
+
+// Helper to update a link in an HTML string
+const updateHtmlLink = (html: string, index: number, newText: string, newHref: string) => {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const anchors = doc.querySelectorAll("a");
+    if (anchors[index]) {
+      anchors[index].textContent = newText;
+      anchors[index].setAttribute("href", newHref);
+      if (html.toLowerCase().includes("<html")) {
+        return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
+      }
+      return doc.body.innerHTML;
+    }
+  } catch (e) {
+    console.error("Error updating link:", e);
+  }
+  return html;
+};
 
 interface SendTabProps {
   smtpConfig: SmtpConfig;
@@ -34,7 +75,8 @@ export const SendTab: React.FC<SendTabProps> = ({
     message: ""
   });
   const [isSending, setIsSending] = useState(false);
-  const [showRocketScreen, setShowRocketScreen] = useState(false);
+  const [sendingProgress, setSendingProgress] = useState(0);
+  const [sendingStage, setSendingStage] = useState("");
   
   // --- Banners ---
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
@@ -214,20 +256,6 @@ export const SendTab: React.FC<SendTabProps> = ({
       setSuccessBanner("Email berhasil dikirim!");
       addLog("success", `Relay sukses. MessageID: ${data.messageId}`);
 
-      // Dispatch a standard global banking notification event for visual feedback
-      window.dispatchEvent(new CustomEvent("banking-notif", {
-        detail: {
-          id: String(Date.now()),
-          type: "sent",
-          title: "SISTEM RELAY",
-          message: `Email sukses dikirim ke ${toEmail}`,
-          timestamp: new Date().toLocaleTimeString(),
-          recipient: toEmail,
-          subject: subjectLine,
-          ip: "Server Node"
-        }
-      }));
-
       return true;
     } catch (err: any) {
       if (err.name === "AbortError") {
@@ -250,18 +278,46 @@ export const SendTab: React.FC<SendTabProps> = ({
       return;
     }
 
-    setShowRocketScreen(true);
-    // Mimic the streaming delay before trigger
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
+    setSendingProgress(5);
+    setSendingStage("Menghubungkan ke server SMTP...");
+
+    let currentProgress = 5;
+    const progressInterval = setInterval(() => {
+      let increment = 4;
+      if (currentProgress > 40) increment = 2;
+      if (currentProgress > 75) increment = 1;
+      
+      currentProgress = Math.min(95, currentProgress + increment);
+      setSendingProgress(Math.floor(currentProgress));
+
+      if (currentProgress < 25) {
+        setSendingStage("Inisialisasi handshake aman...");
+      } else if (currentProgress < 50) {
+        setSendingStage("Autentikasi kredensial SMTP...");
+      } else if (currentProgress < 75) {
+        setSendingStage("Mengonstruksi payload email...");
+      } else {
+        setSendingStage("Mengunggah data & lampiran...");
+      }
+    }, 150);
+
     const isSuccess = await runSmtpForwarder(emailForm.to, emailForm.subject, emailForm.message);
+    
+    clearInterval(progressInterval);
+
     if (isSuccess) {
+      setSendingProgress(100);
+      setSendingStage("Email Berhasil Terkirim!");
       setEmailForm({ to: "", subject: "", message: "" });
       triggerConfetti();
-      setTimeout(() => setSuccessBanner(null), 4000);
-      setTimeout(() => setShowRocketScreen(false), 800);
+      setTimeout(() => {
+        setSuccessBanner(null);
+        setSendingProgress(0);
+        setSendingStage("");
+      }, 4000);
     } else {
-      setShowRocketScreen(false);
+      setSendingProgress(0);
+      setSendingStage("");
     }
   };
 
@@ -276,138 +332,29 @@ export const SendTab: React.FC<SendTabProps> = ({
 
   return (
     <>
-      {/* --- ROCKET OVERLAY FOR THIS VIEW --- */}
-      <AnimatePresence>
-        {showRocketScreen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] pointer-events-auto flex items-center justify-center overflow-hidden bg-slate-950/60 backdrop-blur-sm"
-          >
-            <div className="relative flex flex-col items-center justify-center">
-              <motion.div 
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                className="absolute w-48 h-48 border border-dashed border-blue-500/20 rounded-full"
-              />
-              {[...Array(5)].map((_, idx) => (
-                <motion.div 
-                  key={idx}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, delay: idx * 0.2, repeat: Infinity, ease: "linear" }}
-                  className="absolute w-40 h-40"
-                >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-blue-400 rounded-full shadow-[0_0_10px_#0067ac]" />
-                </motion.div>
-              ))}
-
-              <motion.div 
-                initial={{ scale: 0.8, opacity: 0.5 }}
-                animate={{ 
-                  scale: [0.8, 1.2, 0.8],
-                  opacity: [0.5, 1, 0.5],
-                  boxShadow: ["0 0 30px rgba(0, 103, 172, 0.5)", "0 0 90px rgba(0, 103, 172, 0.8)", "0 0 30px rgba(0, 103, 172, 0.5)"]
-                }}
-                transition={{ duration: 0.6, repeat: Infinity }}
-                className="w-32 h-32 bg-white rounded-full flex items-center justify-center relative z-10 border-4 border-[#003A8F] shadow-2xl overflow-hidden p-0"
-              >
-                {smtpConfig.logoUrl && !logoLoadError ? (
-                  <img 
-                    src={smtpConfig.logoUrl} 
-                    alt="Relay Logo" 
-                    className="w-full h-full object-contain p-3"
-                    referrerPolicy="no-referrer"
-                    onError={() => {
-                      setLogoLoadError(true);
-                    }}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-[#003A8F] p-3">
-                    <Mail className="w-10 h-10 mb-1 animate-bounce" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#003A8F]/70">Swift</span>
-                  </div>
-                )}
-                <motion.div 
-                  animate={{ x: ["100%", "-100%"] }}
-                  transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -rotate-45"
-                />
-              </motion.div>
-
-              {[...Array(12)].map((_, idx) => (
-                <motion.div 
-                  key={`p-${idx}`}
-                  initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-                  animate={{ 
-                    x: (Math.random() - 0.5) * 650, 
-                    y: (Math.random() - 0.5) * 650, 
-                    opacity: [0, 1, 0],
-                    scale: [0, 2.5, 0]
-                  }}
-                  transition={{ duration: 0.5, delay: Math.random() * 0.3, repeat: Infinity, ease: "circOut" }}
-                  className="absolute w-1 h-1 bg-blue-400 rounded-full"
-                />
-              ))}
-            </div>
-
-            <div className="absolute bottom-1/4 flex flex-col items-center gap-3">
-              <motion.div 
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 0.7, repeat: Infinity }}
-                className="flex items-center gap-2"
-              >
-                <span className="text-blue-300 font-mono text-[10px] font-black uppercase tracking-[0.4em]">
-                  Speed Relay Active
-                </span>
-                <div className="flex gap-1">
-                  {[0, 1, 2].map((i) => (
-                    <motion.div 
-                      key={i}
-                      animate={{ scale: [1, 1.5, 1] }}
-                      transition={{ duration: 0.3, delay: i * 0.1, repeat: Infinity }}
-                      className="w-1 h-1 bg-blue-400 rounded-full"
-                    />
-                  ))}
-                </div>
-              </motion.div>
-
-              <div className="w-64 h-1 bg-slate-800 rounded-full overflow-hidden border border-slate-700/30">
-                <motion.div 
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "0%" }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className="h-full bg-blue-500 shadow-[0_0_15px_#0050B3]"
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <motion.div
         key="send-view"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98 }}
-        className="p-4 sm:p-6 max-w-md mx-auto flex flex-col w-full h-full min-h-0 overflow-hidden"
+        className="p-4 sm:p-5 max-w-[420px] mx-auto flex flex-col w-full h-full min-h-0 overflow-hidden"
       >
         <div className="flex-1 flex flex-col w-full min-h-0 overflow-hidden">
-          <div className="bg-white rounded-2xl border-2 border-slate-400/80 shadow-[0_25px_60px_-15px_rgba(0,30,100,0.22),_0_10px_20px_rgba(0,0,0,0.06)] ring-1 ring-slate-300 flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex-1 flex flex-col min-h-0 overflow-hidden">
             
             {/* Floating Scan Header Banner */}
-            <div className="px-3.5 py-2.5 border-b-2 border-slate-300/80 bg-slate-100/60 flex flex-col gap-1.5 relative shrink-0">
+            <div className="px-3.5 py-2.5 border-b border-white/10 bg-white/[0.02] flex flex-col gap-1.5 relative shrink-0">
               <div className="flex justify-between items-center">
-                <h2 className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                <h2 className="text-[10px] font-extrabold text-white/45 uppercase tracking-widest flex items-center gap-1.5">
                   <div className="relative flex items-center justify-center w-2 h-2">
-                    <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-600 shadow-[0_0_8px_#22c55e]" />
+                    <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                   </div>
                   Sistem Anti-Spam Gmail
                 </h2>
-                <span className="text-[9px] sm:text-[10px] font-black text-blue-600 uppercase flex items-center gap-1">
-                  <div className="w-1 h-2.5 bg-emerald-500/20 rounded-full overflow-hidden relative">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-blue-400 shadow-[0_0_4px_#3b82f6] animate-[scan_1.5s_linear_infinite]" />
+                <span className="text-[9px] sm:text-[10px] font-black text-white/60 uppercase flex items-center gap-1">
+                  <div className="w-1 h-2.5 bg-white/10 rounded-full overflow-hidden relative">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)] animate-[scan_1.5s_linear_infinite]" />
                   </div>
                   AKTIF
                 </span>
@@ -415,29 +362,29 @@ export const SendTab: React.FC<SendTabProps> = ({
 
               {/* Display current active sender SMTP account */}
               {smtpConfig.username ? (
-                <div className="flex items-center gap-2 bg-gradient-to-r from-[#0050b3] to-[#003a8f] p-2 rounded-xl shadow-md border border-blue-400/30 group transition-all">
+                <div className="flex items-center gap-2 bg-white/[0.04] p-2 rounded-xl shadow-md border border-white/10 hover:bg-white/[0.08] group transition-all">
                   <div className="w-7 h-7 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/25 shadow-inner shrink-0">
                     <ShieldCheck className="w-3.5 h-3.5 text-white animate-pulse" />
                   </div>
                   <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-[6.5px] font-black text-blue-200 uppercase tracking-wider">
-                      Pengirim: {smtpConfig.fromName || "Tance Nama"}
+                    <span className="text-[6.5px] font-black text-white/40 uppercase tracking-wider">
+                      Pengirim: {smtpConfig.fromName || "Tanpa Nama"}
                     </span>
                     <span className="text-[11px] font-black text-white truncate drop-shadow-sm">
                       {smtpConfig.username}
                     </span>
                   </div>
                   <div className="flex items-center gap-1 bg-white/10 px-1.5 py-0.5 rounded-lg border border-white/10 shrink-0">
-                    <div className="w-1 h-1 bg-emerald-400 rounded-full shadow-[0_0_8px_#4ade80]" />
+                    <div className="w-1 h-1 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                     <span className="text-[7.5px] font-bold text-white uppercase">
                       Relay
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200 border-dashed justify-center">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide italic">
+                <div className="flex items-center gap-2 bg-white/[0.01] p-2 rounded-xl border border-white/10 border-dashed justify-center">
+                  <AlertTriangle className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                  <span className="text-[9px] font-bold text-white/40 uppercase tracking-wide italic">
                     Belum Ada Akun Pengirim. Atur di "Akun".
                   </span>
                 </div>
@@ -445,26 +392,26 @@ export const SendTab: React.FC<SendTabProps> = ({
             </div>
 
             {/* Email Compose Form */}
-            <form onSubmit={handleSendEmailSubmit} className="p-3 sm:p-4 flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
-              {/* Scrollable inputs & message editor */}
-              <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-0.5 min-h-0">
+            <form onSubmit={handleSendEmailSubmit} className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
+              {/* Perfect fit-screen container for inputs and editor */}
+              <div className="flex-1 flex flex-col gap-2.5 min-h-0 overflow-hidden">
                 {/* Banners */}
                 {errorBanner && (
                   <motion.div 
                     initial={{ opacity: 0, y: -10 }} 
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex flex-col gap-2 relative shrink-0"
+                    className="p-3 bg-rose-950/20 border border-rose-500/20 rounded-xl flex flex-col gap-2 relative shrink-0"
                   >
                     <button 
                       type="button" 
                       onClick={() => setErrorBanner(null)}
-                      className="absolute top-2 right-2 text-rose-400 hover:text-rose-600"
+                      className="absolute top-2 right-2 text-rose-400 hover:text-rose-300"
                     >
                       <Plus className="w-3.5 h-3.5 rotate-45" />
                     </button>
                     <div className="flex gap-2 items-start pr-6">
-                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                      <p className="text-xs text-rose-800 font-medium leading-normal flex-1">
+                      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                      <p className="text-xs text-rose-200 font-medium leading-normal flex-1">
                         {errorBanner}
                       </p>
                     </div>
@@ -472,14 +419,14 @@ export const SendTab: React.FC<SendTabProps> = ({
                       <button 
                         type="button" 
                         onClick={() => setActiveTab("accounts")}
-                        className="text-[10px] font-black text-rose-700 bg-white px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 transition-all uppercase"
+                        className="text-[10px] font-black text-white bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/10 transition-all uppercase"
                       >
                         Perbaiki SMTP
                       </button>
                       <button 
                         type="button" 
                         onClick={() => setActiveTab("terminal")}
-                        className="text-[10px] font-black text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition-all uppercase"
+                        className="text-[10px] font-black text-white/70 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/10 transition-all uppercase"
                       >
                         Lihat Terminal Log
                       </button>
@@ -491,17 +438,17 @@ export const SendTab: React.FC<SendTabProps> = ({
                   <motion.div 
                     initial={{ opacity: 0, y: -10 }} 
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex gap-2 items-center relative shrink-0"
+                    className="p-3.5 bg-emerald-950/20 border border-emerald-500/20 rounded-xl flex gap-2.5 items-center relative shrink-0"
                   >
                     <button 
                       type="button" 
                       onClick={() => setSuccessBanner(null)}
-                      className="absolute top-2 right-2 text-emerald-300 hover:text-emerald-500"
+                      className="absolute top-2 right-2 text-emerald-400/60 hover:text-emerald-400 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5 rotate-45" />
                     </button>
-                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <p className="text-xs text-emerald-800 font-bold uppercase tracking-tight pr-6">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <p className="text-xs text-emerald-200 font-bold uppercase tracking-tight pr-6">
                       {successBanner}
                     </p>
                   </motion.div>
@@ -516,9 +463,9 @@ export const SendTab: React.FC<SendTabProps> = ({
                       value={emailForm.to}
                       onChange={(e) => setEmailForm({ ...emailForm, to: e.target.value })}
                       placeholder="Email Penerima" 
-                      className="w-full px-3.5 py-2 sm:py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-[#0050b3] transition-all font-semibold text-slate-900 placeholder:text-slate-400 shadow-sm"
+                      className="w-full px-3.5 py-2 sm:py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:bg-white/[0.08] focus:border-white/30 transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500 pointer-events-none uppercase">
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/40 pointer-events-none uppercase">
                       KE
                     </div>
                   </div>
@@ -530,11 +477,11 @@ export const SendTab: React.FC<SendTabProps> = ({
                       value={emailForm.subject}
                       onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
                       placeholder="Subjek Email" 
-                      className="w-full px-3.5 py-2 sm:py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-[#0050b3] transition-all font-semibold text-slate-900 placeholder:text-slate-400 shadow-sm"
+                      className="w-full px-3.5 py-2 sm:py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:bg-white/[0.08] focus:border-white/30 transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
                       {emailForm.subject && (
-                        <div className={`text-[9px] font-black flex items-center gap-1 bg-white ring-1 ring-slate-200 px-2 py-1 rounded-full shadow-sm ${spamReport.color}`}>
+                        <div className={`text-[9px] font-black flex items-center gap-1 bg-slate-900/80 ring-1 ring-white/10 px-2 py-1 rounded-full shadow-sm ${spamReport.color}`}>
                           {spamReport.score < 70 ? (
                             <AlertCircle className="w-2.5 h-2.5" />
                           ) : (
@@ -543,7 +490,7 @@ export const SendTab: React.FC<SendTabProps> = ({
                           {spamReport.level}
                         </div>
                       )}
-                      <div className="text-[10px] font-bold text-slate-500 uppercase">
+                      <div className="text-[10px] font-bold text-white/40 uppercase">
                         SUB
                       </div>
                     </div>
@@ -557,18 +504,18 @@ export const SendTab: React.FC<SendTabProps> = ({
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-3 overflow-hidden shadow-sm shrink-0"
+                      className="bg-white/[0.03] border border-white/10 rounded-xl p-2.5 overflow-hidden shadow-sm shrink-0"
                     >
                       <div className="flex gap-2">
-                        <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                        <Info className="w-4 h-4 text-white/60 shrink-0 mt-0.5" />
                         <div className="space-y-1">
-                          <p className="text-[11px] font-extrabold text-amber-800 uppercase tracking-wide">
+                          <p className="text-[11px] font-extrabold text-white/80 uppercase tracking-wide">
                             Deteksi Proteksi Spam:
                           </p>
                           <ul className="flex flex-wrap gap-x-4 gap-y-1">
                             {spamReport.tips.map((tip, idx) => (
-                              <li key={idx} className="text-[10px] font-bold text-amber-600 flex items-center gap-1">
-                                <div className="w-1 h-1 rounded-full bg-amber-400" />
+                              <li key={idx} className="text-[10px] font-bold text-white/70 flex items-center gap-1">
+                                <div className="w-1 h-1 rounded-full bg-white/60" />
                                 {tip}
                               </li>
                             ))}
@@ -579,17 +526,17 @@ export const SendTab: React.FC<SendTabProps> = ({
                   )}
                 </AnimatePresence>
 
-                {/* HTML Message Textarea */}
-                <div className="flex flex-col gap-2 flex-1 min-h-[380px] sm:min-h-[480px]">
+                {/* HTML Message Textarea - flex-1 min-h-0 allows it to stretch perfectly */}
+                <div className="flex flex-col gap-1.5 flex-1 min-h-0 overflow-hidden">
                   <div className="flex items-center justify-between px-1 shrink-0">
-                    <label className="text-[11px] font-extrabold text-[#003A8F] uppercase tracking-widest">
+                    <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest">
                       Isi Pesan (Mendukung HTML & Teks)
                     </label>
                     {emailForm.message && (
                       <button 
                         type="button" 
                         onClick={() => setEmailForm({ ...emailForm, message: "" })}
-                        className="flex items-center gap-1 px-2 py-1 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-lg transition-all active:scale-95 group"
+                        className="flex items-center gap-1 px-2 py-1 hover:bg-rose-950/25 text-white/40 hover:text-rose-400 rounded-lg transition-all active:scale-95 group"
                         title="Hapus Isi Pesan"
                       >
                         <span className="text-[10px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
@@ -600,22 +547,22 @@ export const SendTab: React.FC<SendTabProps> = ({
                     )}
                   </div>
 
-                  <div className="flex-1 min-h-0">
+                  <div className="flex-1 min-h-0 flex flex-col gap-1.5">
                     <RichTextEditor 
                       value={emailForm.message}
                       onChange={(val) => setEmailForm({ ...emailForm, message: val })}
                       placeholder="Tulis pesan Anda... (Mendukung paste Rich Text / HTML)"
-                      minHeight="320px"
+                      minHeight="80px"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Static Footer (Templates Carousel & Action Button) */}
-              <div className="pt-2 flex flex-col gap-2.5 shrink-0 border-t border-slate-100 mt-2">
+              <div className="pt-2 flex flex-col gap-2 shrink-0 border-t border-white/10 mt-2">
                 {templates.length > 0 && (
                   <div className="flex flex-col gap-1 px-1">
-                    <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                    <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.2em] ml-1">
                       Gunakan Template Tersimpan
                     </span>
                     <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
@@ -624,12 +571,12 @@ export const SendTab: React.FC<SendTabProps> = ({
                           key={t.id}
                           type="button"
                           onClick={() => useTemplateContent(t)}
-                          className="shrink-0 group flex flex-col items-start p-2 bg-white border border-slate-200 rounded-xl hover:border-[#003A8F] transition-all shadow-sm hover:shadow-blue-100 active:scale-95 min-w-[90px]"
+                          className="shrink-0 group flex flex-col items-start p-2 bg-white/[0.04] border border-white/10 rounded-xl hover:border-white/35 transition-all shadow-sm active:scale-95 min-w-[90px]"
                         >
-                          <span className="text-[9px] font-black text-slate-800 group-hover:text-[#003A8F] truncate w-full text-left">
+                          <span className="text-[9px] font-black text-white group-hover:text-white truncate w-full text-left">
                             {t.name}
                           </span>
-                          <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tighter truncate w-full text-left">
+                          <span className="text-[7px] font-bold text-white/40 uppercase tracking-tighter truncate w-full text-left">
                             {t.category}
                           </span>
                         </button>
@@ -638,10 +585,42 @@ export const SendTab: React.FC<SendTabProps> = ({
                   </div>
                 )}
 
+                {/* Elegant Progress Bar */}
+                <AnimatePresence>
+                  {sendingProgress > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 5, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: 5, height: 0 }}
+                      className="p-3 bg-white/[0.02] border border-white/10 rounded-xl space-y-1.5 overflow-hidden shadow-inner mb-1"
+                    >
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="font-extrabold text-white/70 uppercase tracking-wider flex items-center gap-1.5 truncate pr-2">
+                          {sendingProgress === 100 ? (
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          ) : (
+                            <Loader2 className="w-3 h-3 text-emerald-400 animate-spin shrink-0" />
+                          )}
+                          <span className={`${sendingProgress === 100 ? 'text-emerald-400' : 'text-white/70'} truncate`}>{sendingStage}</span>
+                        </span>
+                        <span className="font-mono font-black text-emerald-400 shrink-0">
+                          {sendingProgress}%
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-900/60 rounded-full overflow-hidden border border-white/5 relative">
+                        <div 
+                          className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.5)] transition-all duration-300 ease-out"
+                          style={{ width: `${sendingProgress}%` }}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <button 
                   type="submit"
                   disabled={isSending}
-                  className="w-full py-2 sm:py-2.5 bg-gradient-to-b from-[#0050b3] via-[#003a8f] to-[#002c6c] hover:from-[#003a8f] hover:to-[#002150] text-white text-[11px] font-bold rounded-xl transition-all shadow-lg shadow-blue-900/15 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.08em]"
+                  className="w-full py-2 sm:py-2.5 bg-white hover:bg-white/90 text-slate-950 text-[11px] font-bold rounded-xl transition-all shadow-lg shadow-white/5 border border-white/10 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.08em]"
                 >
                   {isSending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

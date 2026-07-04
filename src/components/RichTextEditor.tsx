@@ -325,7 +325,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <textarea
             value={htmlValue}
             onChange={handleHtmlChange}
-            className="w-full h-full min-h-[inherit] p-4 text-slate-800 text-xs font-mono focus:outline-none bg-slate-900 text-slate-100 resize-none"
+            className="w-full h-full min-h-[inherit] p-4 text-slate-100 text-xs font-mono focus:outline-none bg-slate-950 resize-none leading-relaxed tracking-wide"
             style={{ minHeight }}
             placeholder="Ketik atau tempel kode HTML kustom di sini..."
           />
@@ -350,6 +350,28 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }
         [contenteditable] {
           outline: none;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        [contenteditable] * {
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        [contenteditable] table {
+          width: 100% !important;
+          max-width: 100% !important;
+          table-layout: fixed !important;
+        }
+        [contenteditable] img {
+          max-width: 100% !important;
+          height: auto !important;
+        }
+        [contenteditable] div, 
+        [contenteditable] section, 
+        [contenteditable] table, 
+        [contenteditable] td {
+          word-break: break-word !important;
+          overflow-wrap: break-word !important;
         }
         /* Style standard tag output for consistent contenteditable visual representation */
         [contenteditable] ul {

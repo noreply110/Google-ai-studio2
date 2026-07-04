@@ -61,23 +61,23 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({
     >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 px-1">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+          <h2 className="text-xl font-bold text-white tracking-tight">
             Template Email
           </h2>
-          <p className="text-xs text-slate-500 font-medium mt-1">
+          <p className="text-xs text-white/60 font-medium mt-1">
             Kelola dan gunakan kembali draf pengiriman email kustom Anda.
           </p>
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
             <input 
               type="text" 
               placeholder="Cari template..."
               value={templateSearch}
               onChange={(e) => setTemplateSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-100 outline-none transition-all shadow-sm"
+              className="w-full pl-9 pr-4 py-2 bg-white/[0.04] border border-white/10 rounded-xl text-sm font-semibold focus:bg-white/[0.08] focus:border-white/30 text-white placeholder:text-white/30 outline-none transition-all shadow-sm"
             />
           </div>
 
@@ -87,7 +87,7 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({
               setTemplateForm({ name: "", category: "General", subject: "", message: "" });
               setShowTemplateModal(true);
             }}
-            className="w-10 h-10 bg-[#0050b3] hover:bg-blue-700 text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-100 transition-all active:scale-90 shrink-0 cursor-pointer"
+            className="w-10 h-10 bg-white hover:bg-white/90 text-slate-950 rounded-xl flex items-center justify-center shadow-lg shadow-white/5 transition-all active:scale-90 shrink-0 cursor-pointer"
           >
             <Plus className="w-5 h-5" />
           </button>
@@ -99,58 +99,55 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({
           <motion.div 
             key={t.id}
             layout
-            className="bg-white border-2 border-slate-400/80 rounded-[28px] overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,58,143,0.18)] hover:shadow-[0_30px_70px_-12px_rgba(0,58,143,0.35)] transition-all group hover:-translate-y-1 ring-1 ring-slate-300"
+            className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[28px] overflow-hidden shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] hover:shadow-[0_30px_70px_-12px_rgba(0,0,0,0.5)] transition-all group hover:-translate-y-1"
           >
             <div className="p-4 sm:p-6 flex flex-col h-full justify-between">
               <div>
                 <div className="flex justify-between items-start mb-4">
-                  <span className="px-3 py-1 bg-blue-50 text-blue-800 text-[10px] font-extrabold uppercase rounded-full">
+                  <span className="px-3 py-1 bg-white/[0.04] text-white/70 text-[10px] font-extrabold uppercase rounded-full border border-white/10">
                     {t.category}
                   </span>
                   <button 
                     onClick={() => setTemplateToDelete(t)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                    className="p-1.5 text-white/40 hover:text-rose-400 hover:bg-rose-950/20 rounded-xl transition-all"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                <h3 className="font-extrabold text-slate-900 mb-1 leading-tight text-sm">
+                <h3 className="font-extrabold text-white mb-1 leading-tight text-sm">
                   {t.name}
                 </h3>
-                <p className="text-xs text-slate-500 font-bold mb-6 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-white/60 font-bold mb-6 line-clamp-2 leading-relaxed">
                   {t.subject}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex gap-1.5 xs:gap-2 items-center">
+              <div className="pt-4 border-t border-white/5 flex gap-1.5 xs:gap-2 items-center">
                 <button 
                   onClick={() => startEditTemplate(t)}
-                  className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 text-blue-700 rounded-xl hover:bg-blue-50 transition-all flex items-center justify-center shrink-0"
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/5 text-white/80 rounded-xl hover:bg-white/10 transition-all flex items-center justify-center shrink-0"
                   title="Edit Draft"
                 >
                   <Pen className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button 
                   onClick={() => setPreviewTemplate(t)}
-                  className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center shrink-0"
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/5 text-white/70 rounded-xl hover:bg-white/10 transition-all flex items-center justify-center shrink-0"
                   title="Pratinjau"
                 >
                   <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button 
-                  onClick={() => {
-                    setQuickTestTemplate(t);
-                    setQuickTestRecipient("");
-                  }}
-                  className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center shrink-0"
+                  onClick={() => setQuickTestTemplate(t)}
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/5 text-white/70 rounded-xl hover:bg-white/10 transition-all flex items-center justify-center shrink-0"
                   title="Kirim Tes"
                 >
-                  <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500" />
+                  <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/50" />
                 </button>
                 <button 
                   onClick={() => useTemplateContent(t)}
-                  className="flex-1 h-8 sm:h-10 bg-[#0050b3] text-white text-[9px] sm:text-[10px] font-black rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center shadow-md shadow-blue-500/20 truncate px-1"
+                  className="flex-1 h-8 sm:h-10 bg-white hover:bg-white/90 text-slate-950 text-[9px] sm:text-[10px] font-black rounded-xl transition-all flex items-center justify-center shadow-md shadow-white/5 border border-white/10 truncate px-1"
                 >
                   PAKAI TEMPLATE
                 </button>
@@ -162,11 +159,11 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({
 
       {templates.length === 0 && (
         <div className="py-20 text-center">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-200">
-            <FileText className="w-8 h-8 text-slate-400" />
+          <div className="w-16 h-16 bg-white/[0.04] rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+            <FileText className="w-8 h-8 text-white/40" />
           </div>
-          <h3 className="text-slate-900 font-black">Belum Ada Template</h3>
-          <p className="text-sm text-slate-500 font-bold mt-1">
+          <h3 className="text-white font-black">Belum Ada Template</h3>
+          <p className="text-sm text-white/60 font-bold mt-1">
             Mulai dengan membuat draf email pertama Anda untuk pengiriman cepat.
           </p>
         </div>

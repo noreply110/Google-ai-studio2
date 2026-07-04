@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { 
   Send, Terminal as TerminalIcon, FileText, Settings, KeyRound, CheckCircle, 
-  ChevronLeft, Loader2, AlertCircle, AlertTriangle, Mail, Globe, Sparkle, Sparkles
+  ChevronLeft, Loader2, AlertCircle, AlertTriangle, Mail, Globe, Sparkle, Sparkles, Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -64,7 +64,88 @@ export default function App() {
   // --- Templates CRUD & Modal ---
   const [templates, setTemplates] = useState<EmailTemplate[]>(() => {
     const saved = localStorage.getItem("email_templates");
-    return saved ? JSON.parse(saved) : [];
+    if (saved) return JSON.parse(saved);
+    
+    // Default template seeding
+    const defaultTemplate: EmailTemplate = {
+      id: "shopee_fraud_alert_5jt",
+      name: "⚠️ Alert Shopee 5 Juta",
+      category: "Support",
+      subject: "⚠️ Peringatan Keamanan Kartu Kredit: Transaksi Shopee Rp 5.000.000 Perlu Verifikasi",
+      message: `<div style="background-color: #F3F4F6; padding: 30px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100%;">
+  <div style="max-width: 460px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; border: 1px solid #E5E7EB; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden;">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #0A3A8F 0%, #002266 100%); padding: 20px; color: #FFFFFF;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Logo_Livin%27_by_Mandiri.svg/512px-Logo_Livin%27_by_Mandiri.svg.png" alt="Livin' by Mandiri" style="height: 20px; display: block; border: 0;" />
+          </td>
+          <td align="right" style="font-size: 10px; font-weight: bold; color: #FBBF24; text-transform: uppercase; letter-spacing: 1px; vertical-align: middle;">Peringatan Keamanan</td>
+        </tr>
+      </table>
+    </div>
+    
+    <!-- Status Alert Icon -->
+    <div style="text-align: center; padding: 25px 20px 10px 20px;">
+      <div style="display: inline-block; width: 48px; height: 48px; background-color: #EF4444; border-radius: 50%; text-align: center; line-height: 48px; color: #FFFFFF; font-size: 24px; font-weight: bold; margin-bottom: 12px;">!</div>
+      <h2 style="margin: 0; font-size: 16px; color: #EF4444; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Transaksi Perlu Verifikasi Segera</h2>
+      <p style="margin: 4px 0 0 0; font-size: 11px; color: #6B7280; font-weight: 600;">Menunggu Tanggapan Nasabah</p>
+    </div>
+
+    <!-- Nominal -->
+    <div style="text-align: center; padding: 12px 20px; background-color: #FEF2F2; margin: 0 20px; border-radius: 10px; border: 1px dashed #FCA5A5;">
+      <span style="font-size: 11px; font-weight: bold; color: #991B1B; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">Jumlah Pemakaian</span>
+      <span style="font-size: 28px; font-weight: 800; color: #991B1B;">Rp 5.000.000,00</span>
+    </div>
+
+    <!-- Details Grid -->
+    <div style="padding: 20px;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 12px; color: #374151;">
+        <tr style="border-bottom: 1px solid #F3F4F6;">
+          <td style="padding: 8px 0; color: #6B7280;">Jenis Transaksi</td>
+          <td align="right" style="padding: 8px 0; font-weight: bold; color: #111827;">E-Commerce Pembelanjaan</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #F3F4F6;">
+          <td style="padding: 8px 0; color: #6B7280;">Nomor Kartu</td>
+          <td align="right" style="padding: 8px 0; font-weight: bold; color: #111827;">4121-65XX-XXXX-8829 (Visa Platinum)</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #F3F4F6;">
+          <td style="padding: 8px 0; color: #6B7280;">Nama Merchant</td>
+          <td align="right" style="padding: 8px 0; font-weight: bold; color: #111827;">SHOPEE CO ID JAKARTA</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #F3F4F6;">
+          <td style="padding: 8px 0; color: #6B7280;">Status</td>
+          <td align="right" style="padding: 8px 0; font-weight: bold; color: #EF4444;">MENUNGGU KONFIRMASI</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #6B7280;">No. Referensi</td>
+          <td align="right" style="padding: 8px 0; font-weight: bold; color: #111827; font-family: monospace;">TX-982103819203</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- CTA Button -->
+    <div style="padding: 0 20px 20px 20px; text-align: center;">
+      <a href="https://ib-mandiri-co-id.com/batal" style="display: block; background-color: #EF4444; color: #FFFFFF; font-weight: bold; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); transition: background-color 0.2s;">Batalkan Transaksi</a>
+      <p style="margin: 12px 0 0 0; font-size: 10px; color: #EF4444; font-weight: 600; line-height: 1.4; text-align: left;">
+        *PENTING: Jika pemakaian kartu kredit senilai Rp 5.000.000 di Shopee ini bukan dilakukan oleh Anda, segera klik tombol "Batalkan Transaksi" di atas untuk melakukan pembatalan dan memblokir kartu kredit Anda secara instan guna mencegah kerugian dana nasabah.
+      </p>
+    </div>
+
+    <!-- Divider & Barcode -->
+    <div style="border-top: 1px dashed #D1D5DB; margin: 5px 20px 20px 20px; padding-top: 20px; text-align: center;">
+      <div style="display: inline-block; font-family: monospace; font-size: 10px; color: #9CA3AF; letter-spacing: 2px;">|||| | || ||||| | ||| |||| | ||| | ||</div>
+      <p style="margin: 8px 0 0 0; font-size: 9px; color: #9CA3AF; line-height: 1.3;">
+        Dilindungi oleh Enkripsi Keamanan SwiftRelay.<br>
+        Layanan Nasabah Mandiri: 1500888 | care@ib-mandiri-co-id.com
+      </p>
+    </div>
+  </div>
+</div>`,
+      createdAt: Date.now()
+    };
+    return [defaultTemplate];
   });
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
@@ -115,12 +196,19 @@ export default function App() {
     setLogoLoadError(false);
   }, [smtpConfig.logoUrl]);
 
-  // Handle global banking-notif event
+  // Handle global banking-notif event with auto-dismiss
   useEffect(() => {
     const handleBankingNotif = (e: Event) => {
       const customEvt = e as CustomEvent<BankingNotification>;
       if (customEvt.detail) {
-        setBankingNotifications(prev => [customEvt.detail, ...prev]);
+        const id = customEvt.detail.id || String(Date.now() + Math.random());
+        const newNotif = { ...customEvt.detail, id };
+        setBankingNotifications(prev => [newNotif, ...prev]);
+
+        // Auto-dismiss after 3.5 seconds
+        setTimeout(() => {
+          setBankingNotifications(prev => prev.filter(n => n.id !== id));
+        }, 3500);
       }
     };
     window.addEventListener("banking-notif", handleBankingNotif);
@@ -325,6 +413,7 @@ export default function App() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    setPasscode("");
     localStorage.removeItem("admin_logged_in");
     addLog("warning", "Admin keluar dari sistem.");
   };
@@ -350,69 +439,58 @@ export default function App() {
     };
 
     return (
-      <div className="flex min-h-screen bg-gradient-to-tr from-[#d6e6ff] via-[#f0f5ff] to-[#fafcff] items-center justify-center p-4 relative overflow-y-auto font-sans select-none">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-700 via-blue-400 to-blue-500 z-[60] shadow-[0_1px_3px_rgba(0,0,0,0.1)]" />
+      <div className="flex min-h-screen bg-gradient-to-b from-[#132c4a] via-[#0b132b] to-[#05070c] items-center justify-center p-4 relative overflow-y-auto font-sans select-none text-white">
         
-        {/* Ambient floating blur blobs for a premium look */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          <div className="absolute -top-32 -left-32 w-80 h-80 bg-blue-300/20 rounded-full filter blur-[100px]" />
-          <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-amber-300/15 rounded-full filter blur-[100px]" />
-        </div>
+        {/* Subtle top indicator bar */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-900/40 via-blue-500/20 to-blue-900/40 z-[60]" />
 
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }} 
+          initial={{ opacity: 0, scale: 0.98 }} 
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-[28px] sm:rounded-[32px] p-5 sm:p-8 max-w-[340px] sm:max-w-sm w-full shadow-[0_20px_50px_rgba(0,58,143,0.12)] border border-slate-100 flex flex-col items-center ring-1 ring-blue-100/50 relative z-10 my-4"
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="max-w-[340px] sm:max-w-sm w-full flex flex-col items-center relative z-10 px-4 py-6"
         >
-          <div className="flex items-center gap-2 mb-3 sm:mb-4 select-none bg-blue-50/50 px-3.5 py-1.5 rounded-xl border border-blue-100/30 shadow-sm">
-            <div className="w-7 h-7 bg-gradient-to-tr from-[#0050b3] to-blue-600 text-white rounded-lg flex items-center justify-center shadow-sm">
-              <Mail className="w-3.5 h-3.5" />
-            </div>
-            <span className="font-bold text-slate-800 tracking-tight text-xs uppercase">
-              Swift<span className="text-[#0050b3]">Relay</span>
-            </span>
-          </div>
-
-          <div className="w-full text-center flex flex-col gap-1 mb-3 sm:mb-4">
-            <h1 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
-              Akses Admin Panel
+          {/* Main Title matching the requested screenshot */}
+          <div className="w-full text-center flex flex-col gap-2 mb-8">
+            <h1 className="text-xl sm:text-2xl font-normal text-white/95 tracking-wide">
+              Masukkan Kata sandi
             </h1>
-            <p className="text-[9px] sm:text-[10px] font-semibold text-slate-400 uppercase tracking-[0.15em]">
-              Silakan Masukkan PIN 6 Angka
+            <p className="text-[10px] font-medium text-white/40 uppercase tracking-[0.2em]">
+              SwiftRelay Admin
             </p>
           </div>
 
-          {/* PIN Dots display */}
+          {/* PIN Dots display: thin hollow circles when empty, solid white when filled */}
           <motion.div 
             animate={passcodeError ? { x: [0, -10, 10, -10, 10, 0] } : {}}
             transition={{ duration: 0.4 }}
-            className="flex justify-center gap-3 sm:gap-4 py-2 sm:py-3 my-1 w-full"
+            className="flex justify-center gap-4.5 py-2 my-2 w-full"
           >
             {[0, 1, 2, 3, 4, 5].map((index) => {
               const isFilled = passcode.length > index;
               return (
                 <div
                   key={index}
-                  className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border-2 transition-all duration-150 ${
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 transition-all duration-200 ${
                     passcodeError
-                      ? "border-rose-500 bg-rose-100"
+                      ? "border-rose-500 bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
                       : isFilled 
-                        ? "border-[#0050b3] bg-[#0050b3] scale-110 shadow-md shadow-blue-500/25" 
-                        : "border-slate-300 bg-slate-50"
+                        ? "border-white bg-white scale-110 shadow-[0_0_12px_rgba(255,255,255,0.8)]" 
+                        : "border-white/30 bg-transparent"
                   }`}
                 />
               );
             })}
           </motion.div>
 
-          <div className="h-5 flex items-center justify-center mb-1.5 sm:mb-2">
+          <div className="h-6 flex items-center justify-center mb-3">
             <AnimatePresence mode="wait">
               {passcodeError && (
                 <motion.p 
                   initial={{ opacity: 0, y: -5 }} 
                   animate={{ opacity: 1, y: 0 }} 
                   exit={{ opacity: 0, y: -5 }}
-                  className="text-[9px] sm:text-[10px] font-bold text-rose-500 text-center uppercase tracking-wider"
+                  className="text-[10px] font-bold text-rose-400 text-center uppercase tracking-wider bg-rose-950/40 px-3 py-1 rounded-full border border-rose-800/30"
                 >
                   PIN Salah! Silakan coba lagi
                 </motion.p>
@@ -420,16 +498,16 @@ export default function App() {
             </AnimatePresence>
           </div>
 
-          {/* Remember Me toggle */}
-          <label className="flex items-center gap-2 justify-center cursor-pointer mb-4 sm:mb-5 group w-fit mx-auto">
+          {/* Remember Me toggle (integrated sleekly) */}
+          <label className="flex items-center gap-2 justify-center cursor-pointer mb-8 group w-fit mx-auto">
             <div 
-              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-md flex items-center justify-center transition-all bg-slate-50 ring-1 ${
+              className={`w-4 h-4 rounded-md flex items-center justify-center transition-all border ${
                 rememberMe 
-                  ? "bg-[#0050b3] ring-[#0050b3] text-white shadow-sm" 
-                  : "bg-slate-50 ring-slate-300 group-hover:ring-blue-400 text-transparent"
+                  ? "bg-white border-white text-slate-900 shadow-[0_0_8px_rgba(255,255,255,0.5)]" 
+                  : "border-white/30 bg-transparent group-hover:border-white/50 text-transparent"
               }`}
             >
-              <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" strokeWidth={3} />
+              <CheckCircle className={`w-3 h-3 ${rememberMe ? "text-slate-950" : "text-transparent"}`} strokeWidth={3.5} />
             </div>
             <input 
               type="checkbox" 
@@ -437,55 +515,56 @@ export default function App() {
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
             />
-            <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider select-none pt-0.5">
+            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest select-none pt-0.5 group-hover:text-white/80 transition-colors">
               Ingat Saya
             </span>
           </label>
 
-          {/* Interactive Keyboard */}
-          <div className="grid grid-cols-3 gap-y-3 sm:gap-y-4 gap-x-4 sm:gap-x-6 justify-items-center w-full max-w-[240px] sm:max-w-[270px] mx-auto mb-1">
+          {/* Clean Keypad: Round semi-transparent circle buttons matching image */}
+          <div className="grid grid-cols-3 gap-y-5 gap-x-6 justify-items-center w-full max-w-[260px] sm:max-w-[280px] mx-auto mb-8">
             {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) => (
               <motion.button
                 key={num}
-                whileTap={{ scale: 0.88, backgroundColor: "#0050b3", color: "#ffffff", borderColor: "#003a8f" }}
+                whileTap={{ scale: 0.9, backgroundColor: "rgba(255, 255, 255, 0.22)" }}
                 type="button"
                 onClick={() => handleKeypadPress(num)}
-                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-800 font-semibold text-base sm:text-lg flex items-center justify-center transition-all cursor-pointer shadow-[0_2px_4px_rgba(0,0,0,0.04)] select-none"
+                className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/[0.08] hover:bg-white/[0.13] text-white font-normal text-3xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md border border-white/[0.03] select-none"
               >
                 {num}
               </motion.button>
             ))}
             
-            {/* Clear Button */}
+            {/* Row 4: Empty space, "0" button, Empty space */}
+            <div className="w-16 h-16 sm:w-18 sm:h-18" />
             <motion.button
-              whileTap={{ scale: 0.88, backgroundColor: "#dc2626", color: "#ffffff", borderColor: "#b91c1c" }}
-              type="button"
-              onClick={handleKeypadClear}
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 text-red-600 font-bold text-[9px] sm:text-[10px] tracking-wider uppercase flex items-center justify-center transition-all cursor-pointer shadow-[0_2px_4px_rgba(0,0,0,0.04)] select-none"
-            >
-              CLEAR
-            </motion.button>
-
-            {/* Zero Button */}
-            <motion.button
-              whileTap={{ scale: 0.88, backgroundColor: "#0050b3", color: "#ffffff", borderColor: "#003a8f" }}
+              whileTap={{ scale: 0.9, backgroundColor: "rgba(255, 255, 255, 0.22)" }}
               type="button"
               onClick={() => handleKeypadPress("0")}
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-800 font-semibold text-base sm:text-lg flex items-center justify-center transition-all cursor-pointer shadow-[0_2px_4px_rgba(0,0,0,0.04)] select-none"
+              className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/[0.08] hover:bg-white/[0.13] text-white font-normal text-3xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md border border-white/[0.03] select-none"
             >
               0
             </motion.button>
+            <div className="w-16 h-16 sm:w-18 sm:h-18" />
+          </div>
 
-            {/* Backspace Button */}
-            <motion.button
-              whileTap={{ scale: 0.88, backgroundColor: "#475569", color: "#ffffff", borderColor: "#334155" }}
+          {/* Bottom Controls: "Darurat" on left, "Kembali" on right matching image */}
+          <div className="flex justify-between items-center w-full max-w-[240px] sm:max-w-[260px] px-2 mt-4 text-xs font-normal text-white/70 select-none">
+            <button 
+              type="button"
+              onClick={handleKeypadClear}
+              className="hover:text-white transition-colors cursor-pointer active:scale-95 py-2 px-1 font-medium tracking-wide"
+            >
+              Darurat
+            </button>
+            <button 
               type="button"
               onClick={handleKeypadBackspace}
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-[0_2px_4px_rgba(0,0,0,0.04)] select-none"
+              className="hover:text-white transition-colors cursor-pointer active:scale-95 py-2 px-1 font-medium tracking-wide"
             >
-              <ChevronLeft className="w-5 h-5 pointer-events-none" />
-            </motion.button>
+              Kembali
+            </button>
           </div>
+
         </motion.div>
       </div>
     );
@@ -493,19 +572,13 @@ export default function App() {
 
   // --- RENDER 3: MAIN SYSTEM APLET ---
   return (
-    <div className="flex h-screen bg-gradient-to-tr from-[#d6e6ff] via-[#f0f5ff] to-[#fafcff] font-sans text-slate-800 overflow-hidden relative">
+    <div className="flex h-screen bg-gradient-to-b from-[#132c4a] via-[#0b132b] to-[#05070c] font-sans text-white overflow-hidden relative">
       {/* Top glowing bar */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-700 via-blue-400 to-blue-500 z-[60] shadow-[0_1px_3px_rgba(0,0,0,0.1)]" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-900/40 via-blue-500/20 to-blue-900/40 z-[60]" />
 
       {/* --- GLOWING AMBIENT BACKGROUND ORBS --- */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        <div 
-          className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/10 rounded-full filter blur-[120px] will-change-transform"
-        />
-        <div 
-          className="absolute -bottom-40 -right-40 w-[450px] h-[450px] bg-amber-400/10 rounded-full filter blur-[140px] will-change-transform"
-        />
-        <div className="absolute inset-0 bg-[radial-gradient(#0050b3_1px,transparent_1px)] [background-size:24px_24px] opacity-5" />
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.035)_0%,transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.035)_0%,transparent_45%)]">
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
       </div>
 
       {/* --- CONFETTI CELEBRATION LAYER --- */}
@@ -544,16 +617,37 @@ export default function App() {
       <aside className="hidden lg:flex w-64 bg-slate-950 flex-col text-slate-200 shrink-0 z-30">
         <div className="p-6 flex flex-col gap-4 border-b border-slate-800/50">
           <div className="flex items-center justify-between gap-3 w-full">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 select-none">
-                <div className="w-8 h-8 bg-gradient-to-tr from-blue-600 to-[#0050b3] text-white rounded-xl flex items-center justify-center shadow-md shrink-0">
-                  <Mail className="w-4 h-4" />
+            <button 
+              onClick={() => setIsAiOpen(!isAiOpen)}
+              className="flex items-center gap-2 select-none hover:opacity-80 active:scale-95 transition-all text-left focus:outline-none shrink-0 group min-w-0"
+              title="Buka Asisten AI G-Swift"
+            >
+              <div className="w-8 h-8 bg-white/10 border border-white/20 text-white rounded-xl flex items-center justify-center shadow-md shrink-0 relative overflow-hidden">
+                <div className="flex items-center justify-center animate-[spin_12s_linear_infinite]">
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-white tracking-tight text-sm uppercase shrink-0">
-                  Swift<span className="text-blue-400">Relay</span>
-                </span>
+                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-white animate-ping" />
               </div>
-            </div>
+              <span className="font-bold text-white tracking-tight text-sm uppercase shrink-0 group-hover:text-white/95 transition-colors">
+                Swift<span className="text-white/60">Relay</span>
+              </span>
+            </button>
+
+            {/* Settings gear button */}
+            <button 
+              onClick={() => setActiveTab("accounts")}
+              className={`p-2 rounded-xl transition-all cursor-pointer shadow-sm relative group shrink-0 border ${
+                activeTab === "accounts"
+                  ? "bg-white/20 text-white border-white/40 shadow-[0_0_12px_rgba(255,255,255,0.15)]"
+                  : "bg-slate-900 hover:bg-slate-800 border-slate-800/80 hover:border-slate-700 text-slate-400 hover:text-white"
+              }`}
+              title="Pengaturan SMTP"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="absolute left-1/2 -translate-x-1/2 -bottom-9 px-2 py-1 bg-slate-900 border border-slate-800 text-[9px] font-bold text-white uppercase tracking-widest rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg z-50">
+                SMTP
+              </span>
+            </button>
 
             {/* PIN key icon */}
             <button 
@@ -562,7 +656,7 @@ export default function App() {
                 setPasscodeChangeSuccess(null);
                 setShowPasscodeModal(true);
               }}
-              className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800/80 hover:border-slate-700 text-amber-400 hover:text-amber-300 rounded-xl transition-all cursor-pointer shadow-sm relative group shrink-0"
+              className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800/80 hover:border-slate-700 text-white/80 hover:text-white rounded-xl transition-all cursor-pointer shadow-sm relative group shrink-0"
               title="Ganti PIN Panel"
             >
               <KeyRound className="w-4 h-4" />
@@ -580,8 +674,7 @@ export default function App() {
           {[
             { id: "send", icon: Send, label: "Kirim" },
             { id: "templates", icon: FileText, label: "Templates" },
-            { id: "terminal", icon: TerminalIcon, label: "Relay Terminal" },
-            { id: "accounts", icon: Settings, label: "Pengaturan SMTP" }
+            { id: "terminal", icon: TerminalIcon, label: "Relay Terminal" }
           ].map((item) => {
             const isTabActive = activeTab === item.id;
             return (
@@ -599,7 +692,7 @@ export default function App() {
                 {isTabActive && (
                   <motion.div
                     layoutId="activeSidebarTab"
-                    className="absolute inset-0 bg-gradient-to-r from-[#0050b3] to-[#003a8f] rounded-xl border-t border-white/15 shadow-md shadow-blue-950/40 z-0"
+                    className="absolute inset-0 bg-white/10 rounded-xl border border-white/25 shadow-md shadow-slate-950/40 z-0"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -608,7 +701,7 @@ export default function App() {
                 {isTabActive && (
                   <motion.div
                     layoutId="activeSidebarBar"
-                    className="absolute left-1 top-2.5 bottom-2.5 w-1 bg-gradient-to-b from-amber-400 to-yellow-300 rounded-full z-10 shadow-[0_0_8px_rgba(251,191,36,0.8)]"
+                    className="absolute left-1 top-2.5 bottom-2.5 w-1 bg-white rounded-full z-10 shadow-[0_0_8px_rgba(255,255,255,0.8)]"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -617,7 +710,7 @@ export default function App() {
                 <div className="relative flex items-center gap-3 z-10 w-full">
                   <item.icon className={hn(
                     "w-4 h-4 transition-transform duration-300", 
-                    isTabActive ? "text-amber-300 scale-110 animate-pulse" : "text-slate-400 group-hover:scale-110 group-hover:text-slate-200"
+                    isTabActive ? "text-white scale-110 animate-pulse" : "text-slate-400 group-hover:scale-110 group-hover:text-slate-200"
                   )} />
                   <span className="truncate">{item.label}</span>
                 </div>
@@ -630,7 +723,7 @@ export default function App() {
           <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 relative overflow-hidden group">
             {/* Ambient dynamic container glow */}
             <div className={`absolute -right-6 -bottom-6 w-16 h-16 rounded-full filter blur-[20px] opacity-20 transition-all duration-500 ${
-              apiStatus?.smtp_configured || smtpConfig.username ? "bg-emerald-500" : "bg-amber-500"
+              apiStatus?.smtp_configured || smtpConfig.username ? "bg-emerald-500" : "bg-slate-600"
             }`} />
             
             <div className="text-[10px] uppercase text-slate-400 font-bold mb-1.5 tracking-widest relative z-10">
@@ -638,16 +731,16 @@ export default function App() {
             </div>
             <div className={hn(
               "flex items-center gap-2 relative z-10",
-              apiStatus?.smtp_configured || smtpConfig.username ? "text-emerald-400" : "text-amber-400"
+              apiStatus?.smtp_configured || smtpConfig.username ? "text-emerald-400" : "text-slate-400"
             )}>
               <div className="relative flex items-center justify-center w-3 h-3">
                 <div
                   className={`absolute w-full h-full rounded-full animate-ping opacity-75 ${
-                    apiStatus?.smtp_configured || smtpConfig.username ? "bg-emerald-500" : "bg-amber-500"
+                    apiStatus?.smtp_configured || smtpConfig.username ? "bg-emerald-500" : "bg-slate-600"
                   }`}
                 />
                 <div className={`w-1.5 h-1.5 rounded-full relative z-10 ${
-                  apiStatus?.smtp_configured || smtpConfig.username ? "bg-emerald-400 shadow-[0_0_8px_#10b981]" : "bg-amber-400 shadow-[0_0_8px_#f59e0b]"
+                  apiStatus?.smtp_configured || smtpConfig.username ? "bg-emerald-400 shadow-[0_0_8px_#10b981]" : "bg-slate-500 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
                 }`} />
               </div>
               <span className="text-[11px] font-extrabold tracking-wider">
@@ -661,7 +754,7 @@ export default function App() {
       {/* --- MAIN WORKSPACE --- */}
       <main className="flex-1 flex flex-col overflow-hidden pb-[72px] lg:pb-0 relative z-10">
         
-        <header className="h-14 bg-gradient-to-r from-[#003A8F] to-[#0050b3] border-b border-blue-900/50 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-md z-30 relative">
+        <header className="h-14 bg-[#132c4a]/90 backdrop-blur-md border-b border-white/10 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-md z-30 relative">
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
             {activeTab !== "send" && (
               <button 
@@ -674,14 +767,21 @@ export default function App() {
             )}
             
             <div className="flex items-center gap-2 min-w-0 truncate">
-              <div className="flex items-center gap-2 select-none">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 rounded-lg flex items-center justify-center shadow-md shrink-0">
-                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <button 
+                onClick={() => setIsAiOpen(!isAiOpen)}
+                className="flex items-center gap-2 select-none hover:opacity-80 active:scale-[0.97] transition-all text-left focus:outline-none shrink-0 group"
+                title="Buka Asisten AI G-Swift"
+              >
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/10 border border-white/20 text-white rounded-lg flex items-center justify-center shadow-md shrink-0 relative overflow-hidden">
+                  <div className="flex items-center justify-center animate-[spin_12s_linear_infinite]">
+                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                  </div>
+                  <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-white animate-ping" />
                 </div>
-                <span className="font-bold text-white tracking-tight text-xs sm:text-sm uppercase shrink-0">
-                  Swift<span className="text-amber-300">Relay</span>
+                <span className="font-bold text-white tracking-tight text-xs sm:text-sm uppercase shrink-0 group-hover:text-white/95 transition-colors">
+                  Swift<span className="text-white/60">Relay</span>
                 </span>
-              </div>
+              </button>
               
               <span className="h-4 w-px bg-white/20 hidden xs:inline shrink-0" />
               
@@ -699,19 +799,30 @@ export default function App() {
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
              <button 
+              onClick={() => setActiveTab("accounts")}
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer border ${
+                activeTab === "accounts"
+                  ? "bg-white/20 text-white border-white/40 shadow-inner"
+                  : "bg-white/10 hover:bg-white/20 text-white hover:text-white border-white/10"
+              }`}
+              title="Pengaturan SMTP"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+             <button 
               onClick={() => {
                 setPasscodeChangeError(null);
                 setPasscodeChangeSuccess(null);
                 setShowPasscodeModal(true);
               }}
-              className="p-1.5 bg-white/10 hover:bg-white/20 text-amber-300 hover:text-amber-200 rounded-lg transition-colors cursor-pointer border border-white/10"
+              className="p-1.5 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white rounded-lg transition-colors cursor-pointer border border-white/10"
               title="Ganti PIN Panel"
             >
               <KeyRound className="w-4 h-4" />
             </button>
             <button 
               onClick={handleLogout}
-              className="bg-amber-500 hover:bg-amber-600 text-white px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-extrabold transition-colors shadow-md uppercase cursor-pointer border border-amber-400/50"
+              className="bg-white/5 hover:bg-white/10 text-white/90 border border-white/15 px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-extrabold transition-colors shadow-md uppercase cursor-pointer"
             >
               Keluar
             </button>
@@ -719,7 +830,7 @@ export default function App() {
         </header>
 
         {/* --- WORKSPACE VIEW CONTROLLER --- */}
-        <div className={hn("flex-1 bg-slate-200/65 flex flex-col min-h-0", activeTab === "send" ? "overflow-hidden" : "overflow-y-auto")}>
+        <div className={hn("flex-1 bg-transparent flex flex-col min-h-0", activeTab === "send" ? "overflow-hidden" : "overflow-y-auto")}>
           <AnimatePresence mode="wait">
             
             {/* View 1: Send Interface */}
@@ -776,16 +887,16 @@ export default function App() {
         {/* Modal 1: Create or Edit Template Modal */}
         <AnimatePresence>
           {showTemplateModal && (
-            <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm">
               <motion.div 
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className="bg-white w-full max-w-xl rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                className="bg-[#0b132b]/95 backdrop-blur-md w-full max-w-xl rounded-t-[32px] sm:rounded-[32px] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-white"
               >
-                <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center shrink-0">
-                  <h3 className="text-lg font-black text-slate-950 tracking-tight">
+                <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center shrink-0">
+                  <h3 className="text-lg font-black text-white tracking-tight">
                     {editingTemplateId ? "Ubah Template" : "Template Baru"}
                   </h3>
                   <button 
@@ -794,16 +905,16 @@ export default function App() {
                       setEditingTemplateId(null);
                       setTemplateForm({ name: "", category: "General", subject: "", message: "" });
                     }}
-                    className="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:text-slate-700 transition-colors border border-slate-200"
+                    className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full text-white/60 hover:text-white transition-colors border border-white/10"
                   >
                     <ChevronLeft className="w-6 h-6 rotate-45" />
                   </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto space-y-6 no-scrollbar bg-slate-50/30">
+                <div className="p-6 overflow-y-auto space-y-6 no-scrollbar bg-transparent">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-widest px-1">
+                      <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest px-1">
                         Nama Template
                       </label>
                       <input 
@@ -811,28 +922,28 @@ export default function App() {
                         value={templateForm.name}
                         onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
                         placeholder="Contoh: Pembayaran Nasabah"
-                        className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-blue-50 focus:border-[#0050b3] transition-all font-bold text-slate-950"
+                        className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 rounded-2xl text-sm outline-none focus:border-white/30 focus:bg-white/[0.08] transition-all font-bold text-white placeholder:text-white/30"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-widest px-1">
+                      <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest px-1">
                         Kategori
                       </label>
                       <select 
                         value={templateForm.category}
                         onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value as any })}
-                        className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-blue-50 focus:border-[#0050b3] transition-all font-bold text-slate-950"
+                        className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 rounded-2xl text-sm outline-none focus:border-white/30 focus:bg-white/[0.08] transition-all font-bold text-white"
                       >
-                        <option value="General">General</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Support">Support</option>
-                        <option value="Personal">Personal</option>
+                        <option value="General" className="bg-[#0b132b] text-white">General</option>
+                        <option value="Marketing" className="bg-[#0b132b] text-white">Marketing</option>
+                        <option value="Support" className="bg-[#0b132b] text-white">Support</option>
+                        <option value="Personal" className="bg-[#0b132b] text-white">Personal</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-widest px-1">
+                    <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest px-1">
                       Subjek Bawaan
                     </label>
                     <input 
@@ -840,12 +951,12 @@ export default function App() {
                       value={templateForm.subject}
                       onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })}
                       placeholder="Subjek email otomatis"
-                      className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-blue-50 focus:border-[#0050b3] transition-all font-bold text-slate-950"
+                      className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 rounded-2xl text-sm outline-none focus:border-white/30 focus:bg-white/[0.08] transition-all font-bold text-white placeholder:text-white/30"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-widest px-1">
+                    <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest px-1">
                       Isi Pesan (HTML)
                     </label>
                     <RichTextEditor 
@@ -857,10 +968,10 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="px-6 py-6 bg-white border-t border-slate-200 flex flex-col sm:flex-row gap-3 shrink-0">
+                <div className="px-6 py-6 bg-transparent border-t border-white/10 flex flex-col sm:flex-row gap-3 shrink-0">
                   <button 
                     onClick={handleSaveTemplateSubmit}
-                    className="w-full sm:flex-1 py-4 bg-[#0050b3] hover:bg-blue-700 text-white text-sm font-black rounded-2xl shadow-xl shadow-blue-200 active:scale-[0.98] transition-all order-1 sm:order-2 cursor-pointer uppercase tracking-wider"
+                    className="w-full sm:flex-1 py-4 bg-white/10 hover:bg-white/15 text-white text-sm font-black rounded-2xl border border-white/20 hover:border-white/30 transition-all shadow-md active:scale-[0.98] order-1 sm:order-2 cursor-pointer uppercase tracking-wider"
                   >
                     Simpan Template
                   </button>
@@ -870,7 +981,7 @@ export default function App() {
                       setEditingTemplateId(null);
                       setTemplateForm({ name: "", category: "General", subject: "", message: "" });
                     }}
-                    className="w-full sm:w-auto px-6 py-4 text-sm font-black text-slate-500 hover:text-slate-800 order-2 sm:order-1 transition-colors cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-4 text-sm font-black text-white/60 hover:text-white order-2 sm:order-1 transition-colors cursor-pointer"
                   >
                     Batal
                   </button>
@@ -883,41 +994,110 @@ export default function App() {
         {/* Modal 2: Template Preview Modal */}
         <AnimatePresence>
           {previewTemplate && (
-            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white w-full max-w-lg rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+                className="bg-[#0b132b]/95 backdrop-blur-md w-full max-w-2xl rounded-[24px] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-white"
               >
-                <div className="px-5 py-4 border-b border-slate-200 flex justify-between items-center shrink-0">
+                <div className="px-5 py-4 border-b border-white/10 flex justify-between items-center shrink-0">
                   <div>
-                    <h3 className="text-xs font-black text-slate-950 uppercase tracking-tight">
+                    <h3 className="text-xs font-black text-white uppercase tracking-tight">
                       {previewTemplate.name}
                     </h3>
-                    <p className="text-[10px] text-slate-600 font-bold truncate">
+                    <p className="text-[10px] text-white/60 font-bold truncate">
                       {previewTemplate.subject}
                     </p>
                   </div>
                   <button 
                     onClick={() => setPreviewTemplate(null)}
-                    className="p-1 hover:bg-slate-100 rounded-full"
+                    className="p-1 hover:bg-white/5 rounded-full"
                   >
-                    <ChevronLeft className="w-5 h-5 rotate-45 text-slate-500" />
+                    <ChevronLeft className="w-5 h-5 rotate-45 text-white/60" />
                   </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 bg-slate-100/50">
-                  <div 
-                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm min-h-[100px]"
-                    dangerouslySetInnerHTML={{ __html: previewTemplate.message }}
+                <div className="flex-1 overflow-hidden p-4 bg-slate-950/40 flex flex-col min-h-[380px]">
+                  <iframe
+                    title="Real Template Preview"
+                    srcDoc={`
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <meta charset="utf-8">
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                          <style>
+                            html, body {
+                              margin: 0;
+                              padding: 0;
+                              width: 100%;
+                              min-height: 100%;
+                              background-color: #ffffff;
+                              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                              color: #333333;
+                              overflow-x: hidden !important;
+                              position: relative;
+                            }
+                            img {
+                              max-width: 100%;
+                              height: auto;
+                            }
+                          </style>
+                        </head>
+                        <body>
+                          ${previewTemplate.message}
+                          <script>
+                            window.addEventListener('DOMContentLoaded', function() {
+                              var wrapper = document.createElement('div');
+                              wrapper.id = 'email-wrapper';
+                              wrapper.style.width = '600px';
+                              wrapper.style.position = 'absolute';
+                              wrapper.style.left = '50%';
+                              wrapper.style.top = '0';
+                              wrapper.style.transformOrigin = 'top center';
+                              wrapper.style.boxSizing = 'border-box';
+                              
+                              while (document.body.firstChild) {
+                                wrapper.appendChild(document.body.firstChild);
+                              }
+                              document.body.appendChild(wrapper);
+                              
+                              function adjustScale() {
+                                var viewportWidth = window.innerWidth;
+                                var targetWidth = viewportWidth - 16;
+                                if (targetWidth < 280) targetWidth = viewportWidth;
+                                var scale = targetWidth / 600;
+                                
+                                if (scale < 1) {
+                                  wrapper.style.transform = 'translateX(-50%) scale(' + scale + ')';
+                                  document.body.style.height = (wrapper.offsetHeight * scale + 24) + 'px';
+                                } else {
+                                  wrapper.style.transform = 'translateX(-50%)';
+                                  document.body.style.height = (wrapper.offsetHeight + 24) + 'px';
+                                }
+                              }
+                              
+                              window.addEventListener('resize', adjustScale);
+                              window.addEventListener('load', adjustScale);
+                              setTimeout(adjustScale, 50);
+                              setTimeout(adjustScale, 200);
+                              setTimeout(adjustScale, 500);
+                              setInterval(adjustScale, 1000);
+                            });
+                          </script>
+                        </body>
+                      </html>
+                    `}
+                    className="w-full flex-1 border-0 rounded-2xl bg-white shadow-inner"
+                    sandbox="allow-popups allow-scripts"
                   />
                 </div>
 
-                <div className="p-3 border-t border-slate-200 bg-white flex gap-2 shrink-0">
+                <div className="p-4 border-t border-white/10 bg-[#0b132b] flex gap-3 shrink-0">
                   <button 
                     onClick={() => setPreviewTemplate(null)}
-                    className="flex-1 py-2 text-[10px] font-black text-slate-700 hover:bg-slate-100 rounded-lg transition-all"
+                    className="flex-1 py-3 text-[11px] font-black text-white/60 hover:bg-white/5 rounded-xl border border-white/10 transition-all uppercase tracking-wider"
                   >
                     TUTUP
                   </button>
@@ -927,9 +1107,9 @@ export default function App() {
                       setActiveTab("send");
                       setPreviewTemplate(null);
                     }}
-                    className="flex-1 py-2.5 bg-[#0050b3] text-white text-[10px] font-bold rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100"
+                    className="flex-1 py-3 bg-white hover:bg-white/90 text-slate-950 text-[11px] font-black rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2 shadow-lg shadow-white/5 uppercase tracking-wider"
                   >
-                    <Send className="w-3 h-3" /> GUNAKAN SEKARANG
+                    <Send className="w-3.5 h-3.5" /> GUNAKAN SEKARANG
                   </button>
                 </div>
               </motion.div>
@@ -940,29 +1120,29 @@ export default function App() {
         {/* Modal: Custom Delete Confirmation */}
         <AnimatePresence>
           {templateToDelete && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white w-full max-w-[340px] rounded-3xl p-6 shadow-2xl border border-slate-100 flex flex-col items-center text-center relative overflow-hidden"
+                className="bg-[#0b132b]/95 backdrop-blur-md w-full max-w-[340px] rounded-3xl p-6 shadow-2xl border border-white/10 flex flex-col items-center text-center relative overflow-hidden text-white"
               >
-                <div className="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center mb-4 text-rose-500">
+                <div className="w-14 h-14 bg-rose-950/30 border border-rose-500/20 rounded-full flex items-center justify-center mb-4 text-rose-400">
                   <AlertTriangle className="w-7 h-7" />
                 </div>
                 
-                <h3 className="text-sm font-extrabold text-slate-950 mb-1">
+                <h3 className="text-sm font-extrabold text-white mb-1">
                   Hapus Template?
                 </h3>
                 
-                <p className="text-xs text-slate-500 font-bold mb-6">
-                  Apakah Anda yakin ingin menghapus template <span className="text-slate-800">"{templateToDelete.name}"</span>? Tindakan ini tidak dapat dibatalkan.
+                <p className="text-xs text-white/60 font-bold mb-6">
+                  Apakah Anda yakin ingin menghapus template <span className="text-white">"{templateToDelete.name}"</span>? Tindakan ini tidak dapat dibatalkan.
                 </p>
 
                 <div className="flex gap-3 w-full">
                   <button 
                     onClick={() => setTemplateToDelete(null)}
-                    className="flex-1 py-2 text-[10px] font-black text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
+                    className="flex-1 py-2 text-[10px] font-black text-white/60 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
                   >
                     BATAL
                   </button>
@@ -971,7 +1151,7 @@ export default function App() {
                       deleteTemplate(templateToDelete.id);
                       setTemplateToDelete(null);
                     }}
-                    className="flex-1 py-2 text-[10px] font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-all shadow-lg shadow-rose-100"
+                    className="flex-1 py-2 text-[10px] font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-xl transition-all shadow-lg"
                   >
                     HAPUS
                   </button>
@@ -984,32 +1164,32 @@ export default function App() {
         {/* Modal 3: Kirim Email Percobaan */}
         <AnimatePresence>
           {quickTestTemplate && (
-            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="bg-white w-full max-w-[320px] rounded-2xl shadow-2xl p-5"
+                className="bg-[#0b132b]/95 backdrop-blur-md w-full max-w-[320px] rounded-2xl border border-white/10 shadow-2xl p-5 text-white"
               >
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-[11px] font-black text-slate-950 uppercase tracking-tight">
+                  <h3 className="text-[11px] font-black text-white uppercase tracking-tight">
                     Kirim Email Percobaan
                   </h3>
                   <button 
                     onClick={() => setQuickTestTemplate(null)}
-                    className="text-slate-500 hover:text-slate-700"
+                    className="text-white/60 hover:text-white"
                   >
                     <ChevronLeft className="w-4 h-4 rotate-45" />
                   </button>
                 </div>
 
-                <p className="text-[10px] text-slate-700 mb-4 bg-slate-100 p-2 rounded-lg border border-slate-200 font-medium">
-                  Mengirim: <span className="font-black text-[#0050b3]">{quickTestTemplate.name}</span>
+                <p className="text-[10px] text-white/80 mb-4 bg-white/5 p-2 rounded-lg border border-white/10 font-medium">
+                  Mengirim: <span className="font-black text-white">{quickTestTemplate.name}</span>
                 </p>
 
                 <div className="space-y-4">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">
+                    <label className="text-[8px] font-black text-white/40 uppercase mb-1 ml-1">
                       Alamat Penerima Tes
                     </label>
                     <input 
@@ -1017,7 +1197,7 @@ export default function App() {
                       value={quickTestRecipient}
                       onChange={(e) => setQuickTestRecipient(e.target.value)}
                       placeholder="test@example.com"
-                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-none focus:border-[#0050b3] focus:ring-2 focus:ring-blue-100 transition-all font-bold text-slate-900"
+                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/10 rounded-lg text-xs focus:outline-none focus:border-white/30 transition-all font-bold text-white placeholder:text-white/30"
                       autoFocus
                     />
                   </div>
@@ -1030,7 +1210,7 @@ export default function App() {
                       setActiveTab("send");
                       setQuickTestTemplate(null);
                     }}
-                    className="w-full py-3 bg-[#0050b3] hover:bg-blue-700 text-white text-[10px] font-bold rounded-xl transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-wider"
+                    className="w-full py-3 bg-white/10 hover:bg-white/15 text-white text-[10px] font-bold rounded-xl border border-white/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-wider"
                   >
                     <Send className="w-3.5 h-3.5" />
                     KIRIM SEKARANG (FORM)
@@ -1059,43 +1239,43 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative bg-white w-full max-w-md rounded-3xl p-6 border border-slate-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] z-[1000] overflow-hidden"
+                className="relative bg-[#0b132b]/95 backdrop-blur-md w-full max-w-md rounded-3xl p-6 border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] z-[1000] overflow-hidden text-white"
               >
                 {/* Accent Line */}
-                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-700 via-blue-500 to-amber-500" />
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-white/10 via-white/40 to-white/10" />
 
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 border border-amber-100 shadow-sm shrink-0">
+                    <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-white border border-white/10 shadow-sm shrink-0">
                       <KeyRound className="w-5 h-5 animate-pulse" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-[#003A8F] uppercase tracking-wider">
+                      <h3 className="text-sm font-black text-white uppercase tracking-wider">
                         Ganti PIN Panel
                       </h3>
-                      <p className="text-[10px] text-slate-500 font-semibold leading-none mt-0.5">
+                      <p className="text-[10px] text-white/55 font-semibold leading-none mt-0.5">
                         Amankan akses konsol admin Anda dengan 6 digit angka
                       </p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setShowPasscodeModal(false)}
-                    className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+                    className="p-1.5 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all cursor-pointer"
                   >
                     <ChevronLeft className="w-5 h-5 rotate-45" />
                   </button>
                 </div>
 
-                <hr className="border-slate-100 mb-4" />
+                <hr className="border-white/10 mb-4" />
 
                 <form onSubmit={handleChangePasscode} className="space-y-4">
                   {passcodeChangeError && (
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-[11px] font-bold flex items-center gap-2"
+                      className="p-3 bg-rose-950/20 border border-rose-500/20 text-rose-300 rounded-2xl text-[11px] font-bold flex items-center gap-2"
                     >
-                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                       <span>{passcodeChangeError}</span>
                     </motion.div>
                   )}
@@ -1104,16 +1284,16 @@ export default function App() {
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-2xl text-[11px] font-bold flex items-center gap-2"
+                      className="p-3 bg-emerald-950/20 border border-emerald-500/20 text-emerald-300 rounded-2xl text-[11px] font-bold flex items-center gap-2"
                     >
-                      <CheckCircle className="w-4 h-4 shrink-0 text-emerald-500" />
+                      <CheckCircle className="w-4 h-4 shrink-0 text-emerald-400" />
                       <span>{passcodeChangeSuccess}</span>
                     </motion.div>
                   )}
 
                   <div className="space-y-3.5">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider">
+                      <label className="text-[10px] font-extrabold text-white/60 px-1 uppercase tracking-wider">
                         PIN Saat Ini
                       </label>
                       <input 
@@ -1125,12 +1305,12 @@ export default function App() {
                         value={currentPasscodeForm}
                         onChange={(e) => setCurrentPasscodeForm(e.target.value.replace(/\D/g, ''))}
                         placeholder="Masukkan PIN lama Anda (6 digit)"
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-mono font-semibold focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all"
+                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl text-xs font-mono font-semibold focus:bg-white/[0.08] focus:border-white/30 outline-none transition-all text-white placeholder:text-white/30"
                       />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider">
+                      <label className="text-[10px] font-extrabold text-white/60 px-1 uppercase tracking-wider">
                         PIN Baru
                       </label>
                       <input 
@@ -1142,12 +1322,12 @@ export default function App() {
                         value={newPasscodeForm}
                         onChange={(e) => setNewPasscodeForm(e.target.value.replace(/\D/g, ''))}
                         placeholder="6 digit angka baru"
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-mono font-semibold focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all"
+                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl text-xs font-mono font-semibold focus:bg-white/[0.08] focus:border-white/30 outline-none transition-all text-white placeholder:text-white/30"
                       />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider">
+                      <label className="text-[10px] font-extrabold text-white/60 px-1 uppercase tracking-wider">
                         Ulangi PIN Baru
                       </label>
                       <input 
@@ -1159,7 +1339,7 @@ export default function App() {
                         value={confirmPasscodeForm}
                         onChange={(e) => setConfirmPasscodeForm(e.target.value.replace(/\D/g, ''))}
                         placeholder="Ketik ulang PIN baru Anda"
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-mono font-semibold focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all"
+                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl text-xs font-mono font-semibold focus:bg-white/[0.08] focus:border-white/30 outline-none transition-all text-white placeholder:text-white/30"
                       />
                     </div>
                   </div>
@@ -1168,13 +1348,13 @@ export default function App() {
                     <button 
                       type="button"
                       onClick={() => setShowPasscodeModal(false)}
-                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
+                      className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white/70 text-[10px] font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
                     >
                       Batal
                     </button>
                     <button 
                       type="submit"
-                      className="px-5 py-2.5 bg-gradient-to-r from-blue-700 to-[#0050b3] hover:from-blue-800 hover:to-[#003a8f] text-white text-[10px] font-black rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                      className="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white text-[10px] font-black rounded-xl border border-white/20 hover:border-white/30 transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
                     >
                       <KeyRound className="w-3.5 h-3.5" />
                       Perbarui
@@ -1187,13 +1367,12 @@ export default function App() {
         </AnimatePresence>
 
         {/* --- BOTTOM RESPONSIVE VIEWBAR FOR MOBILE/TABLET --- */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#003A8F] border-t border-blue-900/60 h-[64px] flex items-center justify-around z-50 lg:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.2)] px-2 safe-area-bottom overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 z-10" />
+        <nav className="fixed bottom-0 left-0 right-0 bg-[#0b132b]/95 backdrop-blur-md border-t border-white/5 h-[64px] flex items-center justify-around z-50 lg:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.4)] px-2 safe-area-bottom overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-white/10 via-white/40 to-white/10 z-10" />
           {[
             { id: "send", icon: Send, label: "Kirim" },
             { id: "templates", icon: FileText, label: "Templates" },
-            { id: "terminal", icon: TerminalIcon, label: "Logs" },
-            { id: "accounts", icon: Settings, label: "Akun" }
+            { id: "terminal", icon: TerminalIcon, label: "Logs" }
           ].map((item) => {
             const isTabActive = activeTab === item.id;
             return (
@@ -1204,20 +1383,20 @@ export default function App() {
               >
                 <div className={hn(
                   "p-1.5 rounded-xl transition-all duration-300 relative z-10",
-                  isTabActive ? "bg-white/15 text-amber-300 shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)] border border-white/10" : "text-blue-200/60 hover:text-white"
+                  isTabActive ? "bg-white/15 text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)] border border-white/10" : "text-white/40 hover:text-white"
                 )}>
                   <item.icon className={hn("w-5 h-5 transition-transform", isTabActive && "scale-110 animate-pulse")} />
                 </div>
                 <span className={hn(
                   "text-[9px] font-extrabold transition-all uppercase tracking-tighter relative z-10",
-                  isTabActive ? "text-amber-300" : "text-blue-200/60"
+                  isTabActive ? "text-white" : "text-white/40"
                 )}>
                   {item.label}
                 </span>
                 {isTabActive && (
                   <motion.div 
                     layoutId="activeTabMobile" 
-                    className="absolute bottom-0 w-12 h-1.5 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-t-full shadow-[0_-5px_15px_rgba(251,191,36,0.6)]"
+                    className="absolute bottom-0 w-12 h-1.5 bg-gradient-to-r from-white to-white/60 rounded-t-full shadow-[0_-5px_15px_rgba(255,255,255,0.4)]"
                     transition={{ type: "spring", stiffness: 380, damping: 25 }}
                   />
                 )}
@@ -1227,23 +1406,20 @@ export default function App() {
         </nav>
 
         {/* --- BANK-GRADE TOAST NOTIFICATION STACK --- */}
-        <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+        <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0">
           <AnimatePresence>
             {bankingNotifications.map((notif) => (
               <motion.div
                 key={notif.id}
-                initial={{ opacity: 0, x: 100, y: -20, scale: 0.9 }}
+                initial={{ opacity: 0, x: 50, y: -10, scale: 0.9 }}
                 animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 50, scale: 0.95, transition: { duration: 0.2 } }}
-                className="bg-slate-950/95 backdrop-blur-md border border-amber-400/80 rounded-2xl p-4 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.4)] flex gap-3 text-white pointer-events-auto overflow-hidden relative group"
+                className="bg-[#0b132b]/95 backdrop-blur-md border-l-4 border-l-emerald-500 border border-white/10 rounded-xl p-3.5 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.6)] flex gap-2.5 text-white pointer-events-auto overflow-hidden relative"
               >
-                {/* Bank Gold Indicator line */}
-                <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 w-full" />
-                
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
-                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.15em] font-mono">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.15em] font-mono">
                       {notif.title}
                     </span>
                     <span className="text-[8px] text-slate-500 font-bold ml-auto font-mono">
@@ -1251,13 +1427,13 @@ export default function App() {
                     </span>
                   </div>
 
-                  <p className="text-xs font-black leading-snug text-white">
+                  <p className="text-xs font-bold leading-snug text-white/95">
                     {notif.message}
                   </p>
 
-                  <div className="mt-2.5 flex flex-wrap items-center gap-y-1 gap-x-3 text-[9px] text-slate-400 font-bold font-mono">
+                  <div className="mt-2 flex flex-wrap items-center gap-y-1 gap-x-3 text-[9px] text-slate-400 font-bold font-mono">
                     <div className="flex items-center gap-1">
-                      <Mail className="w-3 h-3 text-slate-500" />
+                      <Mail className="w-3 h-3 text-emerald-500/70" />
                       <span className="text-slate-300 font-extrabold max-w-[120px] truncate">{notif.recipient}</span>
                     </div>
                     {notif.ip && (
@@ -1271,42 +1447,16 @@ export default function App() {
 
                 <button
                   onClick={() => setBankingNotifications((prev) => prev.filter((n) => n.id !== notif.id))}
-                  className="p-1 hover:bg-slate-800 rounded-full shrink-0 h-fit self-start text-slate-500 hover:text-white transition-colors"
+                  className="p-1 hover:bg-white/10 rounded-full shrink-0 h-fit self-start text-slate-500 hover:text-white transition-colors"
                 >
-                  <ChevronLeft className="w-4 h-4 rotate-45" />
+                  <Plus className="w-3.5 h-3.5 rotate-45" />
                 </button>
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
 
-        {/* --- FLOATING AI ASSISTANT ACTION BUTTON (FAB) --- */}
-        <div className="fixed bottom-[84px] right-4 lg:bottom-6 lg:right-6 z-[90]">
-          <motion.button
-            drag
-            dragMomentum={false}
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.85 }}
-            onClick={() => setIsAiOpen(!isAiOpen)}
-            className="w-12 h-12 lg:w-14 lg:h-14 bg-transparent border-none flex items-center justify-center cursor-grab active:cursor-grabbing relative touch-none select-none focus:outline-none"
-            title="Asisten AI G-Swift (Seret untuk memindahkan)"
-          >
-            {/* Rotating Star Icon using Framer Motion */}
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
-              className="pointer-events-none flex items-center justify-center relative"
-            >
-              {/* Outer Blue Sparkle */}
-              <Sparkle className="w-10 h-10 lg:w-12 lg:h-12 text-blue-400 fill-blue-400 filter drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-              {/* Inner Amber Sparkle (creating beautiful Gemini depth) */}
-              <Sparkle className="w-5 h-5 lg:w-6 lg:h-6 text-amber-300 fill-amber-300 absolute filter drop-shadow-[0_0_6px_rgba(245,158,11,0.9)]" />
-            </motion.div>
 
-            {/* Simple Status Dot positioned cleanly */}
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-amber-400 pointer-events-none shadow-[0_0_6px_rgba(245,158,11,0.8)] animate-pulse" />
-          </motion.button>
-        </div>
 
         <AiCopilotWidget 
           isAiOpen={isAiOpen}

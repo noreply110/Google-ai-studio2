@@ -256,13 +256,13 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] pointer-events-auto flex items-center justify-center overflow-hidden bg-slate-950/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] pointer-events-auto flex items-center justify-center overflow-hidden bg-slate-950/80 backdrop-blur-sm"
           >
             <div className="relative flex flex-col items-center justify-center">
               <motion.div 
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                className="absolute w-48 h-48 border border-dashed border-blue-500/20 rounded-full"
+                className="absolute w-48 h-48 border border-dashed border-white/10 rounded-full"
               />
               {[...Array(5)].map((_, idx) => (
                 <motion.div 
@@ -271,7 +271,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                   transition={{ duration: 1, delay: idx * 0.2, repeat: Infinity, ease: "linear" }}
                   className="absolute w-40 h-40"
                 >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-blue-400 rounded-full shadow-[0_0_10px_#0067ac]" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/60 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
                 </motion.div>
               ))}
 
@@ -280,19 +280,19 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                 animate={{ 
                   scale: [0.8, 1.2, 0.8],
                   opacity: [0.5, 1, 0.5],
-                  boxShadow: ["0 0 30px rgba(0, 103, 172, 0.5)", "0 0 90px rgba(0, 103, 172, 0.8)", "0 0 30px rgba(0, 103, 172, 0.5)"]
+                  boxShadow: ["0 0 30px rgba(255,255,255,0.1)", "0 0 90px rgba(255,255,255,0.2)", "0 0 30px rgba(255,255,255,0.1)"]
                 }}
                 transition={{ duration: 0.6, repeat: Infinity }}
-                className="w-32 h-32 bg-white rounded-full flex items-center justify-center relative z-10 border-4 border-[#003A8F] shadow-2xl overflow-hidden p-0"
+                className="w-32 h-32 bg-slate-900 rounded-full flex items-center justify-center relative z-10 border-4 border-white/15 shadow-2xl overflow-hidden p-0"
               >
-                <div className="flex flex-col items-center justify-center text-[#003A8F] p-3">
-                  <Mail className="w-10 h-10 mb-1 animate-bounce" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#003A8F]/70">Swift</span>
+                <div className="flex flex-col items-center justify-center text-white p-3">
+                  <Mail className="w-10 h-10 mb-1 animate-bounce text-white/95" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Swift</span>
                 </div>
                 <motion.div 
                   animate={{ x: ["100%", "-100%"] }}
                   transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -rotate-45"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -rotate-45"
                 />
               </motion.div>
 
@@ -307,7 +307,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                     scale: [0, 2.5, 0]
                   }}
                   transition={{ duration: 0.5, delay: Math.random() * 0.3, repeat: Infinity, ease: "circOut" }}
-                  className="absolute w-1 h-1 bg-blue-400 rounded-full"
+                  className="absolute w-1 h-1 bg-white/40 rounded-full"
                 />
               ))}
             </div>
@@ -318,7 +318,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                 transition={{ duration: 0.7, repeat: Infinity }}
                 className="flex items-center gap-2"
               >
-                <span className="text-blue-300 font-mono text-[10px] font-black uppercase tracking-[0.4em]">
+                <span className="text-white/60 font-mono text-[10px] font-black uppercase tracking-[0.4em]">
                   Speed Relay Active
                 </span>
                 <div className="flex gap-1">
@@ -327,18 +327,18 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                       key={i}
                       animate={{ scale: [1, 1.5, 1] }}
                       transition={{ duration: 0.3, delay: i * 0.1, repeat: Infinity }}
-                      className="w-1 h-1 bg-blue-400 rounded-full"
+                      className="w-1 h-1 bg-white/60 rounded-full"
                     />
                   ))}
                 </div>
               </motion.div>
 
-              <div className="w-64 h-1 bg-slate-800 rounded-full overflow-hidden border border-slate-700/30">
+              <div className="w-64 h-1 bg-slate-900 rounded-full overflow-hidden border border-white/5">
                 <motion.div 
                   initial={{ x: "-100%" }}
                   animate={{ x: "0%" }}
                   transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className="h-full bg-blue-500 shadow-[0_0_15px_#0050B3]"
+                  className="h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)]"
                 />
               </div>
             </div>
@@ -354,23 +354,23 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
         className="p-4 max-w-2xl mx-auto pb-32"
       >
         <div className="flex items-center gap-4 mb-6 px-1">
-          <div className="w-12 h-12 bg-[#003A8F] rounded-2xl flex items-center justify-center shadow-lg shadow-blue-800/20">
+          <div className="w-12 h-12 bg-white/[0.08] backdrop-blur-md border border-white/10 rounded-2xl flex items-center justify-center shadow-lg shadow-black/20">
             <Settings className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-extrabold text-slate-950 leading-tight">
+            <h2 className="text-lg font-extrabold text-white leading-tight">
               Konfigurasi SMTP
             </h2>
-            <p className="text-xs text-slate-500 font-semibold">
+            <p className="text-xs text-white/60 font-semibold">
               Pengaturan super cerdas dengan deteksi otomatis dan status transmisi aktif.
             </p>
           </div>
         </div>
 
-        <div className="mb-4 bg-amber-50/60 border border-amber-100 rounded-xl py-1.5 px-3 flex items-center gap-2 overflow-hidden shadow-sm">
-          <Info className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+        <div className="mb-4 bg-white/[0.03] border border-white/10 rounded-xl py-1.5 px-3 flex items-center gap-2 overflow-hidden shadow-sm">
+          <Info className="w-3.5 h-3.5 text-white/60 shrink-0" />
           <div className="flex-1 overflow-hidden">
-            <marquee className="text-[10px] text-slate-600 font-bold tracking-wide block" scrollamount="3">
+            <marquee className="text-[10px] text-white/80 font-bold tracking-wide block" scrollamount="3">
               ⚠️ Kebijakan Sistem: Aplikasi ini didesain eksklusif untuk pengiriman outbound SMTP relay saja (Hanya Kirim). Server tidak menyediakan fungsionalitas IMAP/POP3 untuk menerima balasan/pesan masuk (No Incoming / Inbox).
             </marquee>
           </div>
@@ -379,80 +379,80 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
         <div className="space-y-4">
           
           {/* --- INTEGRATED FORM & STATUS CARD --- */}
-          <div className="bg-white rounded-3xl p-6 border-2 border-slate-400/80 shadow-[0_25px_60px_-15px_rgba(0,30,100,0.22),_0_10px_20px_rgba(0,0,0,0.06)] ring-1 ring-slate-300 space-y-5">
+          <div className="bg-white/[0.03] backdrop-blur-xl rounded-3xl p-6 border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] space-y-5">
             
             {/* --- SEAMLESS LIVE ANIMATED SMTP CONNECTION STATUS INDICATOR --- */}
             {smtpConfig.username && smtpConfig.password ? (
-              <div className="relative overflow-hidden bg-emerald-50/40 rounded-2xl p-4 border border-emerald-100/80">
+              <div className="relative overflow-hidden bg-white/[0.02] rounded-2xl p-4 border border-white/15">
                 {/* High-tech animated signal wave sweep */}
-                <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-60 animate-[shimmer_2s_infinite]" style={{ backgroundSize: '200% 100%' }} />
+                <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-60 animate-[shimmer_2s_infinite]" style={{ backgroundSize: '200% 100%' }} />
                 
                 <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-10">
                   <div className="flex items-center gap-3.5">
                     {/* Professional Radar Light / Profile Photo Fallback Icon */}
-                    <div className="relative w-10 h-10 flex items-center justify-center shrink-0 bg-slate-100 rounded-full border-2 border-emerald-200 shadow-sm overflow-hidden text-emerald-600">
-                      <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                      <span className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-pulse opacity-45 pointer-events-none" />
+                    <div className="relative w-10 h-10 flex items-center justify-center shrink-0 bg-white/5 rounded-full border-2 border-white/20 shadow-sm overflow-hidden text-white">
+                      <ShieldCheck className="w-5 h-5 text-white" />
+                      <span className="absolute inset-0 rounded-full border-2 border-white/35 animate-pulse opacity-45 pointer-events-none" />
                     </div>
 
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[9px] font-black text-emerald-600 tracking-wider uppercase bg-white px-2 py-0.5 rounded-md border border-emerald-100 shadow-sm">
+                        <span className="text-[9px] font-black text-white/85 tracking-wider uppercase bg-white/5 px-2 py-0.5 rounded-md border border-white/10 shadow-sm">
                           RELAY SMTP AKTIF
                         </span>
                         <span className="flex h-1.5 w-1.5 relative">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white/90"></span>
                         </span>
                       </div>
-                      <h4 className="text-xs font-black text-slate-800 font-mono truncate max-w-[180px] sm:max-w-xs">
+                      <h4 className="text-xs font-black text-white font-mono truncate max-w-[180px] sm:max-w-xs">
                         {smtpConfig.username}
                       </h4>
-                      <p className="text-[10px] text-slate-500 font-bold">
-                        Server: <span className="text-[#0050b3] font-mono">{smtpConfig.host || "smtp.gmail.com"}</span>:<span className="text-[#0050b3] font-mono">{smtpConfig.port || "587"}</span>
+                      <p className="text-[10px] text-white/50 font-bold">
+                        Server: <span className="text-white/70 font-mono">{smtpConfig.host || "smtp.gmail.com"}</span>:<span className="text-white/70 font-mono">{smtpConfig.port || "587"}</span>
                       </p>
                     </div>
                   </div>
 
                   {/* Dynamic Signal Indicator with highly prominent animation */}
-                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center sm:text-right sm:border-l sm:border-slate-100 sm:pl-3 min-w-[100px] border-t border-slate-100 pt-2 sm:pt-0 sm:border-t-0">
-                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest hidden sm:inline">
+                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center sm:text-right sm:border-l sm:border-white/5 sm:pl-3 min-w-[100px] border-t border-white/5 pt-2 sm:pt-0 sm:border-t-0">
+                    <span className="text-[9px] font-extrabold text-white/40 uppercase tracking-widest hidden sm:inline">
                       Sinyal Transmisi
                     </span>
                     <div className="flex items-end gap-1 h-5 mt-1">
-                      <div className="w-1 h-5 bg-emerald-500 rounded-full animate-eq-1" />
-                      <div className="w-1 h-5 bg-emerald-400 rounded-full animate-eq-2" />
-                      <div className="w-1 h-5 bg-emerald-500 rounded-full animate-eq-3" />
-                      <div className="w-1 h-5 bg-emerald-400 rounded-full animate-eq-4" />
+                      <div className="w-1 h-5 bg-white rounded-full animate-eq-1" />
+                      <div className="w-1 h-5 bg-white/60 rounded-full animate-eq-2" />
+                      <div className="w-1 h-5 bg-white rounded-full animate-eq-3" />
+                      <div className="w-1 h-5 bg-white/60 rounded-full animate-eq-4" />
                     </div>
-                    <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest font-mono ml-auto sm:ml-0 sm:mt-1 bg-white px-1.5 py-0.5 rounded border border-emerald-100 shadow-sm">
+                    <span className="text-[9px] font-black text-white uppercase tracking-widest font-mono ml-auto sm:ml-0 sm:mt-1 bg-white/5 px-1.5 py-0.5 rounded border border-white/10 shadow-sm">
                       READY
                     </span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="relative overflow-hidden bg-slate-50/60 rounded-2xl p-4 border border-dashed border-slate-200 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center shrink-0 shadow-sm">
-                  <AlertCircle className="w-4 h-4 text-slate-400 animate-bounce" />
+              <div className="relative overflow-hidden bg-white/[0.01] rounded-2xl p-4 border border-dashed border-white/10 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/5 flex items-center justify-center shrink-0 shadow-sm">
+                  <AlertCircle className="w-4 h-4 text-white/40 animate-bounce" />
                 </div>
                 <div className="space-y-0.5">
-                  <h3 className="text-[11px] font-black text-slate-700 uppercase tracking-wider">
+                  <h3 className="text-[11px] font-black text-white/80 uppercase tracking-wider">
                     Sistem Menunggu Kredensial
                   </h3>
-                  <p className="text-[10px] text-slate-500 font-bold leading-normal">
+                  <p className="text-[10px] text-white/40 font-bold leading-normal">
                     Isi email kustom dan password Anda di bawah. Server SMTP akan terdeteksi secara otomatis secara real-time.
                   </p>
                 </div>
               </div>
             )}
 
-            <hr className="border-slate-100" />
+            <hr className="border-white/5" />
             
             <div className="grid grid-cols-1 gap-4">
               {/* 1. Nama Pengirim */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[11px] font-extrabold text-white/70 px-1 uppercase tracking-wider flex items-center gap-1">
                   Nama Pengirim
                 </label>
                 <input 
@@ -460,17 +460,17 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                   value={smtpConfig.fromName}
                   onChange={(e) => setSmtpConfig({ ...smtpConfig, fromName: e.target.value })}
                   placeholder="Contoh: Info Layanan"
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
+                  className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl text-sm focus:bg-white/[0.08] focus:border-white/30 focus:outline-none outline-none transition-all font-semibold text-white shadow-sm placeholder:text-white/30"
                 />
               </div>
             </div>
 
-            <hr className="border-slate-100" />
+            <hr className="border-white/5" />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* 3. Email Pengirim (Username) */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider flex items-center gap-1">
+                <label className="text-[11px] font-extrabold text-white/70 px-1 uppercase tracking-wider flex items-center gap-1">
                   Email SMTP
                 </label>
                 <div className="relative">
@@ -479,13 +479,13 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                     value={smtpConfig.username}
                     onChange={(e) => setSmtpConfig({ ...smtpConfig, username: e.target.value })}
                     placeholder="user@domain.com"
-                    className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm"
+                    className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl text-sm focus:bg-white/[0.08] focus:border-white/30 focus:outline-none outline-none transition-all font-semibold text-white shadow-sm placeholder:text-white/30"
                   />
                 </div>
 
                 {/* Smart SMTP Auto-detection Loading */}
                 {isDetectingSmtp && (
-                  <div className="flex items-center gap-1.5 mt-2 px-1 text-[10px] text-blue-600 font-extrabold">
+                  <div className="flex items-center gap-1.5 mt-2 px-1 text-[10px] text-white/60 font-extrabold">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     <span>MENGANALISIS SERVER DOMAIN...</span>
                   </div>
@@ -496,28 +496,28 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                   <motion.div 
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-2.5 p-3.5 bg-[#f0f7ff] border border-blue-200 rounded-2xl flex flex-col gap-2.5 shadow-sm"
+                    className="mt-2.5 p-3.5 bg-white/[0.04] border border-white/15 rounded-2xl flex flex-col gap-2.5 shadow-sm"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-black uppercase text-blue-800 tracking-wider flex items-center gap-1.5">
+                      <span className="text-[9px] font-black uppercase text-white/70 tracking-wider flex items-center gap-1.5">
                         <span className="inline-block shrink-0 animate-spin [animation-duration:2s]">
-                          <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                          <Sparkles className="w-3.5 h-3.5 text-white/80" />
                         </span>
                         SMTP Terdeteksi Otomatis
                       </span>
-                      <span className="text-[8px] font-extrabold px-2 py-0.5 bg-emerald-500 text-white rounded-full uppercase tracking-wider">
+                      <span className="text-[8px] font-extrabold px-2 py-0.5 bg-white text-slate-950 rounded-full uppercase tracking-wider">
                         APPLIED
                       </span>
                     </div>
                     
                     <div className="flex flex-col gap-1">
-                      <span className="text-[12px] font-bold text-slate-800">
-                        Server: <strong className="text-[#003A8F]">{smtpRecommendation.providerName}</strong> ({smtpConfig.host}:{smtpConfig.port})
+                      <span className="text-[12px] font-bold text-white/90">
+                        Server: <strong className="text-white">{smtpRecommendation.providerName}</strong> ({smtpConfig.host}:{smtpConfig.port})
                       </span>
                       
                       {/* Layer Detection Visual Pipeline */}
-                      <div className="mt-1.5 pt-2 border-t border-blue-100/70">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">
+                      <div className="mt-1.5 pt-2 border-t border-white/10">
+                        <span className="text-[9px] font-black text-white/40 uppercase tracking-wider block mb-1.5">
                           Sumber Deteksi (Strategi Hibrida):
                         </span>
                         <div className="flex flex-wrap gap-1.5">
@@ -536,8 +536,8 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                                 key={layerItem.num}
                                 className={`text-[8px] font-black px-2 py-1 rounded-lg transition-all ${
                                   isActive 
-                                    ? "bg-[#003A8F] text-white ring-2 ring-blue-200 scale-105 shadow-sm" 
-                                    : "bg-slate-100 text-slate-400"
+                                    ? "bg-white/20 text-white ring-2 ring-white/15 scale-105 shadow-sm" 
+                                    : "bg-white/5 text-white/40"
                                 }`}
                               >
                                 {layerItem.label}
@@ -545,7 +545,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                             );
                           })}
                         </div>
-                        <span className="text-[10px] text-blue-700/85 font-semibold mt-2 block italic">
+                        <span className="text-[10px] text-white/50 font-semibold mt-2 block italic">
                           * Berhasil dikonfigurasi melalui <strong>{
                             smtpRecommendation.layer === 1 ? "Layer 1 (Database Pusat / MX Record)" :
                             smtpRecommendation.layer === 2 ? "Layer 2 (Protokol Mozilla Autoconfig)" :
@@ -564,7 +564,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
 
               {/* 4. App Password */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-extrabold text-[#003A8F] px-1 uppercase tracking-wider">
+                <label className="text-[11px] font-extrabold text-white/70 px-1 uppercase tracking-wider">
                   Password / App Password
                 </label>
                 <input 
@@ -572,7 +572,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                   value={smtpConfig.password}
                   onChange={(e) => setSmtpConfig({ ...smtpConfig, password: e.target.value as any })}
                   placeholder="••••••••••••••••"
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:bg-white focus:border-[#0050b3] focus:ring-4 focus:ring-blue-100/30 outline-none transition-all font-semibold text-slate-900 shadow-sm font-mono"
+                  className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl text-sm focus:bg-white/[0.08] focus:border-white/30 focus:outline-none outline-none transition-all font-semibold text-white shadow-sm font-mono placeholder:text-white/30"
                 />
               </div>
             </div>
@@ -582,7 +582,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="w-full py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                className="w-full py-2.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-wider text-white/70 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
               >
                 <Settings className="w-3.5 h-3.5" />
                 {showAdvanced ? "Sembunyikan Server Override" : "Tampilkan Detail Server (Manual Override)"}
@@ -598,44 +598,44 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                   >
                     <div className="pt-4 grid grid-cols-2 gap-4 pb-1">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Host SMTP</label>
+                        <label className="text-[10px] font-extrabold text-white/40 uppercase tracking-widest">Host SMTP</label>
                         <input 
                           type="text" 
                           value={smtpConfig.host}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, host: e.target.value })}
                           placeholder="smtp.gmail.com"
-                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold"
+                          className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs font-mono font-bold text-white focus:bg-white/[0.08] focus:border-white/30 focus:outline-none outline-none"
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Port SMTP</label>
+                        <label className="text-[10px] font-extrabold text-white/40 uppercase tracking-widest">Port SMTP</label>
                         <input 
                           type="text" 
                           value={smtpConfig.port}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, port: e.target.value })}
                           placeholder="587"
-                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold"
+                          className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs font-mono font-bold text-white focus:bg-white/[0.08] focus:border-white/30 focus:outline-none outline-none"
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Enkripsi</label>
+                        <label className="text-[10px] font-extrabold text-white/40 uppercase tracking-widest">Enkripsi</label>
                         <select 
                           value={smtpConfig.connectionType}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, connectionType: e.target.value as any })}
-                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold outline-none"
+                          className="w-full px-4 py-2.5 bg-[#0b132b] border border-white/10 rounded-xl text-xs font-mono font-bold text-white focus:bg-white/[0.08] focus:border-white/30 focus:outline-none outline-none"
                         >
-                          <option value="STARTTLS">STARTTLS</option>
-                          <option value="SSL">SSL</option>
-                          <option value="NONE">NONE</option>
+                          <option value="STARTTLS" className="bg-[#0b132b] text-white">STARTTLS</option>
+                          <option value="SSL" className="bg-[#0b132b] text-white">SSL</option>
+                          <option value="NONE" className="bg-[#0b132b] text-white">NONE</option>
                         </select>
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Limit Harian</label>
+                        <label className="text-[10px] font-extrabold text-white/40 uppercase tracking-widest">Limit Harian</label>
                         <input 
                           type="number" 
                           value={smtpConfig.dailyLimit}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, dailyLimit: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold"
+                          className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs font-mono font-bold text-white focus:bg-white/[0.08] focus:border-white/30 focus:outline-none outline-none"
                         />
                       </div>
                     </div>
@@ -652,13 +652,13 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex flex-col gap-2 shadow-sm text-xs"
+              className="p-4 bg-white/[0.03] border border-white/15 rounded-2xl flex flex-col gap-2 shadow-sm text-xs"
             >
-              <div className="flex items-center gap-2 text-emerald-800 font-extrabold uppercase tracking-wider">
-                <CheckCircle className="w-4 h-4 text-emerald-600" />
+              <div className="flex items-center gap-2 text-white font-extrabold uppercase tracking-wider">
+                <CheckCircle className="w-4 h-4 text-white/80" />
                 Uji Koneksi Berhasil!
               </div>
-              <p className="text-emerald-700 font-semibold leading-relaxed">
+              <p className="text-white/80 font-semibold leading-relaxed">
                 Server SMTP berhasil menerima koneksi dan mengirim email uji coba. Konfigurasi Anda sudah 100% benar dan siap digunakan.
               </p>
             </motion.div>
@@ -670,34 +670,34 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-4.5 bg-rose-50 border border-rose-200 rounded-2xl flex flex-col gap-3 shadow-md text-xs"
+                className="p-4.5 bg-rose-950/20 border border-rose-500/20 rounded-2xl flex flex-col gap-3 shadow-md text-xs"
               >
                 <div className="flex items-start gap-2.5">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
                   <div className="flex-1">
-                    <h4 className="text-rose-900 font-black uppercase tracking-wider text-[11px]">
+                    <h4 className="text-rose-300 font-black uppercase tracking-wider text-[11px]">
                       {diagnostic.title}
                     </h4>
-                    <p className="text-rose-700 font-semibold mt-1 leading-relaxed">
+                    <p className="text-rose-200/90 font-semibold mt-1 leading-relaxed">
                       {diagnostic.reason}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-3 bg-white/80 rounded-xl border border-rose-100 flex flex-col gap-2">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest block">
+                <div className="p-3 bg-white/5 rounded-xl border border-rose-500/15 flex flex-col gap-2">
+                  <span className="text-[9px] font-black uppercase text-white/40 tracking-widest block">
                     Langkah Solusi Pemecahan Masalah:
                   </span>
-                  <ol className="list-decimal list-inside space-y-1.5 text-slate-700 font-medium leading-relaxed">
+                  <ol className="list-decimal list-inside space-y-1.5 text-white/80 font-medium leading-relaxed">
                     {diagnostic.steps.map((step, idx) => (
                       <li key={idx} className="pl-1">
-                        <span className="text-slate-800 font-semibold">{step}</span>
+                        <span className="text-white font-semibold">{step}</span>
                       </li>
                     ))}
                   </ol>
                 </div>
 
-                <div className="pt-2 border-t border-rose-100/80 flex flex-col gap-1 text-[10px] text-rose-600/80 font-mono">
+                <div className="pt-2 border-t border-rose-500/15 flex flex-col gap-1 text-[10px] text-rose-300 font-mono">
                   <span className="font-bold uppercase tracking-wider text-[8px]">LOG ERROR SYSTEM:</span>
                   <span className="break-all">{smtpTestError}</span>
                 </div>
@@ -711,7 +711,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
             <button 
               onClick={testSmtpConnection}
               disabled={isSending}
-              className="flex-1 py-3.5 bg-white border-2 border-blue-100 hover:bg-blue-50 text-blue-700 font-extrabold rounded-[28px] shadow-lg shadow-blue-100/30 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer text-xs"
+              className="flex-1 py-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-extrabold rounded-[28px] shadow-lg shadow-black/20 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer text-xs"
             >
               {isSending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -722,7 +722,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
             </button>
             <button 
               onClick={handleSmtpSave}
-              className="flex-1 py-3.5 bg-gradient-to-b from-[#0050b3] to-[#003a8f] hover:from-[#003a8f] hover:to-[#002150] text-white font-black rounded-[28px] shadow-xl shadow-blue-500/30 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer text-xs"
+              className="flex-1 py-3.5 bg-white hover:bg-white/90 text-slate-950 font-bold border border-white/10 rounded-[28px] shadow-xl shadow-white/5 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2 cursor-pointer text-xs"
             >
               <CheckCircle className="w-4 h-4" /> Simpan & Selesai
             </button>
