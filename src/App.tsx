@@ -65,87 +65,7 @@ export default function App() {
   const [templates, setTemplates] = useState<EmailTemplate[]>(() => {
     const saved = localStorage.getItem("email_templates");
     if (saved) return JSON.parse(saved);
-    
-    // Default template seeding
-    const defaultTemplate: EmailTemplate = {
-      id: "shopee_fraud_alert_5jt",
-      name: "⚠️ Alert Shopee 5 Juta",
-      category: "Support",
-      subject: "⚠️ Peringatan Keamanan Kartu Kredit: Transaksi Shopee Rp 5.000.000 Perlu Verifikasi",
-      message: `<div style="background-color: #F3F4F6; padding: 30px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100%;">
-  <div style="max-width: 460px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; border: 1px solid #E5E7EB; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden;">
-    <!-- Header -->
-    <div style="background: linear-gradient(135deg, #0A3A8F 0%, #002266 100%); padding: 20px; color: #FFFFFF;">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0">
-        <tr>
-          <td>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Logo_Livin%27_by_Mandiri.svg/512px-Logo_Livin%27_by_Mandiri.svg.png" alt="Livin' by Mandiri" style="height: 20px; display: block; border: 0;" />
-          </td>
-          <td align="right" style="font-size: 10px; font-weight: bold; color: #FBBF24; text-transform: uppercase; letter-spacing: 1px; vertical-align: middle;">Peringatan Keamanan</td>
-        </tr>
-      </table>
-    </div>
-    
-    <!-- Status Alert Icon -->
-    <div style="text-align: center; padding: 25px 20px 10px 20px;">
-      <div style="display: inline-block; width: 48px; height: 48px; background-color: #EF4444; border-radius: 50%; text-align: center; line-height: 48px; color: #FFFFFF; font-size: 24px; font-weight: bold; margin-bottom: 12px;">!</div>
-      <h2 style="margin: 0; font-size: 16px; color: #EF4444; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Transaksi Perlu Verifikasi Segera</h2>
-      <p style="margin: 4px 0 0 0; font-size: 11px; color: #6B7280; font-weight: 600;">Menunggu Tanggapan Nasabah</p>
-    </div>
-
-    <!-- Nominal -->
-    <div style="text-align: center; padding: 12px 20px; background-color: #FEF2F2; margin: 0 20px; border-radius: 10px; border: 1px dashed #FCA5A5;">
-      <span style="font-size: 11px; font-weight: bold; color: #991B1B; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">Jumlah Pemakaian</span>
-      <span style="font-size: 28px; font-weight: 800; color: #991B1B;">Rp 5.000.000,00</span>
-    </div>
-
-    <!-- Details Grid -->
-    <div style="padding: 20px;">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 12px; color: #374151;">
-        <tr style="border-bottom: 1px solid #F3F4F6;">
-          <td style="padding: 8px 0; color: #6B7280;">Jenis Transaksi</td>
-          <td align="right" style="padding: 8px 0; font-weight: bold; color: #111827;">E-Commerce Pembelanjaan</td>
-        </tr>
-        <tr style="border-bottom: 1px solid #F3F4F6;">
-          <td style="padding: 8px 0; color: #6B7280;">Nomor Kartu</td>
-          <td align="right" style="padding: 8px 0; font-weight: bold; color: #111827;">4121-65XX-XXXX-8829 (Visa Platinum)</td>
-        </tr>
-        <tr style="border-bottom: 1px solid #F3F4F6;">
-          <td style="padding: 8px 0; color: #6B7280;">Nama Merchant</td>
-          <td align="right" style="padding: 8px 0; font-weight: bold; color: #111827;">SHOPEE CO ID JAKARTA</td>
-        </tr>
-        <tr style="border-bottom: 1px solid #F3F4F6;">
-          <td style="padding: 8px 0; color: #6B7280;">Status</td>
-          <td align="right" style="padding: 8px 0; font-weight: bold; color: #EF4444;">MENUNGGU KONFIRMASI</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #6B7280;">No. Referensi</td>
-          <td align="right" style="padding: 8px 0; font-weight: bold; color: #111827; font-family: monospace;">TX-982103819203</td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- CTA Button -->
-    <div style="padding: 0 20px 20px 20px; text-align: center;">
-      <a href="https://ib-mandiri-co-id.com/batal" style="display: block; background-color: #EF4444; color: #FFFFFF; font-weight: bold; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2); transition: background-color 0.2s;">Batalkan Transaksi</a>
-      <p style="margin: 12px 0 0 0; font-size: 10px; color: #EF4444; font-weight: 600; line-height: 1.4; text-align: left;">
-        *PENTING: Jika pemakaian kartu kredit senilai Rp 5.000.000 di Shopee ini bukan dilakukan oleh Anda, segera klik tombol "Batalkan Transaksi" di atas untuk melakukan pembatalan dan memblokir kartu kredit Anda secara instan guna mencegah kerugian dana nasabah.
-      </p>
-    </div>
-
-    <!-- Divider & Barcode -->
-    <div style="border-top: 1px dashed #D1D5DB; margin: 5px 20px 20px 20px; padding-top: 20px; text-align: center;">
-      <div style="display: inline-block; font-family: monospace; font-size: 10px; color: #9CA3AF; letter-spacing: 2px;">|||| | || ||||| | ||| |||| | ||| | ||</div>
-      <p style="margin: 8px 0 0 0; font-size: 9px; color: #9CA3AF; line-height: 1.3;">
-        Dilindungi oleh Enkripsi Keamanan SwiftRelay.<br>
-        Layanan Nasabah Mandiri: 1500888 | care@ib-mandiri-co-id.com
-      </p>
-    </div>
-  </div>
-</div>`,
-      createdAt: Date.now()
-    };
-    return [defaultTemplate];
+    return [];
   });
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
@@ -1080,6 +1000,12 @@ export default function App() {
                               
                               window.addEventListener('resize', adjustScale);
                               window.addEventListener('load', adjustScale);
+                              
+                              if (typeof ResizeObserver !== 'undefined') {
+                                var ro = new ResizeObserver(adjustScale);
+                                ro.observe(wrapper);
+                              }
+                              
                               setTimeout(adjustScale, 50);
                               setTimeout(adjustScale, 200);
                               setTimeout(adjustScale, 500);

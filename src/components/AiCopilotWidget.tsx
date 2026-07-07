@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Sparkles, Plus, Loader2, AlertCircle, Send, FileText, Star, Image, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { EmailTemplate } from "../types";
@@ -49,6 +49,65 @@ const updateHtmlLink = (html: string, index: number, newText: string, newHref: s
   return html;
 };
 
+interface LinkEditorProps {
+  templateHtml: string;
+  onLinkUpdate: (newHtml: string) => void;
+}
+
+const LinkEditor: React.FC<LinkEditorProps> = React.memo(({ templateHtml, onLinkUpdate }) => {
+  const links = useMemo(() => getHtmlLinks(templateHtml), [templateHtml]);
+
+  if (links.length === 0) return null;
+
+  return (
+    <div className="bg-white/[0.02] border border-white/10 rounded-xl p-3 space-y-2">
+      <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-amber-400 uppercase tracking-widest font-mono">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+        Kustomisasi Tombol & Link Draf:
+      </div>
+      <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 no-scrollbar">
+        {links.map((link, linkIdx) => (
+          <div key={linkIdx} className="p-2 bg-white/[0.03] border border-white/10 rounded-lg space-y-2">
+            <div className="text-[9px] font-black text-white/80 uppercase tracking-wider flex items-center justify-between">
+              <span>Tombol #{linkIdx + 1}: "{link.text}"</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[8px] font-extrabold text-white/40 uppercase tracking-wider block mb-1">
+                  Teks Tombol
+                </label>
+                <input
+                  type="text"
+                  value={link.text}
+                  onChange={(e) => {
+                    const newHtml = updateHtmlLink(templateHtml, link.index, e.target.value, link.href);
+                    onLinkUpdate(newHtml);
+                  }}
+                  className="w-full px-2 py-1.5 bg-white/[0.04] border border-white/10 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-400/50 text-white placeholder:text-white/20 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[8px] font-extrabold text-white/40 uppercase tracking-wider block mb-1">
+                  Link Tujuan (URL)
+                </label>
+                <input
+                  type="text"
+                  value={link.href}
+                  onChange={(e) => {
+                    const newHtml = updateHtmlLink(templateHtml, link.index, link.text, e.target.value);
+                    onLinkUpdate(newHtml);
+                  }}
+                  className="w-full px-2 py-1.5 bg-white/[0.04] border border-white/10 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-400/50 text-white placeholder:text-white/20 transition-all font-mono"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+
 interface AiCopilotWidgetProps {
   isAiOpen: boolean;
   setIsAiOpen: (open: boolean) => void;
@@ -58,7 +117,7 @@ interface AiCopilotWidgetProps {
   setTemplates: React.Dispatch<React.SetStateAction<EmailTemplate[]>>;
 }
 
-export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = ({
+export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
   isAiOpen,
   setIsAiOpen,
   setActiveTab,
@@ -86,7 +145,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = ({
 
   const aiChatEndRef = useRef<HTMLDivElement | null>(null);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -160,7 +219,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = ({
     };
     reader.readAsDataURL(file);
     e.target.value = "";
-  };
+  }, [addLog]);
 
   // Auto scroll chat to bottom when history or state changes
   useEffect(() => {
@@ -169,7 +228,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = ({
     }
   }, [aiHistory, isAiOpen]);
 
-  const handleSendAiMessage = async (messageText: string) => {
+  const handleSendAiMessage = useCallback(async (messageText: string) => {
     let finalMsg = messageText.trim();
     if (!finalMsg && selectedImage) {
       finalMsg = "Buatkan draf email yang serupa atau berdasarkan gambar yang saya kirim ini.";
@@ -240,9 +299,9 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = ({
     } finally {
       setIsAiLoading(false);
     }
-  };
+  }, [aiHistory, selectedImage]);
 
-  const applyAiTemplateToForm = (tpl: { subject: string; html: string }) => {
+  const applyAiTemplateToForm = useCallback((tpl: { subject: string; html: string }) => {
     window.dispatchEvent(new CustomEvent("apply-template", { detail: tpl }));
     setActiveTab("send");
     setIsAiOpen(false);
@@ -258,9 +317,9 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = ({
         ip: "Local"
       }
     }));
-  };
+  }, [setActiveTab, setIsAiOpen]);
 
-  const saveAiTemplateToCollection = (tpl: { subject: string; html: string; category?: string }) => {
+  const saveAiTemplateToCollection = useCallback((tpl: { subject: string; html: string; category?: string }) => {
     const newTemplate: EmailTemplate = {
       id: "tpl_" + Date.now(),
       name: "AI: " + (tpl.subject.substring(0, 20) || "Draf Tanpa Judul"),
@@ -286,7 +345,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = ({
         ip: "Local"
       }
     }));
-  };
+  }, [templates, setTemplates, addLog]);
 
   return (
     <AnimatePresence>
@@ -530,63 +589,17 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = ({
                       </div>
 
                       {/* Custom Button & Link Editor Panel */}
-                      {getHtmlLinks(msg.template.html).length > 0 && (
-                        <div className="bg-white/[0.02] border border-white/10 rounded-xl p-3 space-y-2">
-                          <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-amber-400 uppercase tracking-widest font-mono">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                            Kustomisasi Tombol & Link Draf:
-                          </div>
-                          <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 no-scrollbar">
-                            {getHtmlLinks(msg.template.html).map((link, linkIdx) => (
-                              <div key={linkIdx} className="p-2 bg-white/[0.03] border border-white/10 rounded-lg space-y-2">
-                                <div className="text-[9px] font-black text-white/80 uppercase tracking-wider flex items-center justify-between">
-                                  <span>Tombol #{linkIdx + 1}: "{link.text}"</span>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div>
-                                    <label className="text-[8px] font-extrabold text-white/40 uppercase tracking-wider block mb-1">
-                                      Teks Tombol
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={link.text}
-                                      onChange={(e) => {
-                                        const newHtml = updateHtmlLink(msg.template.html, link.index, e.target.value, link.href);
-                                        const updatedHistory = [...aiHistory];
-                                        updatedHistory[idx].template = {
-                                          ...msg.template,
-                                          html: newHtml
-                                        };
-                                        setAiHistory(updatedHistory);
-                                      }}
-                                      className="w-full px-2 py-1.5 bg-white/[0.04] border border-white/10 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-400/50 text-white placeholder:text-white/20 transition-all"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="text-[8px] font-extrabold text-white/40 uppercase tracking-wider block mb-1">
-                                      Link Tujuan (URL)
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={link.href}
-                                      onChange={(e) => {
-                                        const newHtml = updateHtmlLink(msg.template.html, link.index, link.text, e.target.value);
-                                        const updatedHistory = [...aiHistory];
-                                        updatedHistory[idx].template = {
-                                          ...msg.template,
-                                          html: newHtml
-                                        };
-                                        setAiHistory(updatedHistory);
-                                      }}
-                                      className="w-full px-2 py-1.5 bg-white/[0.04] border border-white/10 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-400/50 text-white placeholder:text-white/20 transition-all font-mono"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <LinkEditor
+                        templateHtml={msg.template.html}
+                        onLinkUpdate={(newHtml) => {
+                          const updatedHistory = [...aiHistory];
+                          updatedHistory[idx].template = {
+                            ...msg.template,
+                            html: newHtml
+                          };
+                          setAiHistory(updatedHistory);
+                        }}
+                      />
 
                       <div className="flex gap-2">
                         <button
@@ -730,4 +743,4 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = ({
       )}
     </AnimatePresence>
   );
-};
+});

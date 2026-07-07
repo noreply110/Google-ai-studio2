@@ -19,13 +19,61 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   minHeight = "200px"
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isHtmlMode, setIsHtmlMode] = useState(false);
   const [htmlValue, setHtmlValue] = useState(value);
+  const [viewMode, setViewMode] = useState<"original" | "fit">("original");
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+  const [contentHeight, setContentHeight] = useState<number>(300);
   const [activeFormat, setActiveFormat] = useState({
     bold: false,
     italic: false,
     underline: false,
   });
+
+  // ResizeObserver for the editor container width
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const handleResize = () => {
+      const rect = element.getBoundingClientRect();
+      setContainerWidth(rect.width);
+    };
+
+    handleResize();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(() => {
+        handleResize();
+      });
+      observer.observe(element);
+      return () => observer.disconnect();
+    } else {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [isHtmlMode]);
+
+  // ResizeObserver for the contenteditable height
+  useEffect(() => {
+    const element = editorRef.current;
+    if (!element || isHtmlMode) return;
+
+    const handleResize = () => {
+      setContentHeight(element.offsetHeight || element.scrollHeight || 300);
+    };
+
+    handleResize();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(() => {
+        handleResize();
+      });
+      observer.observe(element);
+      return () => observer.disconnect();
+    }
+  }, [isHtmlMode, value, viewMode]);
 
   // Keep raw HTML input in sync with value
   useEffect(() => {
@@ -285,7 +333,23 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </div>
         )}
 
-        <div className="flex items-center shrink-0 border-l border-slate-200 pl-1.5">
+        <div className="flex items-center shrink-0 border-l border-slate-200 pl-1.5 gap-1.5">
+          {/* Size View Mode Toggle */}
+          {!isHtmlMode && (
+            <button
+              type="button"
+              onClick={() => setViewMode(viewMode === "original" ? "fit" : "original")}
+              className={`px-2 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shrink-0 shadow-sm ${
+                viewMode === "original" 
+                  ? "bg-[#0050b3] text-white hover:bg-[#003d8c]" 
+                  : "bg-slate-200/80 hover:bg-slate-300 text-slate-700"
+              }`}
+              title={viewMode === "original" ? "Beralih ke Fit Lebar Layar" : "Beralih ke Ukuran Draf Asli (Rekomendasi)"}
+            >
+              {viewMode === "original" ? "Draf Asli (600px)" : "Fit Layar"}
+            </button>
+          )}
+
           {/* HTML Source Toggle */}
           <button
             type="button"
@@ -308,19 +372,68 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
       {/* Editor Content Area */}
       <div 
-        className="relative flex-1 bg-white overflow-y-auto"
+        ref={containerRef}
+        className={`relative flex-1 overflow-auto transition-colors duration-200 ${
+          viewMode === "original" && !isHtmlMode ? "bg-slate-100/60 p-3 sm:p-5" : "bg-white"
+        }`}
         style={{ minHeight }}
       >
         {!isHtmlMode ? (
-          <div
-            ref={editorRef}
-            contentEditable
-            onInput={handleInput}
-            onPaste={handlePaste}
-            className="w-full h-full min-h-[inherit] p-4 text-slate-800 text-sm focus:outline-none overflow-y-auto leading-relaxed select-text"
-            style={{ minHeight }}
-            data-placeholder={placeholder}
-          />
+          (() => {
+            const paddingOffset = 24;
+            const availableWidth = containerWidth ? Math.max(containerWidth - paddingOffset, 280) : 600;
+            const scale = viewMode === "original" && availableWidth < 600 ? availableWidth / 600 : 1;
+
+            if (viewMode === "original") {
+              return (
+                <div
+                  className="mx-auto"
+                  style={{
+                    width: scale < 1 ? `${availableWidth}px` : "600px",
+                    height: `${contentHeight * scale}px`,
+                    overflow: "hidden",
+                    position: "relative",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "600px",
+                      transform: `scale(${scale})`,
+                      transformOrigin: "top left",
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                    }}
+                  >
+                    <div
+                      ref={editorRef}
+                      contentEditable
+                      onInput={handleInput}
+                      onPaste={handlePaste}
+                      className="bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.06)] rounded-2xl border border-slate-200/60 text-slate-800 text-sm focus:outline-none leading-relaxed select-text"
+                      style={{ 
+                        minHeight,
+                        width: "600px"
+                      }}
+                      data-placeholder={placeholder}
+                    />
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div
+                ref={editorRef}
+                contentEditable
+                onInput={handleInput}
+                onPaste={handlePaste}
+                className="w-full h-full min-h-[inherit] p-3 text-slate-800 text-sm focus:outline-none overflow-auto leading-relaxed select-text bg-white"
+                style={{ minHeight }}
+                data-placeholder={placeholder}
+              />
+            );
+          })()
         ) : (
           <textarea
             value={htmlValue}
@@ -350,28 +463,21 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }
         [contenteditable] {
           outline: none;
-          max-width: 100% !important;
           box-sizing: border-box !important;
         }
-        [contenteditable] * {
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-        }
+        /* Preserve exact original design widths of email templates (like 600px) instead of squeezing them on mobile */
         [contenteditable] table {
-          width: 100% !important;
-          max-width: 100% !important;
-          table-layout: fixed !important;
+          max-width: none !important;
+          box-sizing: border-box !important;
         }
         [contenteditable] img {
-          max-width: 100% !important;
-          height: auto !important;
+          max-width: 100%;
         }
         [contenteditable] div, 
         [contenteditable] section, 
         [contenteditable] table, 
         [contenteditable] td {
-          word-break: break-word !important;
-          overflow-wrap: break-word !important;
+          overflow-wrap: anywhere !important;
         }
         /* Style standard tag output for consistent contenteditable visual representation */
         [contenteditable] ul {

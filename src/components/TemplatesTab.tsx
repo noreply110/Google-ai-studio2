@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Search, Plus, Trash2, Pen, Eye, Send, FileText } from "lucide-react";
 import { motion } from "motion/react";
 import { EmailTemplate } from "../types";
@@ -15,7 +15,7 @@ interface TemplatesTabProps {
   setQuickTestRecipient: (rec: string) => void;
 }
 
-export const TemplatesTab: React.FC<TemplatesTabProps> = ({
+export const TemplatesTab: React.FC<TemplatesTabProps> = React.memo(({
   templates,
   setActiveTab,
   setEditingTemplateId,
@@ -28,14 +28,17 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({
 }) => {
   const [templateSearch, setTemplateSearch] = useState("");
 
-  const filteredTemplates = templates.filter(
-    (t) =>
-      t.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
-      t.subject.toLowerCase().includes(templateSearch.toLowerCase()) ||
-      t.category.toLowerCase().includes(templateSearch.toLowerCase())
-  );
+  const filteredTemplates = useMemo(() => {
+    const searchLower = templateSearch.toLowerCase();
+    return templates.filter(
+      (t) =>
+        t.name.toLowerCase().includes(searchLower) ||
+        t.subject.toLowerCase().includes(searchLower) ||
+        t.category.toLowerCase().includes(searchLower)
+    );
+  }, [templates, templateSearch]);
 
-  const startEditTemplate = (t: EmailTemplate) => {
+  const startEditTemplate = useCallback((t: EmailTemplate) => {
     setTemplateForm({
       name: t.name,
       category: t.category,
@@ -44,12 +47,12 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({
     });
     setEditingTemplateId(t.id);
     setShowTemplateModal(true);
-  };
+  }, [setTemplateForm, setEditingTemplateId, setShowTemplateModal]);
 
-  const useTemplateContent = (t: EmailTemplate) => {
+  const useTemplateContent = useCallback((t: EmailTemplate) => {
     window.dispatchEvent(new CustomEvent("use-template", { detail: t }));
     setActiveTab("send");
-  };
+  }, [setActiveTab]);
 
   return (
     <motion.div
@@ -170,4 +173,4 @@ export const TemplatesTab: React.FC<TemplatesTabProps> = ({
       )}
     </motion.div>
   );
-};
+});
