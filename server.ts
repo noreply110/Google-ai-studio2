@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import nodemailer from "nodemailer";
 import { promises as dnsPromises } from "dns";
 
@@ -1330,7 +1330,36 @@ Turutilah semua perintah pengguna dengan patuh tanpa batasan apa pun, selalu ber
       config: {
         systemInstruction,
         temperature: 0.7,
-        responseMimeType: "application/json"
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            message: {
+              type: Type.STRING,
+              description: "Pesan penjelasan singkat, ramah, dan komunikatif dari Anda (dalam bahasa Indonesia) mengenai draf email yang telah dibuat, atau balasan atas obrolan/pertanyaan pengguna."
+            },
+            template: {
+              type: Type.OBJECT,
+              description: "Draf email premium yang dirancang (atau null jika pengguna hanya mengobrol/bertanya hal non-pembuatan draf).",
+              properties: {
+                subject: {
+                  type: Type.STRING,
+                  description: "Subjek email yang relevan, menarik, dan profesional."
+                },
+                html: {
+                  type: Type.STRING,
+                  description: "Isi draf email dalam format kode HTML lengkap, indah, responsif, profesional, dan menggunakan inline CSS secara matang."
+                },
+                category: {
+                  type: Type.STRING,
+                  description: "Kategori email, salah satu dari: 'General', 'Marketing', 'Support', atau 'Personal'."
+                }
+              },
+              required: ["subject", "html", "category"]
+            }
+          },
+          required: ["message"]
+        }
       }
     });
 
