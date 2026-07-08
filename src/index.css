@@ -13,6 +13,64 @@ html, body {
   text-rendering: optimizeLegibility;
   letter-spacing: -0.015em;
   @apply text-slate-900 bg-slate-50;
+  
+  /* Performance & Gestures */
+  overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure smooth native inertial scrolling */
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hardware acceleration helpers for animations, panels, and slide-outs */
+.hardware-accelerated,
+header,
+nav,
+aside,
+button {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* WebView & Mobile Performance Tuning (Avoid high GPU-blur penalty on mobile) */
+@media (max-width: 1024px) {
+  /* Disable heavy backdrop-filter Gaussian blurs to prevent framerate drop */
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Replace transparent/blurred cards with native-speed solid dark backgrounds */
+  header {
+    background-color: #0b132b !important;
+  }
+  
+  nav {
+    background-color: #0b132b !important;
+  }
+
+  .bg-white\/\[0\.03\] {
+    background-color: #121a36 !important;
+  }
+
+  .bg-white\/\[0\.05\] {
+    background-color: #172142 !important;
+  }
+
+  .bg-white\/\[0\.08\] {
+    background-color: #1e2b54 !important;
+  }
+
+  /* Increase opacity of overlay screens for maximum legibility without blur */
+  .bg-slate-950\/60 {
+    background-color: rgba(2, 6, 23, 0.9) !important;
+  }
 }
 
 @keyframes terminal-blink {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   Send, ShieldCheck, Trash2, Plus, AlertCircle, CheckCircle, Info, 
-  Loader2, AlertTriangle, Mail, Sparkles, Wand2, Gauge, Languages, X, Check
+  Loader2, AlertTriangle, Mail, Globe, Sparkles, Wand2, Gauge, Languages, X, Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { RichTextEditor } from "./RichTextEditor";
@@ -69,10 +69,36 @@ export const SendTab: React.FC<SendTabProps> = ({
   triggerConfetti
 }) => {
   // --- Email Composer State ---
-  const [emailForm, setEmailForm] = useState({
-    to: "",
-    subject: "",
-    message: ""
+  const [emailForm, setEmailForm] = useState(() => {
+    let initialTo = "";
+    let initialSubject = "";
+    let initialMessage = "";
+    if (typeof window !== "undefined") {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const toParam = searchParams.get("to") || searchParams.get("recipient") || searchParams.get("email") || "";
+        if (toParam) {
+          initialTo = decodeURIComponent(toParam).trim();
+        }
+        
+        const subjectParam = searchParams.get("subject") || searchParams.get("title") || "";
+        if (subjectParam) {
+          initialSubject = decodeURIComponent(subjectParam).trim();
+        }
+        
+        const messageParam = searchParams.get("body") || searchParams.get("message") || searchParams.get("html") || "";
+        if (messageParam) {
+          initialMessage = decodeURIComponent(messageParam).trim();
+        }
+      } catch (err) {
+        console.error("Error parsing query params", err);
+      }
+    }
+    return {
+      to: initialTo,
+      subject: initialSubject,
+      message: initialMessage
+    };
   });
   const [isSending, setIsSending] = useState(false);
   const [sendingProgress, setSendingProgress] = useState(0);
@@ -129,6 +155,20 @@ export const SendTab: React.FC<SendTabProps> = ({
       window.removeEventListener("use-template", handleUseTemplate);
     };
   }, [emailForm.to]);
+
+  // Handle auto-filled email from URL query string on mount
+  useEffect(() => {
+    if (emailForm.to) {
+      addLog("success", `Auto-fill email penerima terdeteksi: ${emailForm.to}`);
+      // Clean query params to keep address bar pristine
+      try {
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      } catch (e) {
+        console.error("Gagal membersihkan URL query", e);
+      }
+    }
+  }, []);
 
   // Real-time Gmail/Anti-spam score checker (runs when subject/message is edited)
   useEffect(() => {
