@@ -73,7 +73,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       observer.observe(element);
       return () => observer.disconnect();
     }
-  }, [isHtmlMode, value, viewMode]);
+  }, [isHtmlMode, viewMode]);
 
   // Keep raw HTML input in sync with value
   useEffect(() => {
