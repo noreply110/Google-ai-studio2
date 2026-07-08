@@ -48,6 +48,10 @@ export default function App() {
   // --- Navigation & Core Views ---
   const [activeTab, setActiveTab] = useState<"send" | "templates" | "terminal" | "accounts">("send");
 
+  // --- PWA Installation State ---
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
   // --- Email Tracking State ---
   const [bankingNotifications, setBankingNotifications] = useState<BankingNotification[]>([]);
 
@@ -134,6 +138,27 @@ export default function App() {
     window.addEventListener("banking-notif", handleBankingNotif);
     return () => window.removeEventListener("banking-notif", handleBankingNotif);
   }, []);
+
+  // Listen for browser's beforeinstallprompt event to enable custom in-app PWA install trigger
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+      addLog("info", "Aplikasi G-Swift Relay siap di-install di perangkat Anda!");
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallPwa = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    addLog("info", `Proses instalasi PWA: ${outcome === 'accepted' ? 'Berhasil Disetujui' : 'Dibatalkan'}`);
+    setDeferredPrompt(null);
+    setShowInstallBanner(false);
+  };
 
   const triggerConfetti = () => {
     setShowConfetti(true);
@@ -796,6 +821,8 @@ export default function App() {
                 addLog={addLog}
                 triggerConfetti={triggerConfetti}
                 checkBackendHealth={checkBackendHealth}
+                deferredPrompt={deferredPrompt}
+                onInstallPwa={handleInstallPwa}
               />
             )}
 

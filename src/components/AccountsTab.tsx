@@ -12,6 +12,8 @@ interface AccountsTabProps {
   addLog: (type: "info" | "success" | "error" | "warning", msg: string) => void;
   triggerConfetti: () => void;
   checkBackendHealth: () => void;
+  deferredPrompt?: any;
+  onInstallPwa?: () => void;
 }
 
 export const AccountsTab: React.FC<AccountsTabProps> = ({
@@ -20,7 +22,9 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
   setActiveTab,
   addLog,
   triggerConfetti,
-  checkBackendHealth
+  checkBackendHealth,
+  deferredPrompt,
+  onInstallPwa
 }) => {
   const [isDetectingSmtp, setIsDetectingSmtp] = useState(false);
   const [smtpRecommendation, setSmtpRecommendation] = useState<{
@@ -366,6 +370,36 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
             </p>
           </div>
         </div>
+
+        {/* --- PWA INSTALL BANNER --- */}
+        {deferredPrompt && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 bg-gradient-to-r from-indigo-950/40 via-blue-950/40 to-indigo-950/40 border border-indigo-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-indigo-950/50"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-300 shrink-0">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="text-center sm:text-left">
+                <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                  Pasang Aplikasi Mobile G-Swift!
+                </h4>
+                <p className="text-[10px] text-indigo-200/70 font-semibold mt-0.5 leading-normal">
+                  Pasang aplikasi ini langsung di layar utama HP Anda untuk akses cepat, stabil, dan hemat baterai.
+                </p>
+              </div>
+            </div>
+            
+            <button
+              onClick={onInstallPwa}
+              className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-indigo-500/20 active:scale-95 cursor-pointer shrink-0"
+            >
+              Install Sekarang
+            </button>
+          </motion.div>
+        )}
 
         <div className="mb-4 bg-white/[0.03] border border-white/10 rounded-xl py-1.5 px-3 flex items-center gap-2 overflow-hidden shadow-sm">
           <Info className="w-3.5 h-3.5 text-white/60 shrink-0" />
