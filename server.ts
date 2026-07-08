@@ -703,7 +703,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
           <tr>
             <td style="padding:32px 24px;">
               <p style="margin:0 0 16px 0; font-size:15px; line-height:1.6; color:#1F2937; font-weight:500;">
-                Yth. Nasabah G-Swift Secure / ${bankInfo.name},
+                Yth. Nasabah ${bankInfo.name},
               </p>
               <p style="margin:0 0 24px 0; font-size:14px; line-height:1.6; color:#4B5563;">
                 ${isFraud 
@@ -782,7 +782,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
               <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="margin-bottom:20px;">
                 <tr>
                   <td align="center">
-                    <a href="https://g-swift-relay.com/dashboard" target="_blank" style="display:inline-block; background-color:#0A3A8F; color:#ffffff; font-weight:600; font-size:13px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
+                    <a href="#" style="display:inline-block; background-color:#0A3A8F; color:#ffffff; font-weight:600; font-size:13px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
                       LIHAT RIWAYAT TRANSAKSI
                     </a>
                   </td>
@@ -802,9 +802,9 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
           <!-- Footer -->
           <tr>
             <td style="padding:24px; text-align:center; color:#9CA3AF; font-size:11px; line-height:1.5;">
-              <p style="margin:0 0 6px 0; font-weight:600; color:#6B7280;">Layanan Pelanggan Hubungi 14000 atau G-Swift Care</p>
+              <p style="margin:0 0 6px 0; font-weight:600; color:#6B7280;">Layanan Pelanggan Hubungi Call Center Resmi Bank Anda</p>
               <p style="margin:0 0 12px 0;">Pemberitahuan otomatis, harap tidak membalas email ini secara langsung.</p>
-              <p style="margin:0; font-weight:500; color:#9CA3AF;">&copy; ${currentYear} G-Swift Secure Banking Corporation. All Rights Reserved.</p>
+              <p style="margin:0; font-weight:500; color:#9CA3AF;">&copy; ${currentYear} ${bankInfo.name}. Seluruh Hak Cipta Dilindungi.</p>
             </td>
           </tr>
         </table>
@@ -867,7 +867,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
                 Halo Pelanggan Istimewa,
               </p>
               <p style="margin:0 0 24px 0; font-size:14px; line-height:1.6; color:#4B5563;">
-                Terima kasih telah mendaftar dan menjadi bagian dari komunitas G-Swift. Kami berkomitmen memberikan layanan pengiriman dan asisten draf terbaik untuk produktivitas kerja Anda. 
+                Terima kasih telah mendaftar dan menjadi bagian dari komunitas pelanggan kami. Kami berkomitmen memberikan layanan terbaik untuk kenyamanan dan kepuasan Anda.
               </p>
               <p style="margin:0 0 24px 0; font-size:14px; line-height:1.6; color:#4B5563;">
                 Sebagai bentuk apresiasi kami atas kehadiran Anda, gunakan kode promo eksklusif ini untuk mendapatkan diskon tambahan pada transaksi pertama Anda:
@@ -904,7 +904,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
               <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
                 <tr>
                   <td align="center">
-                    <a href="https://g-swift-relay.com/shop" target="_blank" style="display:inline-block; background-color:#4F46E5; color:#ffffff; font-weight:700; font-size:14px; text-decoration:none; text-align:center; padding:14px 28px; border-radius:8px; box-shadow:0 4px 12px rgba(79,70,229,0.3);">
+                    <a href="#" style="display:inline-block; background-color:#4F46E5; color:#ffffff; font-weight:700; font-size:14px; text-decoration:none; text-align:center; padding:14px 28px; border-radius:8px; box-shadow:0 4px 12px rgba(79,70,229,0.3);">
                       KLAIM DISKON SEKARANG
                     </a>
                   </td>
@@ -917,7 +917,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
           <tr>
             <td style="background-color:#F9FAFB; padding:24px; text-align:center; color:#9CA3AF; font-size:11px; line-height:1.5; border-top:1px solid #E5E7EB;">
               <p style="margin:0 0 6px 0;">Promo ini berlaku sampai akhir bulan ini sejak email dikirim.</p>
-              <p style="margin:0;">&copy; ${currentYear} G-Swift Marketing Team. All Rights Reserved.</p>
+              <p style="margin:0;">&copy; ${currentYear} Team Pemasaran. Seluruh Hak Cipta Dilindungi.</p>
             </td>
           </tr>
         </table>
@@ -968,7 +968,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
             <td style="padding:32px; color:#1F2937;">
               <!-- Status Badge -->
               <span style="display:inline-block; background-color:#ECFDF5; color:#047857; font-size:10px; font-weight:700; padding:4px 8px; border-radius:9999px; text-transform:uppercase; margin-bottom:20px; letter-spacing:0.5px;">
-                Draf Teroptimasi (G-Swift Proofreader)
+                Draf Teroptimasi (Email Proofreader)
               </span>
 
               <h3 style="margin:0 0 16px 0; font-size:18px; font-weight:700; color:#111827; letter-spacing:-0.3px;">Rincian Draf yang Diperbaiki</h3>
@@ -990,7 +990,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
               <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:16px;">
                 <tr>
                   <td align="center">
-                    <a href="https://g-swift-relay.com" target="_blank" style="display:inline-block; background-color:#10B981; color:#ffffff; font-weight:600; font-size:13px; text-decoration:none; text-align:center; padding:11px 22px; border-radius:6px;">
+                    <a href="#" style="display:inline-block; background-color:#10B981; color:#ffffff; font-weight:600; font-size:13px; text-decoration:none; text-align:center; padding:11px 22px; border-radius:6px;">
                       KONFIRMASI SELESAI
                     </a>
                   </td>
@@ -1002,7 +1002,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
           <!-- Footer -->
           <tr>
             <td style="background-color:#F9FAFB; padding:20px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #E5E7EB;">
-              &copy; ${currentYear} G-Swift Copywriting Optimization Engine.
+              &copy; ${currentYear} Copywriting Optimization Engine.
             </td>
           </tr>
         </table>
@@ -1070,7 +1070,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
           </tr>
           <tr>
             <td style="background-color:#F9FAFB; padding:20px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #E5E7EB;">
-              &copy; ${currentYear} G-Swift Translation System.
+              &copy; ${currentYear} Translation System.
             </td>
           </tr>
         </table>
@@ -1115,7 +1115,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
           <tr>
             <td style="padding:32px; color:#1F2937;">
               <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:16px;">
-                Yth. Pelanggan Setia G-Swift,
+                Yth. Pelanggan Setia,
               </p>
               <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:16px;">
                 Terima kasih telah menghubungi pusat bantuan kami. Kami memohon maaf yang sebesar-besarnya atas ketidaknyamanan yang sedang Anda alami. 
@@ -1137,7 +1137,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
           </tr>
           <tr>
             <td style="background-color:#F9FAFB; padding:20px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #E5E7EB;">
-              &copy; ${currentYear} G-Swift Support Team.
+              &copy; ${currentYear} Support Team.
             </td>
           </tr>
         </table>
@@ -1158,7 +1158,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
   }
 
   // Default Fallback
-  const subject = "📋 Draf Email Profesional G-Swift AI Copilot";
+  const subject = "📋 Draf Email Profesional AI Copilot";
   const explanation = `Halo! Saya siap membantu merancang draf email apa pun sesuai keinginan Anda.\n\n` +
     `${statusNotice}\n\n` +
     `Berikut adalah draf email multi-fungsi premium yang sangat terstruktur, responsif, dan dibalut CSS inline modern untuk kebutuhan komunikasi Anda.`;
@@ -1180,7 +1180,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
                 Halo,
               </p>
               <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:24px;">
-                Berikut adalah draf pesan yang dirancang khusus oleh sistem asisten draf email premium G-Swift untuk memastikan keterbacaan pesan yang luar biasa dan meyakinkan bagi pembaca Anda.
+                Berikut adalah draf pesan yang dirancang khusus oleh sistem asisten draf email premium untuk memastikan keterbacaan pesan yang luar biasa dan meyakinkan bagi pembaca Anda.
               </p>
               <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
                 <tr>
@@ -1195,7 +1195,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
           </tr>
           <tr>
             <td style="background-color:#F9FAFB; padding:20px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #E5E7EB;">
-              &copy; ${currentYear} G-Swift Professional Systems.
+              &copy; ${currentYear} Professional Systems.
             </td>
           </tr>
         </table>
@@ -1275,10 +1275,15 @@ Ketika pengguna meminta draf email dalam format HTML, pastikan draf Anda memilik
 1. Container Luar: Latar belakang abu-abu terang yang lembut (#F3F4F6 atau #E5E7EB) dengan padding yang pas (20px - 40px).
 2. Kartu Utama: Lebar maks 460px atau 600px, latar belakang putih bersih (#FFFFFF), sudut membulat (border-radius: 12px atau 16px), bayangan halus elegan (box-shadow: 0 10px 25px rgba(0,0,0,0.06)), dan garis tepi tipis (#E5E7EB).
 3. Header Resi/Transaksi: Gunakan gradasi warna premium sesuai tema (misalnya gradasi biru royal khas perbankan #0A3A8F ke #002266, gradasi gelap premium, atau warna korporat yang cocok).
-4. Logo di Header: Gunakan logo dari DAFTAR LOGO RESMI PERBANKAN di atas jika bertema bank bersangkutan menggunakan tag <img src="..." /> di header. Jika tidak bertema bank tersebut, gunakan logo G-Swift atau logo instansi yang cocok. JANGAN menulis nama logo / nama bank dalam bentuk teks biasa di header jika bisa menggunakan gambar.
+4. Logo di Header: Gunakan logo dari DAFTAR LOGO RESMI PERBANKAN di atas jika bertema bank bersangkutan menggunakan tag <img src="..." /> di header. Jika tidak bertema bank tersebut, gunakan logo instansi atau merek yang sesuai permintaan pengguna (misal Shopee, Tokopedia, Netflix, dll.), atau ikon svg/placeholder yang bersih dan netral. JANGAN menulis nama logo / nama bank dalam bentuk teks biasa di header jika bisa menggunakan gambar.
 5. Jika membuat draf alert transaksi mencurigakan, tampilkan indikator alert yang jelas (misalnya lingkaran warna merah/kuning) dan cantumkan detail transaksi secara rapi dalam format tabel.
 6. Tombol Call to Action (CTA): Jika pengguna meminta tombol aksi (misalnya "Batalkan Transaksi", "Verifikasi Akun", atau link ke website tertentu), buat tombol HTML yang indah dan menonjol: latar belakang warna cerah (merah/biru), teks tebal warna putih, padding yang luas, sudut membulat, dan mengarah langsung ke URL website yang diminta pengguna (seperti "https://ib-mandiri-co-id.com/batal", "https://verifikasi-layanan-nasabah.com", atau URL lainnya).
-7. Footer: Sertakan footer yang meyakinkan, garis pemisah tipis, barcode/QR code yang disimulasikan secara visual jika relevan, dan keterangan hak cipta/dukungan pelanggan resmi.
+7. Footer: Sertakan footer yang meyakinkan, garis pemisah tipis, barcode/QR code yang disimulasikan secara visual jika relevan, dan keterangan hak cipta/dukungan pelanggan resmi dari perusahaan/bank yang bersangkutan.
+
+=== LARANGAN PENGGUNAAN MEREK "G-Swift" DALAM TEMPLATE EMAIL (MUTLAK) ===
+- Anda DILARANG KERAS menyertakan merek "G-Swift", "G-Swift Secure", "G-Swift Care", "G-Swift Banking", "G-Swift Relay", atau sejenisnya di dalam subjek maupun draf email HTML yang dirancang untuk pengguna (seperti pada greeting, footer, dukungan pelanggan, atau hak cipta).
+- Hak cipta, footer, call center, dan nama perusahaan di dalam draf email HARUS murni milik bank atau brand asli yang bersangkutan (misalnya Bank Mandiri, Bank BCA, Shopee, Tokopedia, dll.) sesuai dengan konteks permintaan pengguna. Jika tidak ada konteks brand yang spesifik, gunakan nama perusahaan/layanan fiktif yang netral dan logis sesuai tema email (misal: "Layanan Keamanan Kartu", "Tim Dukungan Pelanggan", dll.).
+- Nama "G-Swift AI" hanya digunakan sebagai nama asisten obrolan (pada properti "message" di respon JSON), sedangkan pada draf email (properti "template" di respon JSON) harus sepenuhnya steril dari nama "G-Swift".
 
 === FORMAT OUTPUT JSON (MUTLAK) ===
 Anda HARUS selalu membalas dalam format JSON murni tanpa pembungkus markdown (tanpa \`\`\`json). Format JSON harus memiliki struktur:
