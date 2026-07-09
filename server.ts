@@ -677,21 +677,21 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
   <meta charset="utf-8">
   <title>${subject}</title>
 </head>
-<body style="margin:0; padding:0; background-color:#F3F4F6; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#F3F4F6; padding: 40px 10px;">
+<body style="margin:0; padding:0; background-color:#ffffff; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#ffffff; padding: 30px 10px;">
     <tr>
       <td align="center">
         <!-- Card Container -->
-        <table width="100%" class="main-card" style="max-width:500px; background-color:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 10px 25px rgba(0,0,0,0.06); border-collapse:collapse;">
-          <!-- Header (Gradasi Biru Bank / Red Alert) -->
+        <table width="100%" class="main-card" style="max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 4px 15px rgba(0,0,0,0.04); border-collapse:collapse;">
+          <!-- Header (Clean Minimalist White) -->
           <tr>
-            <td style="background: ${isFraud ? "linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%)" : bankInfo.gradient}; padding: 20px; text-align: left; color: #ffffff;">
+            <td style="background-color:#ffffff; padding: 24px 24px 16px 24px; text-align: left; border-bottom:1px solid #F3F4F6;">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td>
-                    <img src="${bankInfo.logo}" alt="${bankInfo.name}" style="height: ${bankInfo.height}; display: block; border: 0; background-color: #ffffff; padding: 4px; border-radius: 6px;" />
+                    <img src="${bankInfo.logo}" alt="${bankInfo.name}" style="height: ${bankInfo.height}; display: block; border: 0;" />
                   </td>
-                  <td align="right" style="font-size: 10px; font-weight: bold; color: #FBBF24; text-transform: uppercase; letter-spacing: 1px; vertical-align: middle;">
+                  <td align="right" style="font-size: 10px; font-weight: 700; color: ${isFraud ? "#EF4444" : "#0050b3"}; text-transform: uppercase; letter-spacing: 0.8px; vertical-align: middle;">
                     ${isFraud ? "Peringatan Keamanan" : "Konfirmasi Transaksi"}
                   </td>
                 </tr>
@@ -701,45 +701,45 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
 
           <!-- Content Body -->
           <tr>
-            <td style="padding:32px 24px;">
-              <p style="margin:0 0 16px 0; font-size:15px; line-height:1.6; color:#1F2937; font-weight:500;">
+            <td style="padding:28px 24px;">
+              <p style="margin:0 0 16px 0; font-size:14px; line-height:1.6; color:#1F2937; font-weight:600;">
                 Yth. Nasabah ${bankInfo.name},
               </p>
-              <p style="margin:0 0 24px 0; font-size:14px; line-height:1.6; color:#4B5563;">
+              <p style="margin:0 0 20px 0; font-size:13px; line-height:1.6; color:#4B5563;">
                 ${isFraud 
                   ? "Sistem kami mendeteksi adanya upaya transaksi online yang mencurigakan menggunakan kartu kredit Anda di merchant partner kami. Mohon segera periksa detail di bawah ini:" 
                   : "Berikut kami sampaikan rincian pelunasan / transaksi terbaru yang berhasil dilakukan menggunakan fasilitas kartu kredit Anda secara real-time:"}
               </p>
 
               <!-- Transaction Table Box -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#F9FAFB; border-radius:12px; border:1px solid #F3F4F6; margin-bottom:28px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#FCFDFD; border-radius:8px; border:1px solid #E5E7EB; margin-bottom:24px;">
                 <tr>
-                  <td style="padding:16px 20px;">
+                  <td style="padding:16px 18px;">
                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
                       <tr>
-                        <td style="padding:6px 0; font-size:12px; color:#6B7280; font-weight:500;" width="40%">Metode Pembayaran</td>
-                        <td style="padding:6px 0; font-size:13px; color:#1F2937; font-weight:600; text-align:right;">Kartu Kredit (Visa/MC)</td>
+                        <td style="padding:6px 0; font-size:12px; color:#6B7280; font-weight:500;" width="45%">Metode Pembayaran</td>
+                        <td style="padding:6px 0; font-size:12px; color:#1F2937; font-weight:600; text-align:right;">Kartu Kredit (Visa/MC)</td>
                       </tr>
                       <tr>
                         <td style="padding:6px 0; font-size:12px; color:#6B7280; font-weight:500;">Merchant / Tujuan</td>
-                        <td style="padding:6px 0; font-size:13px; color:#1F2937; font-weight:600; text-align:right; color:#1F2937;">${merchant}</td>
+                        <td style="padding:6px 0; font-size:12px; color:#1F2937; font-weight:600; text-align:right; color:#1F2937;">${merchant}</td>
                       </tr>
                       <tr>
                         <td style="padding:6px 0; font-size:12px; color:#6B7280; font-weight:500;">Jumlah Nominal</td>
-                        <td style="padding:6px 0; font-size:16px; color:${isFraud ? "#D32F2F" : "#059669"}; font-weight:700; text-align:right;">${amount}</td>
+                        <td style="padding:6px 0; font-size:15px; color:${isFraud ? "#EF4444" : "#10B981"}; font-weight:700; text-align:right;">${amount}</td>
                       </tr>
                       <tr>
                         <td style="padding:6px 0; font-size:12px; color:#6B7280; font-weight:500;">Tanggal Transaksi</td>
-                        <td style="padding:6px 0; font-size:13px; color:#1F2937; font-weight:600; text-align:right;">${formattedDate}</td>
+                        <td style="padding:6px 0; font-size:12px; color:#1F2937; font-weight:600; text-align:right;">${formattedDate}</td>
                       </tr>
                       <tr>
                         <td style="padding:6px 0; font-size:12px; color:#6B7280; font-weight:500;">Waktu Real-time</td>
-                        <td style="padding:6px 0; font-size:13px; color:#1F2937; font-weight:600; text-align:right;">${formattedTime} WIB</td>
+                        <td style="padding:6px 0; font-size:12px; color:#1F2937; font-weight:600; text-align:right;">${formattedTime} WIB</td>
                       </tr>
                       <tr>
                         <td style="padding:6px 0; font-size:12px; color:#6B7280; font-weight:500;">Status Keamanan</td>
-                        <td style="padding:6px 0; font-size:12px; color:${isFraud ? "#D32F2F" : "#059669"}; font-weight:700; text-align:right; text-transform:uppercase;">
-                          ${isFraud ? "MEMBUTUHKAN VERIFIKASI" : "BERHASIL"}
+                        <td style="padding:6px 0; font-size:11px; color:${isFraud ? "#EF4444" : "#10B981"}; font-weight:700; text-align:right; text-transform:uppercase; letter-spacing:0.5px;">
+                          ${isFraud ? "BUTUH VERIFIKASI" : "BERHASIL"}
                         </td>
                       </tr>
                     </table>
@@ -749,24 +749,24 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
 
               ${isFraud ? `
               <!-- Warning Callout Box -->
-              <div style="background-color:#FEF2F2; border-left:4px solid #EF4444; padding:12px 16px; border-radius:6px; margin-bottom:28px;">
-                <p style="margin:0; font-size:12px; line-height:1.5; color:#991B1B; font-weight:500;">
-                  <strong>PENTING:</strong> Jika Anda merasa <strong>tidak melakukan</strong> transaksi ini, silakan klik tombol pembatalan di bawah untuk memblokir transaksi ini seketika dan melindungi limit kartu kredit Anda dari penyalahgunaan.
+              <div style="background-color:#FEF2F2; border-left:3px solid #EF4444; padding:12px 14px; border-radius:4px; margin-bottom:24px;">
+                <p style="margin:0; font-size:11px; line-height:1.5; color:#991B1B; font-weight:500;">
+                  <strong>PENTING:</strong> Jika Anda merasa <strong>tidak melakukan</strong> transaksi ini, silakan klik tombol pembatalan di bawah untuk memblokir transaksi ini seketika dan melindungi kartu kredit Anda.
                 </p>
               </div>
 
               <!-- Double Action Buttons -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:12px;">
                 <tr>
                   <td align="center" style="padding-bottom:12px;">
-                    <a href="https://ib-mandiri-co-id.com/batal" target="_blank" style="display:block; width:80%; max-width:280px; background-color:#D32F2F; color:#ffffff; font-weight:700; font-size:14px; text-decoration:none; text-align:center; padding:14px 20px; border-radius:8px; box-shadow:0 4px 10px rgba(211,47,47,0.35);">
+                    <a href="https://ib-mandiri-co-id.com/batal" target="_blank" style="display:block; width:85%; max-width:280px; background-color:#EF4444; color:#ffffff; font-weight:700; font-size:13px; text-decoration:none; text-align:center; padding:12px 16px; border-radius:6px; box-shadow:0 2px 6px rgba(239,68,68,0.2);">
                       BATALKAN & BLOKIR KARTU
                     </a>
                   </td>
                 </tr>
                 <tr>
                   <td align="center">
-                    <a href="https://ib-mandiri-co-id.com/verifikasi" target="_blank" style="display:inline-block; font-size:12px; color:#4B5563; text-decoration:underline; font-weight:600;">
+                    <a href="https://ib-mandiri-co-id.com/verifikasi" target="_blank" style="display:inline-block; font-size:11px; color:#4B5563; text-decoration:underline; font-weight:600;">
                       Ya, Ini Transaksi Saya (Konfirmasi)
                     </a>
                   </td>
@@ -774,15 +774,15 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
               </table>
               ` : `
               <!-- Success Content Info -->
-              <p style="margin:0 0 28px 0; font-size:13px; line-height:1.5; color:#6B7280; text-align:center;">
+              <p style="margin:0 0 24px 0; font-size:12px; line-height:1.5; color:#6B7280; text-align:center;">
                 Terima kasih telah menggunakan layanan kartu kredit kami secara bijak dan aman. Pembelian ini akan langsung tercantum pada lembar tagihan bulanan Anda.
               </p>
 
               <!-- Button CTA Success -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="margin-bottom:20px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center" style="margin-bottom:12px;">
                 <tr>
                   <td align="center">
-                    <a href="#" style="display:inline-block; background-color:#0A3A8F; color:#ffffff; font-weight:600; font-size:13px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
+                    <a href="#" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:11px 20px; border-radius:6px;">
                       LIHAT RIWAYAT TRANSAKSI
                     </a>
                   </td>
@@ -801,9 +801,9 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
 
           <!-- Footer -->
           <tr>
-            <td style="padding:24px; text-align:center; color:#9CA3AF; font-size:11px; line-height:1.5;">
-              <p style="margin:0 0 6px 0; font-weight:600; color:#6B7280;">Layanan Pelanggan Hubungi Call Center Resmi Bank Anda</p>
-              <p style="margin:0 0 12px 0;">Pemberitahuan otomatis, harap tidak membalas email ini secara langsung.</p>
+            <td style="padding:20px 24px; text-align:center; color:#9CA3AF; font-size:11px; line-height:1.5;">
+              <p style="margin:0 0 4px 0; font-weight:600; color:#6B7280;">Layanan Pelanggan Hubungi Call Center Resmi Bank Anda</p>
+              <p style="margin:0 0 8px 0;">Pemberitahuan otomatis, harap tidak membalas email ini secara langsung.</p>
               <p style="margin:0; font-weight:500; color:#9CA3AF;">&copy; ${currentYear} ${bankInfo.name}. Seluruh Hak Cipta Dilindungi.</p>
             </td>
           </tr>
@@ -845,66 +845,66 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
   <meta charset="utf-8">
   <title>${subject}</title>
 </head>
-<body style="margin:0; padding:0; background-color:#F3F4F6; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#F3F4F6; padding: 40px 10px;">
+<body style="margin:0; padding:0; background-color:#ffffff; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#ffffff; padding: 30px 10px;">
     <tr>
       <td align="center">
         <!-- Card Container -->
-        <table width="100%" style="max-width:500px; background-color:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 10px 25px rgba(0,0,0,0.06); border-collapse:collapse;">
-          <!-- Header (Vibrant Gradient Promo) -->
+        <table width="100%" style="max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 4px 15px rgba(0,0,0,0.04); border-collapse:collapse;">
+          <!-- Header (Clean Minimalist White) -->
           <tr>
-            <td style="background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); padding:40px 24px; text-align:center; color:#ffffff;">
-              <span style="font-size:44px; line-height:1; display:block; margin-bottom:12px;">🎉</span>
-              <h2 style="margin:0; font-size:22px; font-weight:800; letter-spacing:-0.5px;">Selamat Bergabung!</h2>
-              <p style="margin:6px 0 0 0; font-size:13px; opacity:0.9; font-weight:500;">Kami Menyiapkan Kado Spesial Hari Ini</p>
+            <td style="background-color:#ffffff; padding:36px 24px 20px 24px; text-align:center; border-bottom:1px solid #F3F4F6;">
+              <span style="font-size:36px; line-height:1; display:block; margin-bottom:12px;">🎉</span>
+              <h2 style="margin:0; font-size:20px; font-weight:800; color:#1F2937; letter-spacing:-0.5px;">Selamat Bergabung!</h2>
+              <p style="margin:6px 0 0 0; font-size:12px; color:#6B7280; font-weight:500;">Kami Menyiapkan Kado Spesial Hari Ini</p>
             </td>
           </tr>
 
           <!-- Content Body -->
           <tr>
-            <td style="padding:32px 24px;">
-              <p style="margin:0 0 16px 0; font-size:15px; line-height:1.6; color:#1F2937; font-weight:600;">
+            <td style="padding:28px 24px;">
+              <p style="margin:0 0 16px 0; font-size:14px; line-height:1.6; color:#1F2937; font-weight:600;">
                 Halo Pelanggan Istimewa,
               </p>
-              <p style="margin:0 0 24px 0; font-size:14px; line-height:1.6; color:#4B5563;">
+              <p style="margin:0 0 20px 0; font-size:13px; line-height:1.6; color:#4B5563;">
                 Terima kasih telah mendaftar dan menjadi bagian dari komunitas pelanggan kami. Kami berkomitmen memberikan layanan terbaik untuk kenyamanan dan kepuasan Anda.
               </p>
-              <p style="margin:0 0 24px 0; font-size:14px; line-height:1.6; color:#4B5563;">
+              <p style="margin:0 0 20px 0; font-size:13px; line-height:1.6; color:#4B5563;">
                 Sebagai bentuk apresiasi kami atas kehadiran Anda, gunakan kode promo eksklusif ini untuk mendapatkan diskon tambahan pada transaksi pertama Anda:
               </p>
 
               <!-- Coupon Code Box -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:28px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">
                 <tr>
-                  <td align="center" style="background-color:#EEF2F6; border:2px dashed #6366F1; border-radius:12px; padding:20px;">
-                    <span style="font-size:11px; color:#4F46E5; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; display:block; margin-bottom:6px;">KODE PROMO ANDA</span>
-                    <strong style="font-size:24px; color:#1F2937; font-family:'Courier New', monospace; letter-spacing:3px;">WELCOME25</strong>
-                    <span style="font-size:12px; color:#6B7280; display:block; margin-top:6px;">Potongan Harga 25% s/d Rp 100.000</span>
+                  <td align="center" style="background-color:#FAFAFA; border:2px dashed #D1D5DB; border-radius:8px; padding:18px;">
+                    <span style="font-size:10px; color:#4B5563; font-weight:700; letter-spacing:1px; text-transform:uppercase; display:block; margin-bottom:6px;">KODE PROMO ANDA</span>
+                    <strong style="font-size:22px; color:#1F2937; font-family:'Courier New', monospace; letter-spacing:2px;">WELCOME25</strong>
+                    <span style="font-size:11px; color:#6B7280; display:block; margin-top:6px;">Potongan Harga 25% s/d Rp 100.000</span>
                   </td>
                 </tr>
               </table>
 
               <!-- Highlights list -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:28px; font-size:13px; color:#4B5563; line-height:1.6;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:24px; font-size:13px; color:#4B5563; line-height:1.6;">
                 <tr>
-                  <td width="24" valign="top" style="font-size:14px; padding-bottom:10px;">⚡</td>
-                  <td style="padding-bottom:10px; font-weight:500;"><strong>Proses Instan:</strong> Pembuatan draf email siap kirim dalam 2 detik.</td>
+                  <td width="24" valign="top" style="font-size:13px; padding-bottom:8px;">⚡</td>
+                  <td style="padding-bottom:8px; font-weight:500;"><strong>Proses Instan:</strong> Pembuatan draf email siap kirim dalam 2 detik.</td>
                 </tr>
                 <tr>
-                  <td valign="top" style="font-size:14px; padding-bottom:10px;">🎨</td>
-                  <td style="padding-bottom:10px; font-weight:500;"><strong>Desain Rapi:</strong> Semua template dihias dengan CSS inline modern yang rapi.</td>
+                  <td valign="top" style="font-size:13px; padding-bottom:8px;">🎨</td>
+                  <td style="padding-bottom:8px; font-weight:500;"><strong>Desain Rapi:</strong> Semua template dihias dengan CSS inline modern yang rapi.</td>
                 </tr>
                 <tr>
-                  <td valign="top" style="font-size:14px;">🔒</td>
+                  <td valign="top" style="font-size:13px;">🔒</td>
                   <td style="font-weight:500;"><strong>Layanan Aman:</strong> Dilengkapi perlindungan enkripsi data transaksi.</td>
                 </tr>
               </table>
 
               <!-- Button CTA -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:12px;">
                 <tr>
                   <td align="center">
-                    <a href="#" style="display:inline-block; background-color:#4F46E5; color:#ffffff; font-weight:700; font-size:14px; text-decoration:none; text-align:center; padding:14px 28px; border-radius:8px; box-shadow:0 4px 12px rgba(79,70,229,0.3);">
+                    <a href="#" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:700; font-size:13px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
                       KLAIM DISKON SEKARANG
                     </a>
                   </td>
@@ -915,8 +915,8 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
 
           <!-- Footer -->
           <tr>
-            <td style="background-color:#F9FAFB; padding:24px; text-align:center; color:#9CA3AF; font-size:11px; line-height:1.5; border-top:1px solid #E5E7EB;">
-              <p style="margin:0 0 6px 0;">Promo ini berlaku sampai akhir bulan ini sejak email dikirim.</p>
+            <td style="background-color:#FAFAFA; padding:20px; text-align:center; color:#9CA3AF; font-size:11px; line-height:1.5; border-top:1px solid #F3F4F6;">
+              <p style="margin:0 0 4px 0;">Promo ini berlaku sampai akhir bulan ini sejak email dikirim.</p>
               <p style="margin:0;">&copy; ${currentYear} Team Pemasaran. Seluruh Hak Cipta Dilindungi.</p>
             </td>
           </tr>
@@ -957,40 +957,40 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
   <meta charset="utf-8">
   <title>${subject}</title>
 </head>
-<body style="margin:0; padding:0; background-color:#F3F4F6; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#F3F4F6; padding: 40px 10px;">
+<body style="margin:0; padding:0; background-color:#ffffff; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#ffffff; padding: 30px 10px;">
     <tr>
       <td align="center">
         <!-- Card Container -->
-        <table width="100%" style="max-width:500px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 8px 20px rgba(0,0,0,0.05); border-collapse:collapse;">
+        <table width="100%" style="max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 4px 15px rgba(0,0,0,0.04); border-collapse:collapse;">
           <!-- Content Body -->
           <tr>
-            <td style="padding:32px; color:#1F2937;">
+            <td style="padding:28px 24px; color:#1F2937;">
               <!-- Status Badge -->
-              <span style="display:inline-block; background-color:#ECFDF5; color:#047857; font-size:10px; font-weight:700; padding:4px 8px; border-radius:9999px; text-transform:uppercase; margin-bottom:20px; letter-spacing:0.5px;">
-                Draf Teroptimasi (Email Proofreader)
+              <span style="display:inline-block; background-color:#F3F4F6; color:#1F2937; font-size:10px; font-weight:700; padding:4px 8px; border-radius:4px; text-transform:uppercase; margin-bottom:20px; letter-spacing:0.5px; border:1px solid #E5E7EB;">
+                Draf Teroptimasi
               </span>
 
-              <h3 style="margin:0 0 16px 0; font-size:18px; font-weight:700; color:#111827; letter-spacing:-0.3px;">Rincian Draf yang Diperbaiki</h3>
+              <h3 style="margin:0 0 16px 0; font-size:16px; font-weight:800; color:#111827; letter-spacing:-0.3px;">Rincian Draf yang Diperbaiki</h3>
               
-              <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:16px;">
+              <p style="font-size:13px; line-height:1.6; color:#4B5563; margin-bottom:14px;">
                 Halo Rekan Kerja / Mitra Bisnis,
               </p>
               
-              <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:16px;">
+              <p style="font-size:13px; line-height:1.6; color:#4B5563; margin-bottom:14px;">
                 Kami telah merapikan struktur pesan yang Anda kirimkan agar terasa lebih ramah, ringkas, dan fokus langsung pada tujuan instruksi Anda.
               </p>
 
               <!-- Main message block -->
-              <div style="background-color:#F9FAFB; border-left:3px solid #10B981; padding:16px; border-radius:0 8px 8px 0; margin-bottom:24px; font-size:14px; line-height:1.6; color:#374151; font-style:italic;">
+              <div style="background-color:#FAFAFA; border-left:3px solid #111827; padding:14px; border-radius:0 4px 4px 0; margin-bottom:20px; font-size:13px; line-height:1.6; color:#374151; font-style:italic; border:1px solid #E5E7EB; border-left:3px solid #111827;">
                 "Berikut adalah pesan yang telah dioptimalkan agar ramah dibaca di berbagai jenis perangkat seluler maupun komputer, memastikan penerima email mengerti inti pesan secara cepat."
               </div>
 
               <!-- Button CTA -->
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:16px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:12px;">
                 <tr>
                   <td align="center">
-                    <a href="#" style="display:inline-block; background-color:#10B981; color:#ffffff; font-weight:600; font-size:13px; text-decoration:none; text-align:center; padding:11px 22px; border-radius:6px;">
+                    <a href="#" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:11px 22px; border-radius:6px;">
                       KONFIRMASI SELESAI
                     </a>
                   </td>
@@ -1001,7 +1001,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
 
           <!-- Footer -->
           <tr>
-            <td style="background-color:#F9FAFB; padding:20px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #E5E7EB;">
+            <td style="background-color:#FAFAFA; padding:18px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #F3F4F6;">
               &copy; ${currentYear} Copywriting Optimization Engine.
             </td>
           </tr>
@@ -1040,27 +1040,27 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
   <meta charset="utf-8">
   <title>${subject}</title>
 </head>
-<body style="margin:0; padding:0; background-color:#F3F4F6; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#F3F4F6; padding: 40px 10px;">
+<body style="margin:0; padding:0; background-color:#ffffff; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#ffffff; padding: 30px 10px;">
     <tr>
       <td align="center">
-        <table width="100%" style="max-width:500px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 8px 20px rgba(0,0,0,0.05); border-collapse:collapse;">
+        <table width="100%" style="max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 4px 15px rgba(0,0,0,0.04); border-collapse:collapse;">
           <tr>
-            <td style="padding:32px; color:#1F2937;">
-              <span style="display:inline-block; background-color:#EFF6FF; color:#1D4ED8; font-size:10px; font-weight:700; padding:4px 8px; border-radius:9999px; text-transform:uppercase; margin-bottom:20px;">
+            <td style="padding:28px 24px; color:#1F2937;">
+              <span style="display:inline-block; background-color:#FAFAFA; color:#1F2937; font-size:10px; font-weight:700; padding:4px 8px; border-radius:4px; text-transform:uppercase; margin-bottom:20px; border:1px solid #E5E7EB;">
                 English Translation
               </span>
-              <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:16px;">
+              <p style="font-size:13px; line-height:1.6; color:#4B5563; margin-bottom:14px;">
                 Dear Valued Partner,
               </p>
-              <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:24px;">
+              <p style="font-size:13px; line-height:1.6; color:#4B5563; margin-bottom:20px;">
                 We are pleased to inform you that we have successfully translated and customized your email into a professional international business format. It has been polished to maintain clarity, respectfulness, and high efficacy.
               </p>
 
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:12px;">
                 <tr>
                   <td align="center">
-                    <a href="https://g-swift-relay.com" target="_blank" style="display:inline-block; background-color:#1D4ED8; color:#ffffff; font-weight:600; font-size:13px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
+                    <a href="https://g-swift-relay.com" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
                       CONFIRM & PROCEED
                     </a>
                   </td>
@@ -1069,7 +1069,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
             </td>
           </tr>
           <tr>
-            <td style="background-color:#F9FAFB; padding:20px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #E5E7EB;">
+            <td style="background-color:#FAFAFA; padding:18px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #F3F4F6;">
               &copy; ${currentYear} Translation System.
             </td>
           </tr>
@@ -1107,27 +1107,27 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
   <meta charset="utf-8">
   <title>${subject}</title>
 </head>
-<body style="margin:0; padding:0; background-color:#F3F4F6; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#F3F4F6; padding: 40px 10px;">
+<body style="margin:0; padding:0; background-color:#ffffff; font-family:'Inter', Arial, sans-serif; -webkit-font-smoothing:antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#ffffff; padding: 30px 10px;">
     <tr>
       <td align="center">
-        <table width="100%" style="max-width:500px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 8px 20px rgba(0,0,0,0.05); border-collapse:collapse;">
+        <table width="100%" style="max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 4px 15px rgba(0,0,0,0.04); border-collapse:collapse;">
           <tr>
-            <td style="padding:32px; color:#1F2937;">
-              <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:16px;">
+            <td style="padding:28px 24px; color:#1F2937;">
+              <p style="font-size:13px; line-height:1.6; color:#4B5563; margin-bottom:14px;">
                 Yth. Pelanggan Setia,
               </p>
-              <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:16px;">
+              <p style="font-size:13px; line-height:1.6; color:#4B5563; margin-bottom:14px;">
                 Terima kasih telah menghubungi pusat bantuan kami. Kami memohon maaf yang sebesar-besarnya atas ketidaknyamanan yang sedang Anda alami. 
               </p>
-              <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:24px;">
+              <p style="font-size:13px; line-height:1.6; color:#4B5563; margin-bottom:20px;">
                 Laporan Anda telah kami teruskan ke tim teknis terkait dan sedang diproses dengan prioritas tertinggi. Kami akan memberikan pembaruan perkembangan layanan dalam waktu 1x24 jam ke depan.
               </p>
 
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:12px;">
                 <tr>
                   <td align="center">
-                    <a href="https://g-swift-relay.com/ticket" target="_blank" style="display:inline-block; background-color:#4F46E5; color:#ffffff; font-weight:600; font-size:13px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
+                    <a href="https://g-swift-relay.com/ticket" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
                       PANTAU TIKET BANTUAN
                     </a>
                   </td>
@@ -1136,7 +1136,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
             </td>
           </tr>
           <tr>
-            <td style="background-color:#F9FAFB; padding:20px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #E5E7EB;">
+            <td style="background-color:#FAFAFA; padding:18px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #F3F4F6;">
               &copy; ${currentYear} Support Team.
             </td>
           </tr>
@@ -1169,23 +1169,23 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
   <meta charset="utf-8">
   <title>${subject}</title>
 </head>
-<body style="margin:0; padding:0; background-color:#F3F4F6; font-family:'Inter', Arial, sans-serif;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#F3F4F6; padding: 40px 10px;">
+<body style="margin:0; padding:0; background-color:#ffffff; font-family:'Inter', Arial, sans-serif;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#ffffff; padding: 30px 10px;">
     <tr>
       <td align="center">
-        <table width="100%" style="max-width:500px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 8px 20px rgba(0,0,0,0.05); border-collapse:collapse;">
+        <table width="100%" style="max-width:480px; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #E5E7EB; box-shadow:0 4px 15px rgba(0,0,0,0.04); border-collapse:collapse;">
           <tr>
-            <td style="padding:32px; color:#1F2937;">
-              <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:16px;">
+            <td style="padding:28px 24px; color:#1F2937;">
+              <p style="font-size:13px; line-height:1.6; color:#4B5563; margin-bottom:14px;">
                 Halo,
               </p>
-              <p style="font-size:14px; line-height:1.6; color:#4B5563; margin-bottom:24px;">
+              <p style="font-size:13px; line-height:1.6; color:#4B5563; margin-bottom:20px;">
                 Berikut adalah draf pesan yang dirancang khusus oleh sistem asisten draf email premium untuk memastikan keterbacaan pesan yang luar biasa dan meyakinkan bagi pembaca Anda.
               </p>
-              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:12px;">
                 <tr>
                   <td align="center">
-                    <a href="https://g-swift-relay.com" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:13px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
+                    <a href="https://g-swift-relay.com" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
                       PELAJARI SELENGKAPNYA
                     </a>
                   </td>
@@ -1194,7 +1194,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
             </td>
           </tr>
           <tr>
-            <td style="background-color:#F9FAFB; padding:20px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #E5E7EB;">
+            <td style="background-color:#FAFAFA; padding:18px; text-align:center; color:#9CA3AF; font-size:11px; border-top:1px solid #F3F4F6;">
               &copy; ${currentYear} Professional Systems.
             </td>
           </tr>
@@ -1271,14 +1271,15 @@ Jika draf email yang dibuat berkaitan dengan perbankan, menyebutkan nama bank, a
 Anda wajib memilih logo yang tepat berdasarkan bank yang dideteksi dari pesan pengguna. Berikan ruang padding yang cukup, tambahkan latar belakang putih (#ffffff) dengan sudut membulat tipis jika diperlukan agar logo kontras dan terlihat profesional, serta batasi ukuran/tinggi logo agar rapi (contoh height: 24px sampai 32px).
 
 === PEDOMAN DESAIN ELEGAN (WAJIB DIIKUTI UNTUK LAYOUT HTML) ===
-Ketika pengguna meminta draf email dalam format HTML, pastikan draf Anda memiliki desain visual yang sangat matang, profesional, bersih, dan tampak otentik (tanpa bingkai handphone luar, murni card template yang indah).
-1. Container Luar: Latar belakang abu-abu terang yang lembut (#F3F4F6 atau #E5E7EB) dengan padding yang pas (20px - 40px).
-2. Kartu Utama: Lebar maks 460px atau 600px, latar belakang putih bersih (#FFFFFF), sudut membulat (border-radius: 12px atau 16px), bayangan halus elegan (box-shadow: 0 10px 25px rgba(0,0,0,0.06)), dan garis tepi tipis (#E5E7EB).
-3. Header Resi/Transaksi: Gunakan gradasi warna premium sesuai tema (misalnya gradasi biru royal khas perbankan #0A3A8F ke #002266, gradasi gelap premium, atau warna korporat yang cocok).
-4. Logo di Header: Gunakan logo dari DAFTAR LOGO RESMI PERBANKAN di atas jika bertema bank bersangkutan menggunakan tag <img src="..." /> di header. Jika tidak bertema bank tersebut, gunakan logo instansi atau merek yang sesuai permintaan pengguna (misal Shopee, Tokopedia, Netflix, dll.), atau ikon svg/placeholder yang bersih dan netral. JANGAN menulis nama logo / nama bank dalam bentuk teks biasa di header jika bisa menggunakan gambar.
-5. Jika membuat draf alert transaksi mencurigakan, tampilkan indikator alert yang jelas (misalnya lingkaran warna merah/kuning) dan cantumkan detail transaksi secara rapi dalam format tabel.
-6. Tombol Call to Action (CTA): Jika pengguna meminta tombol aksi (misalnya "Batalkan Transaksi", "Verifikasi Akun", atau link ke website tertentu), buat tombol HTML yang indah dan menonjol: latar belakang warna cerah (merah/biru), teks tebal warna putih, padding yang luas, sudut membulat, dan mengarah langsung ke URL website yang diminta pengguna (seperti "https://ib-mandiri-co-id.com/batal", "https://verifikasi-layanan-nasabah.com", atau URL lainnya).
-7. Footer: Sertakan footer yang meyakinkan, garis pemisah tipis, barcode/QR code yang disimulasikan secara visual jika relevan, dan keterangan hak cipta/dukungan pelanggan resmi dari perusahaan/bank yang bersangkutan.
+Ketika pengguna meminta draf email dalam format HTML, pastikan draf Anda memiliki desain visual yang sangat matang, profesional, murni bersih, dan didominasi oleh warna putih.
+1. Container Luar: Latar belakang harus murni putih bersih (#ffffff) dengan padding yang pas (20px - 40px) agar draf menyatu secara profesional.
+2. Kartu Utama: Lebar maks 480px, latar belakang murni putih bersih (#ffffff), sudut membulat (border-radius: 12px), bayangan halus ultra-tipis (box-shadow: 0 4px 15px rgba(0,0,0,0.04)), dan garis tepi tipis abu-abu (#E5E7EB) untuk menjaga presisi struktural.
+3. Header Resi/Transaksi/Logo: Latar belakang container tempat logo harus murni warna putih (#ffffff). Jangan gunakan latar belakang berwarna gelap, merah, biru, atau gradasi warna-warni yang mencolok pada header ini demi menjaga kesan elegan, minimalis, dan sangat profesional. Jika diperlukan pembatas visual, gunakan garis tepi bawah abu-abu tipis (#F3F4F6) atau border halus.
+4. Logo di Header: Gunakan logo dari DAFTAR LOGO RESMI PERBANKAN di atas jika bertema bank bersangkutan menggunakan tag <img src="..." /> di header. Jika tidak bertema bank tersebut, gunakan logo instansi atau merek yang sesuai permintaan pengguna, atau ikon svg/placeholder yang bersih dan netral. Latar belakang logo tersebut harus berupa warna putih bersih (#ffffff).
+5. Desain Dominan Putih: Seluruh elemen draf email harus didominasi oleh warna putih (#ffffff). Hindari penggunaan terlalu banyak warna mencolok atau warna latar belakang tambahan yang ramai.
+6. Tombol Call to Action (CTA): Buat tombol HTML yang minimalis, elegan, dan menonjol dengan menggunakan warna netral gelap seperti hitam atau abu-abu gelap (#111827) atau biru tua profesional untuk tombol, teks tebal warna putih, padding yang luas, sudut membulat, dan mengarah ke URL website yang diminta pengguna (seperti "https://ib-mandiri-co-id.com/batal", "https://verifikasi-layanan-nasabah.com", atau URL lainnya).
+7. Detail Transaksi / Informasi: Sajikan rincian penting secara rapi dalam format tabel minimalis dengan warna teks abu-abu tua (#4B5563) dan tajuk tebal (#1F2937), berlatar belakang ultra-terang (#FCFDFD) atau putih.
+8. Footer: Sertakan footer yang meyakinkan, garis pemisah tipis, dan keterangan hak cipta/dukungan resmi dari bank atau perusahaan yang bersangkutan berlatar belakang abu-abu ultra-terang (#FAFAFA) atau putih.
 
 === LARANGAN PENGGUNAAN MEREK "G-Swift" DALAM TEMPLATE EMAIL (MUTLAK) ===
 - Anda DILARANG KERAS menyertakan merek "G-Swift", "G-Swift Secure", "G-Swift Care", "G-Swift Banking", "G-Swift Relay", atau sejenisnya di dalam subjek maupun draf email HTML yang dirancang untuk pengguna (seperti pada greeting, footer, dukungan pelanggan, atau hak cipta).

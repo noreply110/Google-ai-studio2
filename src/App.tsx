@@ -384,10 +384,19 @@ export default function App() {
     };
 
     return (
-      <div className="flex min-h-screen bg-gradient-to-b from-[#132c4a] via-[#0b132b] to-[#05070c] items-center justify-center p-4 relative overflow-y-auto font-sans select-none text-white">
+      <div className="flex min-h-screen bg-gradient-to-b from-[#17488f] via-[#0c244b] to-[#040914] items-center justify-center p-4 relative overflow-y-auto font-sans select-none text-white overflow-hidden">
         
+        {/* Floating Glass Orb 1 (Sky Blue Highlight - matches top bubble in image) */}
+        <div className="absolute top-[5%] left-[10%] sm:left-[20%] w-72 h-72 rounded-full bg-gradient-to-tr from-sky-400/20 via-sky-300/10 to-transparent border border-white/20 shadow-[inset_0_4px_16px_rgba(255,255,255,0.25),0_12px_40px_rgba(14,165,233,0.2)] backdrop-blur-[5px] pointer-events-none z-0" />
+        
+        {/* Floating Glass Orb 2 (Deep Sapphire Gloss - matches bottom bubble in image) */}
+        <div className="absolute bottom-[-10%] right-[-5%] sm:right-[10%] w-[450px] h-[450px] rounded-full bg-gradient-to-br from-blue-600/15 via-blue-800/10 to-transparent border border-white/10 shadow-[inset_0_8px_32px_rgba(255,255,255,0.1),0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-[8px] pointer-events-none z-0" />
+        
+        {/* Floating Glass Orb 3 (Medium Glass Overlay Sphere) */}
+        <div className="absolute top-[35%] right-[-10%] w-56 h-56 rounded-full bg-gradient-to-l from-white/5 to-transparent border border-white/15 shadow-[inset_0_2px_8px_rgba(255,255,255,0.15)] backdrop-blur-[3px] pointer-events-none z-0" />
+
         {/* Subtle top indicator bar */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-900/40 via-blue-500/20 to-blue-900/40 z-[60]" />
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600/40 via-sky-400/30 to-blue-600/40 z-[60]" />
 
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }} 
@@ -517,13 +526,22 @@ export default function App() {
 
   // --- RENDER 3: MAIN SYSTEM APLET ---
   return (
-    <div className="flex h-screen bg-gradient-to-b from-[#132c4a] via-[#0b132b] to-[#05070c] font-sans text-white overflow-hidden relative">
+    <div className="flex h-screen bg-gradient-to-b from-[#17488f] via-[#0c244b] to-[#040914] font-sans text-white overflow-hidden relative">
       {/* Top glowing bar */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-900/40 via-blue-500/20 to-blue-900/40 z-[60]" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600/40 via-sky-400/30 to-blue-600/40 z-[60]" />
 
-      {/* --- GLOWING AMBIENT BACKGROUND ORBS --- */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.035)_0%,transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.035)_0%,transparent_45%)]">
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:24px_24px] opacity-30" />
+      {/* --- GLOWING AMBIENT BACKGROUND ORBS (Matching the glossy bubbles screenshot) --- */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Large Glossy Sky Blue Orb top left */}
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-sky-400/15 via-blue-500/5 to-transparent blur-[60px]" />
+        {/* Large Glossy Sapphire Orb bottom right */}
+        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-tl from-blue-600/15 via-sky-400/5 to-transparent blur-[80px]" />
+        
+        {/* Highly realistic Glass floaters */}
+        <div className="absolute top-[15%] left-[25%] w-48 h-48 rounded-full bg-gradient-to-tr from-sky-300/8 to-white/5 border border-white/10 shadow-[inset_0_2px_8px_rgba(255,255,255,0.15)] backdrop-blur-[2px] opacity-75" />
+        <div className="absolute bottom-[20%] right-[30%] w-64 h-64 rounded-full bg-gradient-to-br from-blue-500/8 via-indigo-500/5 to-transparent border border-white/10 shadow-[inset_0_4px_12px_rgba(255,255,255,0.1)] backdrop-blur-[4px] opacity-60" />
+        
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px] opacity-25" />
       </div>
 
       {/* --- CONFETTI CELEBRATION LAYER --- */}
@@ -559,8 +577,8 @@ export default function App() {
       )}
 
       {/* --- SIDEBAR DESKTOP VIEW --- */}
-      <aside className="hidden lg:flex w-64 bg-slate-950 flex-col text-slate-200 shrink-0 z-30">
-        <div className="p-6 flex flex-col gap-4 border-b border-slate-800/50">
+      <aside className="hidden lg:flex w-64 bg-[#061124]/95 backdrop-blur-xl border-r border-white/10 flex-col text-slate-200 shrink-0 z-30">
+        <div className="p-6 flex flex-col gap-4 border-b border-white/5">
           <div className="flex items-center justify-between gap-3 w-full">
             <button 
               onClick={() => setIsAiOpen(!isAiOpen)}
@@ -637,7 +655,7 @@ export default function App() {
                 {isTabActive && (
                   <motion.div
                     layoutId="activeSidebarTab"
-                    className="absolute inset-0 bg-white/10 rounded-xl border border-white/25 shadow-md shadow-slate-950/40 z-0"
+                    className="absolute inset-0 bg-gradient-to-r from-blue-500/25 to-sky-500/10 rounded-xl border border-sky-400/30 shadow-md shadow-slate-950/40 z-0"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -646,7 +664,7 @@ export default function App() {
                 {isTabActive && (
                   <motion.div
                     layoutId="activeSidebarBar"
-                    className="absolute left-1 top-2.5 bottom-2.5 w-1 bg-white rounded-full z-10 shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+                    className="absolute left-1 top-2.5 bottom-2.5 w-1 bg-sky-400 rounded-full z-10 shadow-[0_0_8px_rgba(56,189,248,0.8)]"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -699,7 +717,7 @@ export default function App() {
       {/* --- MAIN WORKSPACE --- */}
       <main className="flex-1 flex flex-col overflow-hidden pb-[72px] lg:pb-0 relative z-10">
         
-        <header className="h-14 bg-[#132c4a]/90 backdrop-blur-md border-b border-white/10 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-md z-30 relative">
+        <header className="h-14 bg-[#133566]/80 backdrop-blur-md border-b border-white/10 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-md z-30 relative">
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
             {activeTab !== "send" && (
               <button 
@@ -840,7 +858,7 @@ export default function App() {
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className="bg-[#0b132b]/95 backdrop-blur-md w-full max-w-xl rounded-t-[32px] sm:rounded-[32px] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-white"
+                className="bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-xl rounded-t-[32px] sm:rounded-[32px] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-white"
               >
                 <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center shrink-0">
                   <h3 className="text-lg font-black text-white tracking-tight">
@@ -881,10 +899,10 @@ export default function App() {
                         onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value as any })}
                         className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 rounded-2xl text-sm outline-none focus:border-white/30 focus:bg-white/[0.08] transition-all font-bold text-white"
                       >
-                        <option value="General" className="bg-[#0b132b] text-white">General</option>
-                        <option value="Marketing" className="bg-[#0b132b] text-white">Marketing</option>
-                        <option value="Support" className="bg-[#0b132b] text-white">Support</option>
-                        <option value="Personal" className="bg-[#0b132b] text-white">Personal</option>
+                        <option value="General" className="bg-[#0c1f3d] text-white">General</option>
+                        <option value="Marketing" className="bg-[#0c1f3d] text-white">Marketing</option>
+                        <option value="Support" className="bg-[#0c1f3d] text-white">Support</option>
+                        <option value="Personal" className="bg-[#0c1f3d] text-white">Personal</option>
                       </select>
                     </div>
                   </div>
@@ -946,7 +964,7 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[#0b132b]/95 backdrop-blur-md w-full max-w-2xl rounded-[24px] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-white"
+                className="bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-2xl rounded-[24px] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-white"
               >
                 <div className="px-5 py-4 border-b border-white/10 flex justify-between items-center shrink-0">
                   <div>
@@ -1047,7 +1065,7 @@ export default function App() {
                   />
                 </div>
 
-                <div className="p-4 border-t border-white/10 bg-[#0b132b] flex gap-3 shrink-0">
+                <div className="p-4 border-t border-white/10 bg-[#0c1f3d] flex gap-3 shrink-0">
                   <button 
                     onClick={() => setPreviewTemplate(null)}
                     className="flex-1 py-3 text-[11px] font-black text-white/60 hover:bg-white/5 rounded-xl border border-white/10 transition-all uppercase tracking-wider"
@@ -1078,7 +1096,7 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[#0b132b]/95 backdrop-blur-md w-full max-w-[340px] rounded-3xl p-6 shadow-2xl border border-white/10 flex flex-col items-center text-center relative overflow-hidden text-white"
+                className="bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-[340px] rounded-3xl p-6 shadow-2xl border border-white/10 flex flex-col items-center text-center relative overflow-hidden text-white"
               >
                 <div className="w-14 h-14 bg-rose-950/30 border border-rose-500/20 rounded-full flex items-center justify-center mb-4 text-rose-400">
                   <AlertTriangle className="w-7 h-7" />
@@ -1122,7 +1140,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="bg-[#0b132b]/95 backdrop-blur-md w-full max-w-[320px] rounded-2xl border border-white/10 shadow-2xl p-5 text-white"
+                className="bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-[320px] rounded-2xl border border-white/10 shadow-2xl p-5 text-white"
               >
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-[11px] font-black text-white uppercase tracking-tight">
@@ -1192,7 +1210,7 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative bg-[#0b132b]/95 backdrop-blur-md w-full max-w-md rounded-3xl p-6 border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] z-[1000] overflow-hidden text-white"
+                className="relative bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-md rounded-3xl p-6 border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] z-[1000] overflow-hidden text-white"
               >
                 {/* Accent Line */}
                 <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-white/10 via-white/40 to-white/10" />
@@ -1320,7 +1338,7 @@ export default function App() {
         </AnimatePresence>
 
         {/* --- BOTTOM RESPONSIVE VIEWBAR FOR MOBILE/TABLET --- */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#0b132b]/95 backdrop-blur-md border-t border-white/5 h-[64px] flex items-center justify-around z-50 lg:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.4)] px-2 safe-area-bottom overflow-hidden">
+        <nav className="fixed bottom-0 left-0 right-0 bg-[#0c1f3d]/95 backdrop-blur-md border-t border-white/5 h-[64px] flex items-center justify-around z-50 lg:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.4)] px-2 safe-area-bottom overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-white/10 via-white/40 to-white/10 z-10" />
           {[
             { id: "send", icon: Send, label: "Kirim" },
@@ -1349,7 +1367,7 @@ export default function App() {
                 {isTabActive && (
                   <motion.div 
                     layoutId="activeTabMobile" 
-                    className="absolute bottom-0 w-12 h-1.5 bg-gradient-to-r from-white to-white/60 rounded-t-full shadow-[0_-5px_15px_rgba(255,255,255,0.4)]"
+                    className="absolute bottom-0 w-12 h-1.5 bg-gradient-to-r from-sky-400 to-blue-500 rounded-t-full shadow-[0_-5px_15px_rgba(56,189,248,0.5)]"
                     transition={{ type: "spring", stiffness: 380, damping: 25 }}
                   />
                 )}
@@ -1367,7 +1385,7 @@ export default function App() {
                 initial={{ opacity: 0, x: 50, y: -10, scale: 0.9 }}
                 animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 50, scale: 0.95, transition: { duration: 0.2 } }}
-                className="bg-[#0b132b]/95 backdrop-blur-md border-l-4 border-l-emerald-500 border border-white/10 rounded-xl p-3.5 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.6)] flex gap-2.5 text-white pointer-events-auto overflow-hidden relative"
+                className="bg-[#0c1f3d]/95 backdrop-blur-md border-l-4 border-l-sky-500 border border-white/10 rounded-xl p-3.5 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.6)] flex gap-2.5 text-white pointer-events-auto overflow-hidden relative"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-1">

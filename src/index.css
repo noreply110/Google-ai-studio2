@@ -12,7 +12,7 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   letter-spacing: -0.015em;
-  @apply text-slate-900 bg-slate-50;
+  @apply text-slate-100 bg-[#040914];
   
   /* Performance & Gestures */
   overscroll-behavior-y: contain;
@@ -48,28 +48,28 @@ button {
 
   /* Replace transparent/blurred cards with native-speed solid dark backgrounds */
   header {
-    background-color: #0b132b !important;
+    background-color: #0c203d !important;
   }
   
   nav {
-    background-color: #0b132b !important;
+    background-color: #0c203d !important;
   }
 
   .bg-white\/\[0\.03\] {
-    background-color: #121a36 !important;
+    background-color: #112a52 !important;
   }
 
   .bg-white\/\[0\.05\] {
-    background-color: #172142 !important;
+    background-color: #183d73 !important;
   }
 
   .bg-white\/\[0\.08\] {
-    background-color: #1e2b54 !important;
+    background-color: #1e4d90 !important;
   }
 
   /* Increase opacity of overlay screens for maximum legibility without blur */
   .bg-slate-950\/60 {
-    background-color: rgba(2, 6, 23, 0.9) !important;
+    background-color: rgba(4, 9, 20, 0.9) !important;
   }
 }
 

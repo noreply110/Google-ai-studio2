@@ -656,11 +656,11 @@ export const AccountsTab: React.FC<AccountsTabProps> = ({
                         <select 
                           value={smtpConfig.connectionType}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, connectionType: e.target.value as any })}
-                          className="w-full px-4 py-2.5 bg-[#0b132b] border border-white/10 rounded-xl text-xs font-mono font-bold text-white focus:bg-white/[0.08] focus:border-white/30 focus:outline-none outline-none"
+                          className="w-full px-4 py-2.5 bg-[#0c1f3d] border border-white/10 rounded-xl text-xs font-mono font-bold text-white focus:bg-white/[0.08] focus:border-white/30 focus:outline-none outline-none"
                         >
-                          <option value="STARTTLS" className="bg-[#0b132b] text-white">STARTTLS</option>
-                          <option value="SSL" className="bg-[#0b132b] text-white">SSL</option>
-                          <option value="NONE" className="bg-[#0b132b] text-white">NONE</option>
+                          <option value="STARTTLS" className="bg-[#0c1f3d] text-white">STARTTLS</option>
+                          <option value="SSL" className="bg-[#0c1f3d] text-white">SSL</option>
+                          <option value="NONE" className="bg-[#0c1f3d] text-white">NONE</option>
                         </select>
                       </div>
                       <div className="flex flex-col gap-1.5">

@@ -357,7 +357,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsAiOpen(false)}
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[140]"
+            className="fixed inset-0 bg-[#040914]/65 backdrop-blur-sm z-[140]"
           />
 
           {/* Drawer Container */}
@@ -366,7 +366,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "100%", opacity: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-slate-900 border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[150] flex flex-col overflow-hidden text-white"
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0c1f3d]/95 backdrop-blur-md border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[150] flex flex-col overflow-hidden text-white"
           >
             {/* Header Banner */}
             <div className="p-4 border-b border-white/10 bg-white/[0.02] flex justify-between items-center shrink-0">
@@ -659,7 +659,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             </div>
 
             {/* Footer Send Prompt Panel */}
-            <div className="p-3 border-t border-white/10 bg-slate-950 shrink-0 space-y-2">
+            <div className="p-3 border-t border-white/10 bg-[#061124] shrink-0 space-y-2">
               {/* Image Preview if selected */}
               {selectedImage && (
                 <div className="flex items-center justify-between p-2 bg-white/[0.03] border border-white/10 rounded-xl">

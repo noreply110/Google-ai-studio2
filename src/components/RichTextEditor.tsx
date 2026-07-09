@@ -438,7 +438,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <textarea
             value={htmlValue}
             onChange={handleHtmlChange}
-            className="w-full h-full min-h-[inherit] p-4 text-slate-100 text-xs font-mono focus:outline-none bg-slate-950 resize-none leading-relaxed tracking-wide"
+            className="w-full h-full min-h-[inherit] p-4 text-slate-100 text-xs font-mono focus:outline-none bg-[#040914] resize-none leading-relaxed tracking-wide"
             style={{ minHeight }}
             placeholder="Ketik atau tempel kode HTML kustom di sini..."
           />

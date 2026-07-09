@@ -29,8 +29,8 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ logs, setLogs }) => {
       exit={{ opacity: 0, scale: 1.02 }}
       className="p-4 sm:p-6 w-full max-w-md mx-auto h-full flex flex-col gap-4"
     >
-      <div className="bg-[#020617] rounded-[24px] border border-slate-800 shadow-2xl flex flex-col h-[70vh] overflow-hidden w-full">
-        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
+      <div className="bg-[#040914]/90 backdrop-blur-md rounded-[24px] border border-white/10 shadow-2xl flex flex-col h-[70vh] overflow-hidden w-full">
+        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[#0c1f3d]/60">
           <div className="flex flex-col">
             <h2 className="text-[10px] font-extrabold text-slate-300 uppercase tracking-widest flex items-center gap-2">
               RELAY CONSOLE
@@ -45,7 +45,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ logs, setLogs }) => {
 
           <button 
             onClick={() => setLogs([])}
-            className="p-2 bg-slate-800 hover:bg-rose-500/10 rounded-xl text-slate-400 hover:text-rose-400 transition-all cursor-pointer"
+            className="p-2 bg-white/10 hover:bg-rose-500/10 rounded-xl text-slate-300 hover:text-rose-400 transition-all cursor-pointer border border-white/5"
             title="Clear logs"
           >
             <Trash2 className="w-4 h-4" />
@@ -94,7 +94,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ logs, setLogs }) => {
           <div ref={terminalEndRef} />
         </div>
 
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-between items-center px-4 shrink-0">
+        <div className="p-4 bg-[#061124]/80 border-t border-white/10 flex justify-between items-center px-4 shrink-0">
           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
             Log Count: {logs.length}/50
           </span>
