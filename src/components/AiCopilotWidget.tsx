@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Sparkles, Plus, Loader2, AlertCircle, Send, FileText, Star, Image, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { EmailTemplate } from "../types";
+import backgroundImage from "../assets/images/background_wallpaper_1783625776258.jpg";
 
 // Classname utility helper locally
 function hn(...args: any[]) {
@@ -366,10 +367,21 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "100%", opacity: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-[#0c1f3d]/95 backdrop-blur-md border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[150] flex flex-col overflow-hidden text-white"
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-[#040914] border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[150] flex flex-col overflow-hidden text-white"
           >
+            {/* Wallpaper background matching the main app */}
+            <img 
+              src={backgroundImage} 
+              alt="Background Wallpaper" 
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-40 select-none" 
+              referrerPolicy="no-referrer"
+            />
+            
+            {/* Modern dark luxury overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0c244b]/15 via-[#040914]/40 to-[#040914]/90 pointer-events-none z-0" />
+
             {/* Header Banner */}
-            <div className="p-4 border-b border-white/10 bg-white/[0.02] flex justify-between items-center shrink-0">
+            <div className="p-4 border-b border-white/10 bg-white/[0.02] flex justify-between items-center shrink-0 relative z-10">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white overflow-hidden">
                   <motion.div
@@ -398,7 +410,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             </div>
 
             {/* Chat History & Stream Container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#05070c]/90">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-transparent relative z-10">
               {aiHistory.map((msg, idx) => (
                 <div
                   key={idx}
@@ -640,7 +652,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             </div>
 
             {/* Prompt Quick Suggestion Strip */}
-            <div className="px-4 py-2 bg-white/[0.01] border-t border-white/5 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
+            <div className="px-4 py-2 bg-white/[0.01] border-t border-white/5 flex gap-2 overflow-x-auto scrollbar-none shrink-0 relative z-10">
               {[
                 { label: "Peringatan Shopee 5Jt", prompt: "Buat draf email peringatan transaksi kartu kredit tidak dikenal di merchant Shopee sebesar Rp 5.000.000 lengkap dengan tombol Batalkan Transaksi." },
                 { label: "Klarifikasi Transaksi", prompt: "Buat email klarifikasi keamanan mengenai pemakaian kartu kredit nasabah di merchant Shopee CO ID Jakarta senilai 5 juta rupiah yang membutuhkan verifikasi pembatalan segera." },
@@ -659,7 +671,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             </div>
 
             {/* Footer Send Prompt Panel */}
-            <div className="p-3 border-t border-white/10 bg-[#061124] shrink-0 space-y-2">
+            <div className="p-3 border-t border-white/10 bg-slate-950/50 backdrop-blur-md shrink-0 space-y-2 relative z-10">
               {/* Image Preview if selected */}
               {selectedImage && (
                 <div className="flex items-center justify-between p-2 bg-white/[0.03] border border-white/10 rounded-xl">

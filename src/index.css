@@ -25,52 +25,55 @@ html, body {
 }
 
 /* Hardware acceleration helpers for animations, panels, and slide-outs */
-.hardware-accelerated,
-header,
-nav,
-aside,
-button {
+.hardware-accelerated {
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   perspective: 1000px;
 }
 
-/* WebView & Mobile Performance Tuning (Avoid high GPU-blur penalty on mobile) */
-@media (max-width: 1024px) {
-  /* Disable heavy backdrop-filter Gaussian blurs to prevent framerate drop */
-  .backdrop-blur-sm,
-  .backdrop-blur-md,
-  .backdrop-blur-lg,
-  .backdrop-blur-xl {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
+/* Universal Performance Tuning: Disable heavy backdrop-filter Gaussian blurs globally to maximize framerates and prevent scrolling/render lag */
+.backdrop-blur,
+.backdrop-blur-sm,
+.backdrop-blur-md,
+.backdrop-blur-lg,
+.backdrop-blur-xl,
+.backdrop-blur-2xl,
+[class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
 
-  /* Replace transparent/blurred cards with native-speed solid dark backgrounds */
-  header {
-    background-color: #0c203d !important;
-  }
-  
-  nav {
-    background-color: #0c203d !important;
-  }
+/* Ensure all translucent cards and navigation panes use native-speed semi-transparent dark colors for crispness over the background image */
+header {
+  background-color: rgba(6, 17, 36, 0.85) !important;
+}
 
-  .bg-white\/\[0\.03\] {
-    background-color: #112a52 !important;
-  }
+nav {
+  background-color: rgba(6, 17, 36, 0.85) !important;
+}
 
-  .bg-white\/\[0\.05\] {
-    background-color: #183d73 !important;
-  }
+aside {
+  background-color: rgba(6, 17, 36, 0.94) !important;
+}
 
-  .bg-white\/\[0\.08\] {
-    background-color: #1e4d90 !important;
-  }
+.bg-white\/\[0\.03\] {
+  background-color: rgba(13, 27, 51, 0.55) !important;
+}
 
-  /* Increase opacity of overlay screens for maximum legibility without blur */
-  .bg-slate-950\/60 {
-    background-color: rgba(4, 9, 20, 0.9) !important;
-  }
+.bg-white\/\[0\.05\] {
+  background-color: rgba(18, 38, 71, 0.65) !important;
+}
+
+.bg-white\/\[0\.08\] {
+  background-color: rgba(24, 50, 94, 0.75) !important;
+}
+
+/* Increase opacity of overlay screens for maximum legibility and speed */
+.bg-slate-900\/70,
+.bg-slate-950\/60,
+.bg-slate-950\/40,
+.bg-black\/50 {
+  background-color: rgba(4, 9, 20, 0.75) !important;
 }
 
 @keyframes terminal-blink {

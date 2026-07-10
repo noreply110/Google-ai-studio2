@@ -334,22 +334,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         )}
 
         <div className="flex items-center shrink-0 border-l border-slate-200 pl-1.5 gap-1.5">
-          {/* Size View Mode Toggle */}
-          {!isHtmlMode && (
-            <button
-              type="button"
-              onClick={() => setViewMode(viewMode === "original" ? "fit" : "original")}
-              className={`px-2 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer shrink-0 shadow-sm ${
-                viewMode === "original" 
-                  ? "bg-[#0050b3] text-white hover:bg-[#003d8c]" 
-                  : "bg-slate-200/80 hover:bg-slate-300 text-slate-700"
-              }`}
-              title={viewMode === "original" ? "Beralih ke Fit Lebar Layar" : "Beralih ke Ukuran Draf Asli (Rekomendasi)"}
-            >
-              {viewMode === "original" ? "Draf Asli (600px)" : "Fit Layar"}
-            </button>
-          )}
-
           {/* HTML Source Toggle */}
           <button
             type="button"

@@ -17,6 +17,7 @@ import { TerminalTab } from "./components/TerminalTab";
 import { AccountsTab } from "./components/AccountsTab";
 import { AiCopilotWidget } from "./components/AiCopilotWidget";
 import { RichTextEditor } from "./components/RichTextEditor";
+import backgroundImage from "./assets/images/background_wallpaper_1783625776258.jpg";
 
 // Classname utility helper locally
 function hn(...args: any[]) {
@@ -48,9 +49,7 @@ export default function App() {
   // --- Navigation & Core Views ---
   const [activeTab, setActiveTab] = useState<"send" | "templates" | "terminal" | "accounts">("send");
 
-  // --- PWA Installation State ---
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
 
   // --- Email Tracking State ---
   const [bankingNotifications, setBankingNotifications] = useState<BankingNotification[]>([]);
@@ -139,26 +138,7 @@ export default function App() {
     return () => window.removeEventListener("banking-notif", handleBankingNotif);
   }, []);
 
-  // Listen for browser's beforeinstallprompt event to enable custom in-app PWA install trigger
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBanner(true);
-      addLog("info", "Aplikasi G-Swift Relay siap di-install di perangkat Anda!");
-    };
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-  }, []);
 
-  const handleInstallPwa = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    addLog("info", `Proses instalasi PWA: ${outcome === 'accepted' ? 'Berhasil Disetujui' : 'Dibatalkan'}`);
-    setDeferredPrompt(null);
-    setShowInstallBanner(false);
-  };
 
   const triggerConfetti = () => {
     setShowConfetti(true);
@@ -384,16 +364,18 @@ export default function App() {
     };
 
     return (
-      <div className="flex min-h-screen bg-gradient-to-b from-[#17488f] via-[#0c244b] to-[#040914] items-center justify-center p-4 relative overflow-y-auto font-sans select-none text-white overflow-hidden">
+      <div className="flex min-h-screen bg-[#040914] items-center justify-center p-4 relative overflow-y-auto font-sans select-none text-white overflow-hidden">
         
-        {/* Floating Glass Orb 1 (Sky Blue Highlight - matches top bubble in image) */}
-        <div className="absolute top-[5%] left-[10%] sm:left-[20%] w-72 h-72 rounded-full bg-gradient-to-tr from-sky-400/20 via-sky-300/10 to-transparent border border-white/20 shadow-[inset_0_4px_16px_rgba(255,255,255,0.25),0_12px_40px_rgba(14,165,233,0.2)] backdrop-blur-[5px] pointer-events-none z-0" />
+        {/* Fullscreen HD Background Image */}
+        <img 
+          src={backgroundImage} 
+          alt="Background Wallpaper" 
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-80 select-none" 
+          referrerPolicy="no-referrer"
+        />
         
-        {/* Floating Glass Orb 2 (Deep Sapphire Gloss - matches bottom bubble in image) */}
-        <div className="absolute bottom-[-10%] right-[-5%] sm:right-[10%] w-[450px] h-[450px] rounded-full bg-gradient-to-br from-blue-600/15 via-blue-800/10 to-transparent border border-white/10 shadow-[inset_0_8px_32px_rgba(255,255,255,0.1),0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-[8px] pointer-events-none z-0" />
-        
-        {/* Floating Glass Orb 3 (Medium Glass Overlay Sphere) */}
-        <div className="absolute top-[35%] right-[-10%] w-56 h-56 rounded-full bg-gradient-to-l from-white/5 to-transparent border border-white/15 shadow-[inset_0_2px_8px_rgba(255,255,255,0.15)] backdrop-blur-[3px] pointer-events-none z-0" />
+        {/* Subtle overlay for high contrast text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0c244b]/10 via-[#040914]/40 to-[#040914]/90 pointer-events-none z-0" />
 
         {/* Subtle top indicator bar */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600/40 via-sky-400/30 to-blue-600/40 z-[60]" />
@@ -526,22 +508,28 @@ export default function App() {
 
   // --- RENDER 3: MAIN SYSTEM APLET ---
   return (
-    <div className="flex h-screen bg-gradient-to-b from-[#17488f] via-[#0c244b] to-[#040914] font-sans text-white overflow-hidden relative">
+    <div className="flex h-screen bg-[#040914] font-sans text-white overflow-hidden relative">
       {/* Top glowing bar */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600/40 via-sky-400/30 to-blue-600/40 z-[60]" />
 
       {/* --- GLOWING AMBIENT BACKGROUND ORBS (Matching the glossy bubbles screenshot) --- */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {/* Large Glossy Sky Blue Orb top left */}
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-sky-400/15 via-blue-500/5 to-transparent blur-[60px]" />
-        {/* Large Glossy Sapphire Orb bottom right */}
-        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-tl from-blue-600/15 via-sky-400/5 to-transparent blur-[80px]" />
+        {/* Fullscreen HD Background Image */}
+        <img 
+          src={backgroundImage} 
+          alt="Background Wallpaper" 
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-75 select-none" 
+          referrerPolicy="no-referrer"
+        />
         
-        {/* Highly realistic Glass floaters */}
-        <div className="absolute top-[15%] left-[25%] w-48 h-48 rounded-full bg-gradient-to-tr from-sky-300/8 to-white/5 border border-white/10 shadow-[inset_0_2px_8px_rgba(255,255,255,0.15)] backdrop-blur-[2px] opacity-75" />
-        <div className="absolute bottom-[20%] right-[30%] w-64 h-64 rounded-full bg-gradient-to-br from-blue-500/8 via-indigo-500/5 to-transparent border border-white/10 shadow-[inset_0_4px_12px_rgba(255,255,255,0.1)] backdrop-blur-[4px] opacity-60" />
+        {/* Modern dark luxury overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0c244b]/10 via-[#040914]/45 to-[#040914]/90 pointer-events-none z-0" />
         
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px] opacity-25" />
+        {/* Highly realistic Glass floaters - optimized to remove GPU-heavy backdrop-blur */}
+        <div className="absolute top-[15%] left-[25%] w-48 h-48 rounded-full bg-gradient-to-tr from-sky-300/8 to-white/5 border border-white/10 shadow-[inset_0_2px_8px_rgba(255,255,255,0.15)] opacity-75" />
+        <div className="absolute bottom-[20%] right-[30%] w-64 h-64 rounded-full bg-gradient-to-br from-blue-500/8 via-indigo-500/5 to-transparent border border-white/10 shadow-[inset_0_4px_12px_rgba(255,255,255,0.1)] opacity-60" />
+        
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
       </div>
 
       {/* --- CONFETTI CELEBRATION LAYER --- */}
@@ -576,153 +564,15 @@ export default function App() {
         </div>
       )}
 
-      {/* --- SIDEBAR DESKTOP VIEW --- */}
-      <aside className="hidden lg:flex w-64 bg-[#061124]/95 backdrop-blur-xl border-r border-white/10 flex-col text-slate-200 shrink-0 z-30">
-        <div className="p-6 flex flex-col gap-4 border-b border-white/5">
-          <div className="flex items-center justify-between gap-3 w-full">
-            <button 
-              onClick={() => setIsAiOpen(!isAiOpen)}
-              className="flex items-center gap-2 select-none hover:opacity-80 active:scale-95 transition-all text-left focus:outline-none shrink-0 group min-w-0"
-              title="Buka Asisten AI G-Swift"
-            >
-              <div className="w-8 h-8 bg-white/10 border border-white/20 text-white rounded-xl flex items-center justify-center shadow-md shrink-0 relative overflow-hidden">
-                <div className="flex items-center justify-center animate-[spin_12s_linear_infinite]">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-              </div>
-              <span className="font-bold text-white tracking-tight text-sm uppercase shrink-0 group-hover:text-white/95 transition-colors">
-                Swift<span className="text-white/60">Relay</span>
-              </span>
-            </button>
-
-            {/* Settings gear button */}
-            <button 
-              onClick={() => setActiveTab("accounts")}
-              className={`p-2 rounded-xl transition-all cursor-pointer shadow-sm relative group shrink-0 border ${
-                activeTab === "accounts"
-                  ? "bg-white/20 text-white border-white/40 shadow-[0_0_12px_rgba(255,255,255,0.15)]"
-                  : "bg-slate-900 hover:bg-slate-800 border-slate-800/80 hover:border-slate-700 text-slate-400 hover:text-white"
-              }`}
-              title="Pengaturan SMTP"
-            >
-              <Settings className="w-4 h-4" />
-              <span className="absolute left-1/2 -translate-x-1/2 -bottom-9 px-2 py-1 bg-slate-900 border border-slate-800 text-[9px] font-bold text-white uppercase tracking-widest rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg z-50">
-                SMTP
-              </span>
-            </button>
-
-            {/* PIN key icon */}
-            <button 
-              onClick={() => {
-                setPasscodeChangeError(null);
-                setPasscodeChangeSuccess(null);
-                setShowPasscodeModal(true);
-              }}
-              className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800/80 hover:border-slate-700 text-white/80 hover:text-white rounded-xl transition-all cursor-pointer shadow-sm relative group shrink-0"
-              title="Ganti PIN Panel"
-            >
-              <KeyRound className="w-4 h-4" />
-              <span className="absolute left-1/2 -translate-x-1/2 -bottom-9 px-2 py-1 bg-slate-900 border border-slate-850 text-[9px] font-bold text-white uppercase tracking-widest rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-lg z-50">
-                Ganti PIN
-              </span>
-            </button>
-          </div>
-          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
-            Sistem Relay Email Cepat
-          </span>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1 relative">
-          {[
-            { id: "send", icon: Send, label: "Kirim" },
-            { id: "templates", icon: FileText, label: "Templates" },
-            { id: "terminal", icon: TerminalIcon, label: "Relay Terminal" }
-          ].map((item) => {
-            const isTabActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
-                className={hn(
-                  "relative w-full px-4 py-3 rounded-xl flex items-center gap-3 transition-all text-[13px] font-medium outline-none cursor-pointer overflow-hidden group",
-                  isTabActive
-                    ? "text-white font-semibold"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/20"
-                )}
-              >
-                {/* Active Tab sliding background pill */}
-                {isTabActive && (
-                  <motion.div
-                    layoutId="activeSidebarTab"
-                    className="absolute inset-0 bg-gradient-to-r from-blue-500/25 to-sky-500/10 rounded-xl border border-sky-400/30 shadow-md shadow-slate-950/40 z-0"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-                
-                {/* Active Indicator moving bar */}
-                {isTabActive && (
-                  <motion.div
-                    layoutId="activeSidebarBar"
-                    className="absolute left-1 top-2.5 bottom-2.5 w-1 bg-sky-400 rounded-full z-10 shadow-[0_0_8px_rgba(56,189,248,0.8)]"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-
-                {/* Content wrapper with z-10 to stay above the sliding pill */}
-                <div className="relative flex items-center gap-3 z-10 w-full">
-                  <item.icon className={hn(
-                    "w-4 h-4 transition-transform duration-300", 
-                    isTabActive ? "text-white scale-110 animate-pulse" : "text-slate-400 group-hover:scale-110 group-hover:text-slate-200"
-                  )} />
-                  <span className="truncate">{item.label}</span>
-                </div>
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-slate-800/50">
-          <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 relative overflow-hidden group">
-            {/* Ambient dynamic container glow */}
-            <div className={`absolute -right-6 -bottom-6 w-16 h-16 rounded-full filter blur-[20px] opacity-20 transition-all duration-500 ${
-              apiStatus?.smtp_configured || smtpConfig.username ? "bg-emerald-500" : "bg-slate-600"
-            }`} />
-            
-            <div className="text-[10px] uppercase text-slate-400 font-bold mb-1.5 tracking-widest relative z-10">
-              Status Koneksi
-            </div>
-            <div className={hn(
-              "flex items-center gap-2 relative z-10",
-              apiStatus?.smtp_configured || smtpConfig.username ? "text-emerald-400" : "text-slate-400"
-            )}>
-              <div className="relative flex items-center justify-center w-3 h-3">
-                <div
-                  className={`absolute w-full h-full rounded-full animate-ping opacity-75 ${
-                    apiStatus?.smtp_configured || smtpConfig.username ? "bg-emerald-500" : "bg-slate-600"
-                  }`}
-                />
-                <div className={`w-1.5 h-1.5 rounded-full relative z-10 ${
-                  apiStatus?.smtp_configured || smtpConfig.username ? "bg-emerald-400 shadow-[0_0_8px_#10b981]" : "bg-slate-500 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
-                }`} />
-              </div>
-              <span className="text-[11px] font-extrabold tracking-wider">
-                {apiStatus?.smtp_configured || smtpConfig.username ? "SECURE ONLINE" : "OFFLINE / LOCAL"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </aside>
-
       {/* --- MAIN WORKSPACE --- */}
-      <main className="flex-1 flex flex-col overflow-hidden pb-[72px] lg:pb-0 relative z-10">
+      <main className="flex-1 flex flex-col overflow-hidden pb-[64px] relative z-10">
         
         <header className="h-14 bg-[#133566]/80 backdrop-blur-md border-b border-white/10 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-md z-30 relative">
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
             {activeTab !== "send" && (
               <button 
                 onClick={() => setActiveTab("send")}
-                className="p-1.5 hover:bg-white/10 rounded-full lg:hidden transition-colors shrink-0"
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors shrink-0"
                 aria-label="Kembali"
               >
                 <ChevronLeft className="w-5 h-5 text-white" />
@@ -839,8 +689,6 @@ export default function App() {
                 addLog={addLog}
                 triggerConfetti={triggerConfetti}
                 checkBackendHealth={checkBackendHealth}
-                deferredPrompt={deferredPrompt}
-                onInstallPwa={handleInstallPwa}
               />
             )}
 
@@ -1338,7 +1186,7 @@ export default function App() {
         </AnimatePresence>
 
         {/* --- BOTTOM RESPONSIVE VIEWBAR FOR MOBILE/TABLET --- */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#0c1f3d]/95 backdrop-blur-md border-t border-white/5 h-[64px] flex items-center justify-around z-50 lg:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.4)] px-2 safe-area-bottom overflow-hidden">
+        <nav className="fixed bottom-0 left-0 right-0 bg-[#0c1f3d]/95 backdrop-blur-md border-t border-white/5 h-[64px] flex items-center justify-around z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.4)] px-2 safe-area-bottom overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-white/10 via-white/40 to-white/10 z-10" />
           {[
             { id: "send", icon: Send, label: "Kirim" },
