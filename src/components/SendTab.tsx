@@ -505,10 +505,12 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
                       <input 
                         required 
                         type="email"
+                        inputMode="email"
+                        enterKeyHint="next"
                         value={emailForm.to}
                         onChange={(e) => setEmailForm({ ...emailForm, to: e.target.value })}
                         placeholder="Email Penerima" 
-                        className="w-full px-3.5 py-2 sm:py-2.5 bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-semibold text-slate-800 placeholder:text-slate-400 shadow-sm"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl text-base lg:text-[13px] focus:outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-semibold text-slate-800 placeholder:text-slate-400 shadow-sm"
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none uppercase">
                         KE
@@ -519,10 +521,11 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
                       <input 
                         required 
                         type="text"
+                        enterKeyHint="next"
                         value={emailForm.subject}
                         onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
                         placeholder="Subjek Email" 
-                        className="w-full px-3.5 py-2 sm:py-2.5 bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-semibold text-slate-800 placeholder:text-slate-400 shadow-sm"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl text-base lg:text-[13px] focus:outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-semibold text-slate-800 placeholder:text-slate-400 shadow-sm"
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
                         {emailForm.subject && (

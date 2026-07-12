@@ -31,7 +31,7 @@
     <!-- Outer shield / polygon -->
     <polygon points="256,60 416,152 416,336 256,428 96,336 96,152" fill="none" stroke="url(#logo-grad)" stroke-width="8" stroke-linejoin="round" opacity="0.8" />
     
-    <!-- Central interlocking "G" & "S" Lightning Bolt representing G-Swift -->
+    <!-- Central interlocking Lightning Bolt representing J.A.R.V.I.S -->
     <path d="M 256,110 L 160,250 L 240,250 L 200,380 L 330,220 L 250,220 Z" fill="url(#accent-grad)" />
     
     <!-- Code bracket accents representing IDE and developer nature -->

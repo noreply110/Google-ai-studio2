@@ -1,6 +1,6 @@
 {
-  "name": "BinaryForge IDE",
-  "description": "Interactive Binary Reverse Engineering and CPU Stack Emulator with AI Analysis",
+  "name": "J.A.R.V.I.S Relay",
+  "description": "Custom SMTP & Copywriting Suite with J.A.R.V.I.S AI Asisten",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

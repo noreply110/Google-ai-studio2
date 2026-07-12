@@ -23,6 +23,17 @@ function hn(...args: any[]) {
   return args.filter(Boolean).join(" ").trim();
 }
 
+// Gentle haptic feedback helper for mobile/Android WebViews
+export function triggerVibration(ms = 12) {
+  if (typeof navigator !== "undefined" && navigator.vibrate) {
+    try {
+      navigator.vibrate(ms);
+    } catch (e) {
+      // Ignore vibration blocker errors
+    }
+  }
+}
+
 export default function App() {
   // --- Auth State ---
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -202,7 +213,7 @@ export default function App() {
   const hasLoggedInit = useRef(false);
   useEffect(() => {
     if (!hasLoggedInit.current) {
-      addLog("info", "G-Swift Relay active. System ready.");
+      addLog("info", "J.A.R.V.I.S Relay active. System ready.");
       checkBackendHealth();
       hasLoggedInit.current = true;
     }
@@ -349,6 +360,7 @@ export default function App() {
   // --- RENDER 2: LOGIN PAGE ---
   if (!isLoggedIn) {
     const handleKeypadPress = (key: string) => {
+      triggerVibration(10);
       setPasscodeError(false);
       setPasscode((prev) => {
         if (prev.length < 6) return prev + key;
@@ -357,11 +369,13 @@ export default function App() {
     };
 
     const handleKeypadBackspace = () => {
+      triggerVibration(12);
       setPasscodeError(false);
       setPasscode((prev) => prev.slice(0, -1));
     };
 
     const handleKeypadClear = () => {
+      triggerVibration(15);
       setPasscodeError(false);
       setPasscode("");
     };
@@ -534,7 +548,7 @@ export default function App() {
               <button 
                 onClick={() => setIsAiOpen(!isAiOpen)}
                 className="flex items-center gap-2 select-none hover:opacity-80 active:scale-[0.97] transition-all text-left focus:outline-none shrink-0 group"
-                title="Buka Asisten AI G-Swift"
+                title="Buka Asisten AI J.A.R.V.I.S"
               >
                 <div className="w-7 h-7 sm:w-8 sm:h-8 bg-jago border border-jago-dark text-white rounded-lg flex items-center justify-center shadow-md shrink-0 relative overflow-hidden">
                   <div className="flex items-center justify-center animate-[spin_12s_linear_infinite]">
@@ -562,17 +576,6 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-             <button 
-              onClick={() => setActiveTab("accounts")}
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer border ${
-                activeTab === "accounts"
-                  ? "bg-jago text-white border-jago-dark shadow-sm"
-                  : "bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 border-slate-200 shadow-sm"
-              }`}
-              title="Pengaturan SMTP"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
              <button 
               onClick={() => {
                 setPasscodeChangeError(null);
@@ -1134,14 +1137,18 @@ export default function App() {
           {[
             { id: "send", icon: Send, label: "Kirim" },
             { id: "templates", icon: FileText, label: "Templates" },
+            { id: "accounts", icon: Settings, label: "SMTP" },
             { id: "terminal", icon: TerminalIcon, label: "Logs" }
           ].map((item) => {
             const isTabActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
-                className="relative flex flex-col items-center justify-center gap-1 w-16 h-full transition-all duration-300"
+                onClick={() => {
+                  triggerVibration(12);
+                  setActiveTab(item.id as any);
+                }}
+                className="relative flex flex-col items-center justify-center gap-1 w-14 h-full transition-all duration-300"
               >
                 <div className={hn(
                   "p-1.5 rounded-xl transition-all duration-300 relative z-10 border",

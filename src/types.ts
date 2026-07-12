@@ -1,5 +1,5 @@
 /**
- * Types definition for G-Swift Panel
+ * Types definition for J.A.R.V.I.S Panel
  */
 
 export interface EmailTemplate {

@@ -457,10 +457,11 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
                 </label>
                 <input 
                   type="text" 
+                  enterKeyHint="next"
                   value={smtpConfig.fromName}
                   onChange={(e) => setSmtpConfig({ ...smtpConfig, fromName: e.target.value })}
                   placeholder="Contoh: Info Layanan"
-                  className="w-full px-4 py-3 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl text-sm focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none transition-all font-semibold text-slate-800 shadow-sm placeholder:text-slate-400"
+                  className="w-full px-4 py-3 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl text-base lg:text-sm focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none transition-all font-semibold text-slate-800 shadow-sm placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -476,10 +477,12 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
                 <div className="relative">
                   <input 
                     type="email" 
+                    inputMode="email"
+                    enterKeyHint="next"
                     value={smtpConfig.username}
                     onChange={(e) => setSmtpConfig({ ...smtpConfig, username: e.target.value })}
                     placeholder="user@domain.com"
-                    className="w-full px-4 py-3 bg-white border border-slate-200/80 hover:border-slate-300 rounded-2xl text-sm focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none transition-all font-semibold text-slate-800 shadow-sm placeholder:text-slate-400/80"
+                    className="w-full px-4 py-3 bg-white border border-slate-200/80 hover:border-slate-300 rounded-2xl text-base lg:text-sm focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none transition-all font-semibold text-slate-800 shadow-sm placeholder:text-slate-400/80"
                   />
                 </div>
 
@@ -569,10 +572,11 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
                 </label>
                 <input 
                   type="password" 
+                  enterKeyHint="done"
                   value={smtpConfig.password}
                   onChange={(e) => setSmtpConfig({ ...smtpConfig, password: e.target.value as any })}
                   placeholder="••••••••••••••••"
-                  className="w-full px-4 py-3 bg-white border border-slate-200/80 hover:border-slate-300 rounded-2xl text-sm focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none transition-all font-semibold text-slate-800 shadow-sm font-mono placeholder:text-slate-400/80"
+                  className="w-full px-4 py-3 bg-white border border-slate-200/80 hover:border-slate-300 rounded-2xl text-base lg:text-sm focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none transition-all font-semibold text-slate-800 shadow-sm font-mono placeholder:text-slate-400/80"
                 />
               </div>
             </div>
@@ -601,20 +605,24 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
                         <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Host SMTP</label>
                         <input 
                           type="text" 
+                          enterKeyHint="next"
                           value={smtpConfig.host}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, host: e.target.value })}
                           placeholder="smtp.gmail.com"
-                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none shadow-sm"
+                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-base lg:text-xs font-mono font-bold text-slate-800 focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none shadow-sm"
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Port SMTP</label>
                         <input 
                           type="text" 
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          enterKeyHint="next"
                           value={smtpConfig.port}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, port: e.target.value })}
                           placeholder="587"
-                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none shadow-sm"
+                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-base lg:text-xs font-mono font-bold text-slate-800 focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none shadow-sm"
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
@@ -622,7 +630,7 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
                         <select 
                           value={smtpConfig.connectionType}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, connectionType: e.target.value as any })}
-                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none shadow-sm"
+                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-base lg:text-xs font-mono font-bold text-slate-800 focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none shadow-sm"
                         >
                           <option value="STARTTLS">STARTTLS</option>
                           <option value="SSL">SSL</option>
@@ -633,9 +641,11 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
                         <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Limit Harian</label>
                         <input 
                           type="number" 
+                          inputMode="numeric"
+                          enterKeyHint="done"
                           value={smtpConfig.dailyLimit}
                           onChange={(e) => setSmtpConfig({ ...smtpConfig, dailyLimit: e.target.value })}
-                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none shadow-sm"
+                          className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-base lg:text-xs font-mono font-bold text-slate-800 focus:border-jago focus:ring-1 focus:ring-jago/20 focus:outline-none outline-none shadow-sm"
                         />
                       </div>
                     </div>

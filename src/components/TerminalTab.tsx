@@ -13,7 +13,7 @@ interface TerminalTabProps {
   setLogs: React.Dispatch<React.SetStateAction<LogEntry[]>>;
 }
 
-export const TerminalTab: React.FC<TerminalTabProps> = ({ logs, setLogs }) => {
+export const TerminalTab: React.FC<TerminalTabProps> = React.memo(({ logs, setLogs }) => {
   const terminalEndRef = useRef<HTMLDivElement | null>(null);
 
   // Scroll to terminal bottom on log stream
@@ -108,4 +108,4 @@ export const TerminalTab: React.FC<TerminalTabProps> = ({ logs, setLogs }) => {
       </div>
     </motion.div>
   );
-};
+});

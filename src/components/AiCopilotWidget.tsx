@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Sparkles, Plus, Loader2, AlertCircle, Send, FileText, Star, Image, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { EmailTemplate } from "../types";
-import backgroundImage from "../assets/images/background_wallpaper_1783625776258.jpg";
 
 // Classname utility helper locally
 function hn(...args: any[]) {
@@ -134,7 +133,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
   }>>([
     {
       role: "model",
-      content: "Halo! Saya adalah G-Swift AI Copilot. Saya bisa membantu Anda merancang draf email profesional, merapikan struktur kalimat, mendesain bukti transfer HTML, atau mengecek deliverabilitas tulisan Anda.\n\nApa yang ingin Anda buat hari ini?"
+      content: "Halo...Saya J.A.R.V.I.S sistem sudah siap silahkan beri perintah"
     }
   ]);
   const [selectedImage, setSelectedImage] = useState<{ data: string; mimeType: string; name: string } | null>(null);
@@ -142,7 +141,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
   const [aiInput, setAiInput] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [thinkingText, setThinkingText] = useState("G-Swift AI sedang merangkai kata...");
+  const [thinkingText, setThinkingText] = useState("J.A.R.V.I.S sedang merangkai kata...");
 
   const aiChatEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -237,20 +236,20 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     if (!finalMsg) return;
     
     const textLower = finalMsg.toLowerCase();
-    let currentThinking = "G-Swift AI sedang merangkai kata...";
+    let currentThinking = "J.A.R.V.I.S sedang merangkai kata...";
     
     if (textLower.includes("bukti") || textLower.includes("transaksi") || textLower.includes("resi") || textLower.includes("pembayaran") || textLower.includes("alert") || textLower.includes("pemakaian") || textLower.includes("kartu") || textLower.includes("shopee") || textLower.includes("fraud") || selectedImage) {
-      currentThinking = "G-Swift AI sedang memproses gambar & merancang email...";
+      currentThinking = "J.A.R.V.I.S sedang memproses gambar & merancang email...";
     } else if (textLower.includes("promosi") || textLower.includes("diskon") || textLower.includes("marketing") || textLower.includes("pemasaran") || textLower.includes("onboarding") || textLower.includes("selamat datang")) {
-      currentThinking = "G-Swift AI sedang merancang email promosi...";
+      currentThinking = "J.A.R.V.I.S sedang merancang email promosi...";
     } else if (textLower.includes("optimasi") || textLower.includes("poles") || textLower.includes("perbaiki") || textLower.includes("rapikan") || textLower.includes("sunting")) {
-      currentThinking = "G-Swift AI sedang mengoptimalkan draf email...";
+      currentThinking = "J.A.R.V.I.S sedang mengoptimalkan draf email...";
     } else if (textLower.includes("analis") || textLower.includes("cek") || textLower.includes("kualitas") || textLower.includes("score")) {
-      currentThinking = "G-Swift AI sedang menganalisis kualitas email...";
+      currentThinking = "J.A.R.V.I.S sedang menganalisis kualitas email...";
     } else if (textLower.includes("terjemah") || textLower.includes("translate") || textLower.includes("inggris") || textLower.includes("english")) {
-      currentThinking = "G-Swift AI sedang menerjemahkan draf email...";
+      currentThinking = "J.A.R.V.I.S sedang menerjemahkan draf email...";
     } else if (textLower.includes("balas") || textLower.includes("reply") || textLower.includes("jawaban")) {
-      currentThinking = "G-Swift AI sedang menyusun balasan email...";
+      currentThinking = "J.A.R.V.I.S sedang menyusun balasan email...";
     }
     
     setThinkingText(currentThinking);
@@ -369,16 +368,8 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
             className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-slate-200 shadow-[0_0_50px_rgba(0,0,0,0.1)] z-[150] flex flex-col overflow-hidden text-slate-800"
           >
-            {/* Wallpaper background matching the main app */}
-            <img 
-              src={backgroundImage} 
-              alt="Background Wallpaper" 
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-20 select-none" 
-              referrerPolicy="no-referrer"
-            />
-            
-            {/* Modern light luxury overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-amber-50/10 via-white/50 to-white/95 pointer-events-none z-0" />
+            {/* Modern light luxury overlay (Optimized high-performance pure CSS gradient) */}
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/20 via-white/80 to-slate-50/95 pointer-events-none z-0" />
 
             {/* Header Banner */}
             <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0 relative z-10">
@@ -394,7 +385,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                 </div>
                 <div>
                   <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    G-Swift AI Copilot
+                    J.A.R.V.I.S
                   </h3>
                   <p className="text-[9px] text-slate-500 font-bold leading-none mt-0.5">
                     Asisten email profesional berbasis Gemini AI
@@ -422,7 +413,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   )}
                 >
                   <span className={`text-[8px] font-black uppercase tracking-wider mb-1 ${msg.role === "user" ? "text-amber-100" : "text-slate-400"}`}>
-                    {msg.role === "user" ? "Anda" : "G-Swift AI"}
+                    {msg.role === "user" ? "Anda" : "J.A.R.V.I.S"}
                   </span>
                   
                   {msg.image && (

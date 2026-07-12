@@ -632,11 +632,11 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
   // Determine status notice based on reason
   let statusNotice = "";
   if (reason === "no_key") {
-    statusNotice = "**Status API Key**: Karena kunci API (GEMINI_API_KEY) belum dikonfigurasi pada panel Settings > Secrets di AI Studio, asisten **G-Swift AI secara otomatis beralih ke Mesin Copywriting Lokal** premium kami agar Anda tetap dapat menguji pembuatan draf email secara instan tanpa hambatan!";
+    statusNotice = "**Status API Key**: Karena kunci API (GEMINI_API_KEY) belum dikonfigurasi pada panel Settings > Secrets di AI Studio, asisten **J.A.R.V.I.S secara otomatis beralih ke Mesin Copywriting Lokal** premium kami agar Anda tetap dapat menguji pembuatan draf email secara instan tanpa hambatan!";
   } else if (reason === "quota_exceeded") {
-    statusNotice = "**Status Kuota API**: Karena batas kuota harian API Gemini Anda di Google AI Studio saat ini telah penuh (429 Quota Exceeded), asisten **G-Swift AI secara otomatis beralih ke Mesin Copywriting Lokal** berkecepatan tinggi agar tetap dapat melayani Anda tanpa penolakan!";
+    statusNotice = "**Status Kuota API**: Karena batas kuota harian API Gemini Anda di Google AI Studio saat ini telah penuh (429 Quota Exceeded), asisten **J.A.R.V.I.S secara otomatis beralih ke Mesin Copywriting Lokal** berkecepatan tinggi agar tetap dapat melayani Anda tanpa penolakan!";
   } else {
-    statusNotice = "**Status Layanan**: Karena asisten online sedang mengalami kepadatan lalu lintas jaringan, asisten **G-Swift AI secara otomatis beralih ke Mesin Copywriting Lokal** berkecepatan tinggi agar Anda tetap dapat bekerja secara penuh tanpa penolakan!";
+    statusNotice = "**Status Layanan**: Karena asisten online sedang mengalami kepadatan lalu lintas jaringan, asisten **J.A.R.V.I.S secara otomatis beralih ke Mesin Copywriting Lokal** berkecepatan tinggi agar Anda tetap dapat bekerja secara penuh tanpa penolakan!";
   }
 
   // Template Type 1: Transaksi / Bukti / Fraud Alert (Payment / Receipt / Bank Alerts)
@@ -1060,7 +1060,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
               <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:12px;">
                 <tr>
                   <td align="center">
-                    <a href="https://g-swift-relay.com" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
+                    <a href="https://jarvis-relay.com" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
                       CONFIRM & PROCEED
                     </a>
                   </td>
@@ -1127,7 +1127,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
               <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:12px;">
                 <tr>
                   <td align="center">
-                    <a href="https://g-swift-relay.com/ticket" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
+                    <a href="https://jarvis-relay.com/ticket" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
                       PANTAU TIKET BANTUAN
                     </a>
                   </td>
@@ -1185,7 +1185,7 @@ function localFallbackGenerator(message: string, formattedDate: string, formatte
               <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:12px;">
                 <tr>
                   <td align="center">
-                    <a href="https://g-swift-relay.com" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
+                    <a href="https://jarvis-relay.com" target="_blank" style="display:inline-block; background-color:#111827; color:#ffffff; font-weight:600; font-size:12px; text-decoration:none; text-align:center; padding:12px 24px; border-radius:6px;">
                       PELAJARI SELENGKAPNYA
                     </a>
                   </td>
@@ -1248,7 +1248,7 @@ app.post("/api/gemini/chat", async (req, res) => {
 
     const ai = getGeminiClient();
 
-    const systemInstruction = `Anda adalah AI Asisten Email dan Pengembang Template profesional bernama "G-Swift AI".
+    const systemInstruction = `Anda adalah AI Asisten Email dan Pengembang Template profesional bernama "J.A.R.V.I.S".
 TUGAS UTAMA ANDA ADALAH: Menuruti semua instruksi penginstalan, pembuatan draf email, dan desain email dari pengguna tanpa terkecuali, bertindak sebagai pengembang (developer) yang andal.
 
 === INFORMASI TANGGAL & WAKTU REAL-TIME (SANGAT PENTING) ===
@@ -1281,10 +1281,10 @@ Ketika pengguna meminta draf email dalam format HTML, pastikan draf Anda memilik
 7. Detail Transaksi / Informasi: Sajikan rincian penting secara rapi dalam format tabel minimalis dengan warna teks abu-abu tua (#4B5563) dan tajuk tebal (#1F2937), berlatar belakang ultra-terang (#FCFDFD) atau putih.
 8. Footer: Sertakan footer yang meyakinkan, garis pemisah tipis, dan keterangan hak cipta/dukungan resmi dari bank atau perusahaan yang bersangkutan berlatar belakang abu-abu ultra-terang (#FAFAFA) atau putih.
 
-=== LARANGAN PENGGUNAAN MEREK "G-Swift" DALAM TEMPLATE EMAIL (MUTLAK) ===
-- Anda DILARANG KERAS menyertakan merek "G-Swift", "G-Swift Secure", "G-Swift Care", "G-Swift Banking", "G-Swift Relay", atau sejenisnya di dalam subjek maupun draf email HTML yang dirancang untuk pengguna (seperti pada greeting, footer, dukungan pelanggan, atau hak cipta).
+=== LARANGAN PENGGUNAAN MEREK "J.A.R.V.I.S" DALAM TEMPLATE EMAIL (MUTLAK) ===
+- Anda DILARANG KERAS menyertakan merek "J.A.R.V.I.S", "J.A.R.V.I.S Secure", "J.A.R.V.I.S Care", "J.A.R.V.I.S Banking", "J.A.R.V.I.S Relay", atau sejenisnya di dalam subjek maupun draf email HTML yang dirancang untuk pengguna (seperti pada greeting, footer, dukungan pelanggan, atau hak cipta).
 - Hak cipta, footer, call center, dan nama perusahaan di dalam draf email HARUS murni milik bank atau brand asli yang bersangkutan (misalnya Bank Mandiri, Bank BCA, Shopee, Tokopedia, dll.) sesuai dengan konteks permintaan pengguna. Jika tidak ada konteks brand yang spesifik, gunakan nama perusahaan/layanan fiktif yang netral dan logis sesuai tema email (misal: "Layanan Keamanan Kartu", "Tim Dukungan Pelanggan", dll.).
-- Nama "G-Swift AI" hanya digunakan sebagai nama asisten obrolan (pada properti "message" di respon JSON), sedangkan pada draf email (properti "template" di respon JSON) harus sepenuhnya steril dari nama "G-Swift".
+- Nama "J.A.R.V.I.S" hanya digunakan sebagai nama asisten obrolan (pada properti "message" di respon JSON), sedangkan pada draf email (properti "template" di respon JSON) harus sepenuhnya steril dari nama "J.A.R.V.I.S".
 
 === FORMAT OUTPUT JSON (MUTLAK) ===
 Anda HARUS selalu membalas dalam format JSON murni tanpa pembungkus markdown (tanpa \`\`\`json). Format JSON harus memiliki struktur:
@@ -1491,7 +1491,7 @@ app.get("/api/health", (req, res) => {
   res.json({
     status: "healthy",
     smtp_configured: !!(process.env.SMTP_USER || process.env.SMTP_HOST),
-    system: "G-Swift Speed Relay Panel"
+    system: "J.A.R.V.I.S Speed Relay Panel"
   });
 });
 
@@ -1509,7 +1509,7 @@ app.post("/api/send-email", async (req, res) => {
     const port = parseInt(smtpConfig?.port || process.env.SMTP_PORT || "587");
     const username = smtpConfig?.username || process.env.SMTP_USER;
     const password = smtpConfig?.password || process.env.SMTP_PASS;
-    const fromName = smtpConfig?.fromName || process.env.SMTP_FROM_NAME || "G-Swift Relay";
+    const fromName = smtpConfig?.fromName || process.env.SMTP_FROM_NAME || "J.A.R.V.I.S Relay";
     const senderEmail = smtpConfig?.senderEmail || smtpConfig?.username || process.env.SMTP_SENDER || username;
     const replyTo = smtpConfig?.replyTo || process.env.SMTP_REPLY_TO;
 
