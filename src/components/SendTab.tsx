@@ -61,7 +61,7 @@ interface SendTabProps {
   triggerConfetti: () => void;
 }
 
-export const SendTab: React.FC<SendTabProps> = ({
+export const SendTab: React.FC<SendTabProps> = React.memo(({
   smtpConfig,
   templates,
   setActiveTab,
@@ -127,11 +127,11 @@ export const SendTab: React.FC<SendTabProps> = ({
     const handleApplyTemplate = (e: Event) => {
       const customEvt = e as CustomEvent<{ subject: string; html: string }>;
       if (customEvt.detail) {
-        setEmailForm({
-          to: emailForm.to, // preserve recipient
+        setEmailForm(prev => ({
+          ...prev,
           subject: customEvt.detail.subject,
           message: customEvt.detail.html
-        });
+        }));
         addLog("info", "Template AI berhasil diterapkan ke form pengiriman.");
       }
     };
@@ -139,11 +139,11 @@ export const SendTab: React.FC<SendTabProps> = ({
     const handleUseTemplate = (e: Event) => {
       const customEvt = e as CustomEvent<EmailTemplate>;
       if (customEvt.detail) {
-        setEmailForm({
-          to: emailForm.to, // preserve recipient
+        setEmailForm(prev => ({
+          ...prev,
           subject: customEvt.detail.subject,
           message: customEvt.detail.message
-        });
+        }));
         addLog("info", `Menggunakan template: ${customEvt.detail.name}`);
       }
     };
@@ -154,7 +154,7 @@ export const SendTab: React.FC<SendTabProps> = ({
       window.removeEventListener("apply-template", handleApplyTemplate);
       window.removeEventListener("use-template", handleUseTemplate);
     };
-  }, [emailForm.to]);
+  }, []);
 
   // Handle auto-filled email from URL query string on mount
   useEffect(() => {
@@ -377,253 +377,370 @@ export const SendTab: React.FC<SendTabProps> = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98 }}
-        className="p-4 sm:p-5 max-w-[420px] mx-auto flex flex-col w-full h-full min-h-0 overflow-hidden"
+        className="p-4 sm:p-5 max-w-[420px] lg:max-w-[960px] xl:max-w-[1100px] mx-auto flex flex-col w-full h-full min-h-0 overflow-hidden"
       >
         <div className="flex-1 flex flex-col w-full min-h-0 overflow-hidden">
-          <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.04)] flex-1 flex flex-col min-h-0 overflow-hidden">
             
             {/* Floating Scan Header Banner */}
-            <div className="px-3.5 py-2.5 border-b border-white/10 bg-white/[0.02] flex flex-col gap-1.5 relative shrink-0">
+            <div className="px-3.5 py-2.5 border-b border-slate-200 bg-slate-50/50 flex flex-col gap-1.5 relative shrink-0">
               <div className="flex justify-between items-center">
-                <h2 className="text-[10px] font-extrabold text-white/45 uppercase tracking-widest flex items-center gap-1.5">
+                <h2 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                   <div className="relative flex items-center justify-center w-2 h-2">
-                    <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                    <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500" />
                   </div>
                   Sistem Anti-Spam Gmail
                 </h2>
-                <span className="text-[9px] sm:text-[10px] font-black text-white/60 uppercase flex items-center gap-1">
-                  <div className="w-1 h-2.5 bg-white/10 rounded-full overflow-hidden relative">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)] animate-[scan_1.5s_linear_infinite]" />
+                <span className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase flex items-center gap-1">
+                  <div className="w-1 h-2.5 bg-slate-200 rounded-full overflow-hidden relative">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-amber-500 animate-[scan_1.5s_linear_infinite]" />
                   </div>
                   AKTIF
                 </span>
               </div>
 
-              {/* Display current active sender SMTP account */}
-              {smtpConfig.username ? (
-                <div className="flex items-center gap-2 bg-white/[0.04] p-2 rounded-xl shadow-md border border-white/10 hover:bg-white/[0.08] group transition-all">
-                  <div className="w-7 h-7 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/25 shadow-inner shrink-0">
-                    <ShieldCheck className="w-3.5 h-3.5 text-white animate-pulse" />
+              {/* Display current active sender SMTP account on mobile (hidden on desktop right side) */}
+              <div className="lg:hidden">
+                {smtpConfig.username ? (
+                  <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl shadow-sm border border-slate-200 hover:bg-slate-100 group transition-all">
+                    <div className="w-7 h-7 rounded-full bg-slate-200/50 flex items-center justify-center border border-slate-300 shadow-inner shrink-0">
+                      <ShieldCheck className="w-3.5 h-3.5 text-slate-700 animate-pulse" />
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="text-[6.5px] font-black text-slate-400 uppercase tracking-wider">
+                        Pengirim: {smtpConfig.fromName || "Tanpa Nama"}
+                      </span>
+                      <span className="text-[11px] font-black text-slate-800 truncate">
+                        {smtpConfig.username}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded-lg border border-slate-200 shrink-0">
+                      <div className="w-1 h-1 bg-amber-500 rounded-full" />
+                      <span className="text-[7.5px] font-bold text-slate-600 uppercase">
+                        Relay
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-[6.5px] font-black text-white/40 uppercase tracking-wider">
-                      Pengirim: {smtpConfig.fromName || "Tanpa Nama"}
-                    </span>
-                    <span className="text-[11px] font-black text-white truncate drop-shadow-sm">
-                      {smtpConfig.username}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 bg-white/10 px-1.5 py-0.5 rounded-lg border border-white/10 shrink-0">
-                    <div className="w-1 h-1 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-                    <span className="text-[7.5px] font-bold text-white uppercase">
-                      Relay
+                ) : (
+                  <div className="flex items-center gap-2 bg-slate-50/50 p-2 rounded-xl border border-slate-200 border-dashed justify-center">
+                    <AlertTriangle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide italic">
+                      Belum Ada Akun Pengirim. Atur di "Akun".
                     </span>
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 bg-white/[0.01] p-2 rounded-xl border border-white/10 border-dashed justify-center">
-                  <AlertTriangle className="w-3.5 h-3.5 text-white/40 shrink-0" />
-                  <span className="text-[9px] font-bold text-white/40 uppercase tracking-wide italic">
-                    Belum Ada Akun Pengirim. Atur di "Akun".
-                  </span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Email Compose Form */}
             <form onSubmit={handleSendEmailSubmit} className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
-              {/* Perfect fit-screen container for inputs and editor */}
-              <div className="flex-1 flex flex-col gap-2.5 min-h-0 overflow-hidden">
-                {/* Banners */}
-                {errorBanner && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-3 bg-rose-950/20 border border-rose-500/20 rounded-xl flex flex-col gap-2 relative shrink-0"
-                  >
-                    <button 
-                      type="button" 
-                      onClick={() => setErrorBanner(null)}
-                      className="absolute top-2 right-2 text-rose-400 hover:text-rose-300"
-                    >
-                      <Plus className="w-3.5 h-3.5 rotate-45" />
-                    </button>
-                    <div className="flex gap-2 items-start pr-6">
-                      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                      <p className="text-xs text-rose-200 font-medium leading-normal flex-1">
-                        {errorBanner}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 mt-1">
-                      <button 
-                        type="button" 
-                        onClick={() => setActiveTab("accounts")}
-                        className="text-[10px] font-black text-white bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/10 transition-all uppercase"
-                      >
-                        Perbaiki SMTP
-                      </button>
-                      <button 
-                        type="button" 
-                        onClick={() => setActiveTab("terminal")}
-                        className="text-[10px] font-black text-white/70 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/10 transition-all uppercase"
-                      >
-                        Lihat Terminal Log
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {successBanner && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-3.5 bg-emerald-950/20 border border-emerald-500/20 rounded-xl flex gap-2.5 items-center relative shrink-0"
-                  >
-                    <button 
-                      type="button" 
-                      onClick={() => setSuccessBanner(null)}
-                      className="absolute top-2 right-2 text-emerald-400/60 hover:text-emerald-400 transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5 rotate-45" />
-                    </button>
-                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <p className="text-xs text-emerald-200 font-bold uppercase tracking-tight pr-6">
-                      {successBanner}
-                    </p>
-                  </motion.div>
-                )}
-
-                {/* Fields */}
-                <div className="space-y-2 shrink-0">
-                  <div className="relative">
-                    <input 
-                      required 
-                      type="email"
-                      value={emailForm.to}
-                      onChange={(e) => setEmailForm({ ...emailForm, to: e.target.value })}
-                      placeholder="Email Penerima" 
-                      className="w-full px-3.5 py-2 sm:py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:bg-white/[0.08] focus:border-white/30 transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-white/40 pointer-events-none uppercase">
-                      KE
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <input 
-                      required 
-                      type="text"
-                      value={emailForm.subject}
-                      onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
-                      placeholder="Subjek Email" 
-                      className="w-full px-3.5 py-2 sm:py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:bg-white/[0.08] focus:border-white/30 transition-all font-semibold text-white placeholder:text-white/30 shadow-sm"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                      {emailForm.subject && (
-                        <div className={`text-[9px] font-black flex items-center gap-1 bg-slate-900/80 ring-1 ring-white/10 px-2 py-1 rounded-full shadow-sm ${spamReport.color}`}>
-                          {spamReport.score < 70 ? (
-                            <AlertCircle className="w-2.5 h-2.5" />
-                          ) : (
-                            <ShieldCheck className="w-2.5 h-2.5" />
-                          )}
-                          {spamReport.level}
-                        </div>
-                      )}
-                      <div className="text-[10px] font-bold text-white/40 uppercase">
-                        SUB
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Anti-spam Diagnostics Tips */}
-                <AnimatePresence>
-                  {spamReport.tips.length > 0 && emailForm.subject && (
+              {/* Responsive Split Container */}
+              <div className="flex-1 flex flex-col lg:flex-row gap-5 min-h-0 overflow-hidden">
+                
+                {/* Left Column: Form Fields */}
+                <div className="flex-1 flex flex-col gap-2.5 min-h-0 overflow-hidden">
+                  {/* Banners */}
+                  {errorBanner && (
                     <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="bg-white/[0.03] border border-white/10 rounded-xl p-2.5 overflow-hidden shadow-sm shrink-0"
+                      initial={{ opacity: 0, y: -10 }} 
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex flex-col gap-2 relative shrink-0"
                     >
-                      <div className="flex gap-2">
-                        <Info className="w-4 h-4 text-white/60 shrink-0 mt-0.5" />
-                        <div className="space-y-1">
-                          <p className="text-[11px] font-extrabold text-white/80 uppercase tracking-wide">
-                            Deteksi Proteksi Spam:
-                          </p>
-                          <ul className="flex flex-wrap gap-x-4 gap-y-1">
-                            {spamReport.tips.map((tip, idx) => (
-                              <li key={idx} className="text-[10px] font-bold text-white/70 flex items-center gap-1">
-                                <div className="w-1 h-1 rounded-full bg-white/60" />
-                                {tip}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                      <button 
+                        type="button" 
+                        onClick={() => setErrorBanner(null)}
+                        className="absolute top-2 right-2 text-rose-500 hover:text-rose-600"
+                      >
+                        <Plus className="w-3.5 h-3.5 rotate-45" />
+                      </button>
+                      <div className="flex gap-2 items-start pr-6">
+                        <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                        <p className="text-xs text-rose-700 font-medium leading-normal flex-1">
+                          {errorBanner}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 mt-1">
+                        <button 
+                          type="button" 
+                          onClick={() => setActiveTab("accounts")}
+                          className="text-[10px] font-black text-rose-700 bg-rose-100/50 px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition-all uppercase"
+                        >
+                          Perbaiki SMTP
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setActiveTab("terminal")}
+                          className="text-[10px] font-black text-rose-600/70 bg-rose-100/30 px-3 py-1.5 rounded-lg border border-rose-200/50 hover:bg-rose-100/50 transition-all uppercase"
+                        >
+                          Lihat Terminal Log
+                        </button>
                       </div>
                     </motion.div>
                   )}
-                </AnimatePresence>
 
-                {/* HTML Message Textarea - flex-1 min-h-0 allows it to stretch perfectly */}
-                <div className="flex flex-col gap-1.5 flex-1 min-h-0 overflow-hidden">
-                  <div className="flex items-center justify-between px-1 shrink-0">
-                    <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest">
-                      Isi Pesan (Mendukung HTML & Teks)
-                    </label>
-                    {emailForm.message && (
+                  {successBanner && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }} 
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex gap-2.5 items-center relative shrink-0"
+                    >
                       <button 
                         type="button" 
-                        onClick={() => setEmailForm({ ...emailForm, message: "" })}
-                        className="flex items-center gap-1 px-2 py-1 hover:bg-rose-950/25 text-white/40 hover:text-rose-400 rounded-lg transition-all active:scale-95 group"
-                        title="Hapus Isi Pesan"
+                        onClick={() => setSuccessBanner(null)}
+                        className="absolute top-2 right-2 text-emerald-500 hover:text-emerald-600 transition-colors"
                       >
-                        <span className="text-[10px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
-                          Hapus Pesan
-                        </span>
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Plus className="w-3.5 h-3.5 rotate-45" />
                       </button>
+                      <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <p className="text-xs text-emerald-700 font-bold uppercase tracking-tight pr-6">
+                        {successBanner}
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* Fields */}
+                  <div className="space-y-2 shrink-0">
+                    <div className="relative">
+                      <input 
+                        required 
+                        type="email"
+                        value={emailForm.to}
+                        onChange={(e) => setEmailForm({ ...emailForm, to: e.target.value })}
+                        placeholder="Email Penerima" 
+                        className="w-full px-3.5 py-2 sm:py-2.5 bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-semibold text-slate-800 placeholder:text-slate-400 shadow-sm"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 pointer-events-none uppercase">
+                        KE
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <input 
+                        required 
+                        type="text"
+                        value={emailForm.subject}
+                        onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                        placeholder="Subjek Email" 
+                        className="w-full px-3.5 py-2 sm:py-2.5 bg-white border border-slate-200/80 hover:border-slate-300 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-semibold text-slate-800 placeholder:text-slate-400 shadow-sm"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                        {emailForm.subject && (
+                          <div className="text-[9px] font-black flex items-center gap-1 bg-slate-100 ring-1 ring-slate-200 px-2 py-1 rounded-full shadow-sm">
+                            {spamReport.score < 70 ? (
+                              <AlertCircle className={`w-2.5 h-2.5 ${spamReport.color}`} />
+                            ) : (
+                              <ShieldCheck className={`w-2.5 h-2.5 ${spamReport.color}`} />
+                            )}
+                            <span className={spamReport.color}>{spamReport.level}</span>
+                          </div>
+                        )}
+                        <div className="text-[10px] font-bold text-slate-400 uppercase">
+                          SUB
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Anti-spam Diagnostics Tips on Mobile (hidden on desktop) */}
+                  <div className="lg:hidden">
+                    <AnimatePresence>
+                      {spamReport.tips.length > 0 && emailForm.subject && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 overflow-hidden shadow-sm shrink-0 mb-2"
+                        >
+                          <div className="flex gap-2">
+                            <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                              <p className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wide">
+                                Deteksi Proteksi Spam:
+                              </p>
+                              <ul className="flex flex-wrap gap-x-4 gap-y-1">
+                                {spamReport.tips.map((tip, idx) => (
+                                  <li key={idx} className="text-[10px] font-bold text-slate-600 flex items-center gap-1">
+                                    <div className="w-1 h-1 rounded-full bg-slate-400" />
+                                    {tip}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* HTML Message Textarea - flex-1 min-h-0 allows it to stretch perfectly */}
+                  <div className="flex flex-col gap-1.5 flex-1 min-h-0 overflow-hidden">
+                    <div className="flex items-center justify-between px-1 shrink-0">
+                      <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-widest">
+                        Isi Pesan (Mendukung HTML & Teks)
+                      </label>
+                      {emailForm.message && (
+                        <button 
+                          type="button" 
+                          onClick={() => setEmailForm({ ...emailForm, message: "" })}
+                          className="flex items-center gap-1 px-2 py-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-all active:scale-95 group"
+                          title="Hapus Isi Pesan"
+                        >
+                          <span className="text-[10px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                            Hapus Pesan
+                          </span>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-h-0 flex flex-col gap-1.5">
+                      <RichTextEditor 
+                        value={emailForm.message}
+                        onChange={(val) => setEmailForm({ ...emailForm, message: val })}
+                        placeholder="Tulis pesan Anda... (Mendukung paste Rich Text / HTML)"
+                        minHeight="120px"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Diagnostics & Templates (Only on desktop lg size) */}
+                <div className="hidden lg:flex w-full lg:w-[280px] xl:w-[320px] shrink-0 flex-col gap-3.5 min-h-0 overflow-y-auto no-scrollbar lg:border-l lg:border-slate-200 lg:pl-5">
+                  {/* Sender SMTP Info Card */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex flex-col gap-2 shadow-sm">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Kredensial Aktif</span>
+                    {smtpConfig.username ? (
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-slate-200/50 flex items-center justify-center border border-slate-300 shadow-inner shrink-0">
+                          <ShieldCheck className="w-4 h-4 text-slate-700 animate-pulse" />
+                        </div>
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="text-[11px] font-black text-slate-800 truncate">
+                            {smtpConfig.username}
+                          </span>
+                          <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight">
+                            Host: {smtpConfig.host}:{smtpConfig.port}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-2 rounded-xl border border-slate-200 border-dashed justify-center bg-slate-50/50">
+                        <AlertTriangle className="w-4 h-4 text-slate-400 shrink-0" />
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide italic text-center">
+                          Belum Ada SMTP Aktif
+                        </span>
+                      </div>
                     )}
                   </div>
 
-                  <div className="flex-1 min-h-0 flex flex-col gap-1.5">
-                    <RichTextEditor 
-                      value={emailForm.message}
-                      onChange={(val) => setEmailForm({ ...emailForm, message: val })}
-                      placeholder="Tulis pesan Anda... (Mendukung paste Rich Text / HTML)"
-                      minHeight="80px"
-                    />
+                  {/* Circular visual for Spam Score */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-sm">
+                    <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Skor Proteksi Spam</span>
+                    <div className="relative flex items-center justify-center w-24 h-24 mb-2">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle cx="48" cy="48" r="40" stroke="rgba(0,0,0,0.05)" strokeWidth="6" fill="transparent" />
+                        <circle 
+                          cx="48" 
+                          cy="48" 
+                          r="40" 
+                          stroke="currentColor" 
+                          strokeWidth="6" 
+                          fill="transparent" 
+                          className={spamReport.color}
+                          strokeDasharray={2 * Math.PI * 40}
+                          strokeDashoffset={2 * Math.PI * 40 * (1 - (emailForm.subject ? spamReport.score : 100) / 100)}
+                          style={{ transition: "stroke-dashoffset 0.5s ease-out" }}
+                        />
+                      </svg>
+                      <div className="absolute flex flex-col items-center">
+                        <span className="text-2xl font-black text-slate-800">{emailForm.subject ? spamReport.score : 100}</span>
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">{emailForm.subject ? spamReport.level : "Excellent"}</span>
+                      </div>
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-500 leading-tight">
+                      {(!emailForm.subject || spamReport.score >= 90) 
+                        ? "Email Anda sangat aman dari filter spam Gmail!" 
+                        : "Perbaiki saran berikut agar email lolos filter spam utama."}
+                    </p>
                   </div>
+
+                  {/* Anti-spam Diagnostics Tips list */}
+                  {spamReport.tips.length > 0 && emailForm.subject && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 shadow-sm space-y-2 max-h-[160px] overflow-y-auto no-scrollbar">
+                      <p className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                        <Info className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        Saran Anti-Spam:
+                      </p>
+                      <ul className="space-y-1.5">
+                        {spamReport.tips.map((tip, idx) => (
+                          <li key={idx} className="text-[10px] font-bold text-slate-600 flex items-start gap-1.5 leading-snug">
+                            <div className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 mt-1" />
+                            <span>{tip}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Templates Quick selector in right sidebar */}
+                  {templates.length > 0 && (
+                    <div className="flex flex-col gap-2 mt-auto">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                        Gunakan Template Cepat
+                      </span>
+                      <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto no-scrollbar">
+                        {templates.map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => useTemplateContent(t)}
+                            className="group flex flex-col items-start p-2 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-jago transition-all shadow-sm active:scale-95 text-left truncate cursor-pointer"
+                          >
+                            <span className="text-[9px] font-black text-slate-800 group-hover:text-jago-dark truncate w-full">
+                              {t.name}
+                            </span>
+                            <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tighter truncate w-full">
+                              {t.category}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
+
               </div>
 
-              {/* Static Footer (Templates Carousel & Action Button) */}
-              <div className="pt-2 flex flex-col gap-2 shrink-0 border-t border-white/10 mt-2">
-                {templates.length > 0 && (
-                  <div className="flex flex-col gap-1 px-1">
-                    <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.2em] ml-1">
-                      Gunakan Template Tersimpan
-                    </span>
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
-                      {templates.map((t) => (
-                        <button
-                          key={t.id}
-                          type="button"
-                          onClick={() => useTemplateContent(t)}
-                          className="shrink-0 group flex flex-col items-start p-2 bg-white/[0.04] border border-white/10 rounded-xl hover:border-white/35 transition-all shadow-sm active:scale-95 min-w-[90px]"
-                        >
-                          <span className="text-[9px] font-black text-white group-hover:text-white truncate w-full text-left">
-                            {t.name}
-                          </span>
-                          <span className="text-[7px] font-bold text-white/40 uppercase tracking-tighter truncate w-full text-left">
-                            {t.category}
-                          </span>
-                        </button>
-                      ))}
+              {/* Static Footer (Mobile Templates Carousel & Action Button) */}
+              <div className="pt-2 flex flex-col gap-2 shrink-0 border-t border-slate-200 mt-2">
+                {/* Mobile templates carousel only visible on mobile (hidden on desktop right-side is active) */}
+                <div className="lg:hidden">
+                  {templates.length > 0 && (
+                    <div className="flex flex-col gap-1 px-1">
+                      <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                        Gunakan Template Tersimpan
+                      </span>
+                      <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
+                        {templates.map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => useTemplateContent(t)}
+                            className="shrink-0 group flex flex-col items-start p-2 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-jago transition-all shadow-sm active:scale-95 min-w-[90px] cursor-pointer"
+                          >
+                            <span className="text-[9px] font-black text-slate-800 group-hover:text-jago-dark truncate w-full text-left">
+                              {t.name}
+                            </span>
+                            <span className="text-[7px] font-bold text-slate-400 uppercase tracking-tighter truncate w-full text-left">
+                              {t.category}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Elegant Progress Bar */}
                 <AnimatePresence>
@@ -632,22 +749,22 @@ export const SendTab: React.FC<SendTabProps> = ({
                       initial={{ opacity: 0, y: 5, height: 0 }}
                       animate={{ opacity: 1, y: 0, height: "auto" }}
                       exit={{ opacity: 0, y: 5, height: 0 }}
-                      className="p-3 bg-white/[0.02] border border-white/10 rounded-xl space-y-1.5 overflow-hidden shadow-inner mb-1"
+                      className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 overflow-hidden shadow-inner mb-1"
                     >
                       <div className="flex justify-between items-center text-[10px]">
-                        <span className="font-extrabold text-white/70 uppercase tracking-wider flex items-center gap-1.5 truncate pr-2">
+                        <span className="font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 truncate pr-2">
                           {sendingProgress === 100 ? (
-                            <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                           ) : (
-                            <Loader2 className="w-3 h-3 text-emerald-400 animate-spin shrink-0" />
+                            <Loader2 className="w-3 h-3 text-emerald-500 animate-spin shrink-0" />
                           )}
-                          <span className={`${sendingProgress === 100 ? 'text-emerald-400' : 'text-white/70'} truncate`}>{sendingStage}</span>
+                          <span className={`${sendingProgress === 100 ? 'text-emerald-500' : 'text-slate-600'} truncate`}>{sendingStage}</span>
                         </span>
-                        <span className="font-mono font-black text-emerald-400 shrink-0">
+                        <span className="font-mono font-black text-emerald-500 shrink-0">
                           {sendingProgress}%
                         </span>
                       </div>
-                      <div className="w-full h-1.5 bg-slate-900/60 rounded-full overflow-hidden border border-white/5 relative">
+                      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200 relative">
                         <div 
                           className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.5)] transition-all duration-300 ease-out"
                           style={{ width: `${sendingProgress}%` }}
@@ -660,7 +777,7 @@ export const SendTab: React.FC<SendTabProps> = ({
                 <button 
                   type="submit"
                   disabled={isSending}
-                  className="w-full py-2 sm:py-2.5 bg-white hover:bg-white/90 text-slate-950 text-[11px] font-bold rounded-xl transition-all shadow-lg shadow-white/5 border border-white/10 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.08em]"
+                  className="w-full py-2 sm:py-2.5 bg-jago hover:bg-jago-hover text-white text-[11px] font-extrabold rounded-xl transition-all shadow-md shadow-jago/10 border border-jago-dark flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.08em] cursor-pointer"
                 >
                   {isSending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -677,4 +794,4 @@ export const SendTab: React.FC<SendTabProps> = ({
       </motion.div>
     </>
   );
-};
+});

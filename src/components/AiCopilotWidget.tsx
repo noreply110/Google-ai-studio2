@@ -61,20 +61,20 @@ const LinkEditor: React.FC<LinkEditorProps> = React.memo(({ templateHtml, onLink
   if (links.length === 0) return null;
 
   return (
-    <div className="bg-white/[0.02] border border-white/10 rounded-xl p-3 space-y-2">
-      <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-amber-400 uppercase tracking-widest font-mono">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+      <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-amber-600 uppercase tracking-widest font-mono">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
         Kustomisasi Tombol & Link Draf:
       </div>
       <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 no-scrollbar">
         {links.map((link, linkIdx) => (
-          <div key={linkIdx} className="p-2 bg-white/[0.03] border border-white/10 rounded-lg space-y-2">
-            <div className="text-[9px] font-black text-white/80 uppercase tracking-wider flex items-center justify-between">
+          <div key={linkIdx} className="p-2 bg-white border border-slate-200/60 rounded-lg space-y-2">
+            <div className="text-[9px] font-black text-slate-700 uppercase tracking-wider flex items-center justify-between">
               <span>Tombol #{linkIdx + 1}: "{link.text}"</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[8px] font-extrabold text-white/40 uppercase tracking-wider block mb-1">
+                <label className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">
                   Teks Tombol
                 </label>
                 <input
@@ -84,11 +84,11 @@ const LinkEditor: React.FC<LinkEditorProps> = React.memo(({ templateHtml, onLink
                     const newHtml = updateHtmlLink(templateHtml, link.index, e.target.value, link.href);
                     onLinkUpdate(newHtml);
                   }}
-                  className="w-full px-2 py-1.5 bg-white/[0.04] border border-white/10 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-400/50 text-white placeholder:text-white/20 transition-all"
+                  className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-500 text-slate-800 placeholder:text-slate-400 transition-all"
                 />
               </div>
               <div>
-                <label className="text-[8px] font-extrabold text-white/40 uppercase tracking-wider block mb-1">
+                <label className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">
                   Link Tujuan (URL)
                 </label>
                 <input
@@ -98,7 +98,7 @@ const LinkEditor: React.FC<LinkEditorProps> = React.memo(({ templateHtml, onLink
                     const newHtml = updateHtmlLink(templateHtml, link.index, link.text, e.target.value);
                     onLinkUpdate(newHtml);
                   }}
-                  className="w-full px-2 py-1.5 bg-white/[0.04] border border-white/10 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-400/50 text-white placeholder:text-white/20 transition-all font-mono"
+                  className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-500 text-slate-800 placeholder:text-slate-400 transition-all font-mono"
                 />
               </div>
             </div>
@@ -358,7 +358,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsAiOpen(false)}
-            className="fixed inset-0 bg-[#040914]/65 backdrop-blur-sm z-[140]"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[140]"
           />
 
           {/* Drawer Container */}
@@ -367,43 +367,43 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "100%", opacity: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-[#040914] border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[150] flex flex-col overflow-hidden text-white"
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-slate-200 shadow-[0_0_50px_rgba(0,0,0,0.1)] z-[150] flex flex-col overflow-hidden text-slate-800"
           >
             {/* Wallpaper background matching the main app */}
             <img 
               src={backgroundImage} 
               alt="Background Wallpaper" 
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-40 select-none" 
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-20 select-none" 
               referrerPolicy="no-referrer"
             />
             
-            {/* Modern dark luxury overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0c244b]/15 via-[#040914]/40 to-[#040914]/90 pointer-events-none z-0" />
+            {/* Modern light luxury overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-amber-50/10 via-white/50 to-white/95 pointer-events-none z-0" />
 
             {/* Header Banner */}
-            <div className="p-4 border-b border-white/10 bg-white/[0.02] flex justify-between items-center shrink-0 relative z-10">
+            <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0 relative z-10">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white overflow-hidden">
+                <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 overflow-hidden">
                   <motion.div
                     animate={{ rotate: [0, 360] }}
                     transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
                     className="flex items-center justify-center"
                   >
-                    <Sparkles className="w-4 h-4 text-white" />
+                    <Sparkles className="w-4 h-4 text-amber-500" />
                   </motion.div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                     G-Swift AI Copilot
                   </h3>
-                  <p className="text-[9px] text-white/60 font-bold leading-none mt-0.5">
+                  <p className="text-[9px] text-slate-500 font-bold leading-none mt-0.5">
                     Asisten email profesional berbasis Gemini AI
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsAiOpen(false)}
-                className="p-1.5 hover:bg-white/5 rounded-full text-white/40 hover:text-white/85 transition-all cursor-pointer"
+                className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-700 transition-all cursor-pointer"
               >
                 <Plus className="w-5 h-5 rotate-45" />
               </button>
@@ -417,16 +417,16 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   className={hn(
                     "flex flex-col max-w-[85%] rounded-2xl p-3.5 shadow-sm text-xs",
                     msg.role === "user"
-                      ? "bg-white text-slate-950 rounded-br-none ml-auto border border-white/20 shadow-lg shadow-white/5 font-extrabold"
-                      : "bg-white/[0.03] border border-white/10 text-white rounded-bl-none mr-auto shadow-md"
+                      ? "bg-amber-500 text-white rounded-br-none ml-auto border border-amber-600 shadow-md shadow-amber-500/10 font-extrabold"
+                      : "bg-slate-50 border border-slate-200 text-slate-800 rounded-bl-none mr-auto shadow-sm"
                   )}
                 >
-                  <span className={`text-[8px] font-black uppercase tracking-wider mb-1 ${msg.role === "user" ? "text-slate-950/65" : "text-white/65"}`}>
+                  <span className={`text-[8px] font-black uppercase tracking-wider mb-1 ${msg.role === "user" ? "text-amber-100" : "text-slate-400"}`}>
                     {msg.role === "user" ? "Anda" : "G-Swift AI"}
                   </span>
                   
                   {msg.image && (
-                    <div className="mb-2 rounded-lg overflow-hidden border border-white/10 max-w-[180px]">
+                    <div className="mb-2 rounded-lg overflow-hidden border border-slate-200 max-w-[180px]">
                       <img 
                         src={`data:${msg.image.mimeType};base64,${msg.image.data}`} 
                         alt={msg.image.name} 
@@ -436,15 +436,15 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                     </div>
                   )}
 
-                  <p className={`font-semibold leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "text-slate-900" : "text-white/90"}`}>
+                  <p className={`font-semibold leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "text-white" : "text-slate-800"}`}>
                     {msg.content}
                   </p>
 
                   {/* Display template suggestions inside the chat if present */}
                   {msg.template && (
-                    <div className="mt-3.5 pt-3.5 border-t border-white/10 space-y-2.5">
-                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5 space-y-1.5">
-                        <div className="text-[8px] font-extrabold text-white/40 uppercase tracking-widest font-mono">
+                    <div className="mt-3.5 pt-3.5 border-t border-slate-200 space-y-2.5">
+                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+                        <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">
                           Subjek Rekomendasi (Dapat Diedit):
                         </div>
                         <input
@@ -458,19 +458,19 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                             };
                             setAiHistory(updatedHistory);
                           }}
-                          className="w-full bg-white/[0.04] border border-white/10 hover:border-white/20 focus:border-amber-400/50 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-white focus:outline-none transition-all placeholder:text-white/20"
+                          className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-amber-500 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-800 focus:outline-none transition-all placeholder:text-slate-400"
                           placeholder="Masukkan subjek draf..."
                         />
                       </div>
 
-                      <div className="bg-white/[0.02] border border-white/5 rounded-xl p-2.5 flex flex-col gap-2">
+                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <div className="text-[8px] font-extrabold text-white/40 uppercase tracking-widest font-mono">
+                          <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">
                             Isi Pesan / Desain Template:
                           </div>
                           
                           {/* Segmented Mode Control */}
-                          <div className="flex bg-white/5 border border-white/10 rounded-lg p-0.5">
+                          <div className="flex bg-slate-100 border border-slate-200 rounded-lg p-0.5">
                             <button
                               type="button"
                               onClick={() => {
@@ -479,8 +479,8 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                               className={hn(
                                 "px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider rounded transition-all",
                                 editModes[idx] !== 'html' 
-                                  ? "bg-amber-400 text-slate-950 font-black" 
-                                  : "text-white/60 hover:text-white"
+                                  ? "bg-amber-500 text-white font-black" 
+                                  : "text-slate-500 hover:text-slate-800"
                               )}
                             >
                               Pratinjau
@@ -493,8 +493,8 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                               className={hn(
                                 "px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider rounded transition-all",
                                 editModes[idx] === 'html' 
-                                  ? "bg-amber-400 text-slate-950 font-black" 
-                                  : "text-white/60 hover:text-white"
+                                  ? "bg-amber-500 text-white font-black" 
+                                  : "text-slate-500 hover:text-slate-800"
                               )}
                             >
                               Edit Teks & HTML
@@ -503,7 +503,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                         </div>
 
                         {editModes[idx] === 'html' ? (
-                          <div className="w-full h-[220px] rounded-lg overflow-hidden border border-white/10 bg-[#0a0f1d] flex flex-col relative">
+                          <div className="w-full h-[220px] rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex flex-col relative">
                             <textarea
                               value={msg.template.html}
                               onChange={(e) => {
@@ -514,15 +514,15 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                                 };
                                 setAiHistory(updatedHistory);
                               }}
-                              className="w-full h-full p-3 bg-transparent text-white font-mono text-[10px] resize-none focus:outline-none focus:ring-0 leading-relaxed overflow-y-auto"
+                              className="w-full h-full p-3 bg-transparent text-slate-800 font-mono text-[10px] resize-none focus:outline-none focus:ring-0 leading-relaxed overflow-y-auto"
                               placeholder="Ketik atau edit semua teks/kode HTML di sini..."
                             />
-                            <div className="absolute bottom-2 right-2 bg-slate-950/80 border border-white/10 text-[7px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded text-white/60 select-none font-mono">
+                            <div className="absolute bottom-2 right-2 bg-slate-200 border border-slate-300 text-[7px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded text-slate-500 select-none font-mono">
                               Kode Sumber / Teks
                             </div>
                           </div>
                         ) : (
-                          <div className="w-full h-[220px] rounded-lg overflow-hidden border border-white/10 bg-white">
+                          <div className="w-full h-[220px] rounded-lg overflow-hidden border border-slate-200 bg-white">
                             <iframe
                               title="AI Template Preview"
                               srcDoc={`
@@ -616,13 +616,13 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                       <div className="flex gap-2">
                         <button
                           onClick={() => applyAiTemplateToForm(msg.template)}
-                          className="flex-1 py-2 bg-white hover:bg-white/90 text-slate-950 text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 shadow-sm transition-all uppercase tracking-wider border border-white/10"
+                          className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 shadow-sm transition-all uppercase tracking-wider border border-amber-600"
                         >
                           <Send className="w-3 h-3" /> Gunakan di Form
                         </button>
                         <button
                           onClick={() => saveAiTemplateToCollection(msg.template)}
-                          className="flex-1 py-2 bg-white/5 hover:bg-white/10 text-white/80 text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all uppercase tracking-wider border border-white/10"
+                          className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all uppercase tracking-wider border border-slate-200"
                         >
                           <FileText className="w-3 h-3" /> Simpan Koleksi
                         </button>
@@ -633,17 +633,17 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
               ))}
 
               {isAiLoading && (
-                <div className="bg-white/[0.03] border border-white/10 text-white rounded-2xl rounded-bl-none p-3.5 shadow-sm max-w-[85%] mr-auto flex items-center gap-2.5">
-                  <Star className="w-4 h-4 text-amber-400 fill-amber-400 animate-spin shrink-0" />
-                  <span className="text-xs font-bold text-white/60 animate-pulse">
+                <div className="bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl rounded-bl-none p-3.5 shadow-sm max-w-[85%] mr-auto flex items-center gap-2.5">
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-500 animate-spin shrink-0" />
+                  <span className="text-xs font-bold text-slate-500 animate-pulse">
                     {thinkingText}
                   </span>
                 </div>
               )}
 
               {aiError && (
-                <div className="p-3 bg-rose-950/20 border border-rose-500/20 text-rose-300 rounded-xl text-[10px] font-bold flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-[10px] font-bold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                   <span>{aiError}</span>
                 </div>
               )}
@@ -652,7 +652,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             </div>
 
             {/* Prompt Quick Suggestion Strip */}
-            <div className="px-4 py-2 bg-white/[0.01] border-t border-white/5 flex gap-2 overflow-x-auto scrollbar-none shrink-0 relative z-10">
+            <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex gap-2 overflow-x-auto scrollbar-none shrink-0 relative z-10">
               {[
                 { label: "Peringatan Shopee 5Jt", prompt: "Buat draf email peringatan transaksi kartu kredit tidak dikenal di merchant Shopee sebesar Rp 5.000.000 lengkap dengan tombol Batalkan Transaksi." },
                 { label: "Klarifikasi Transaksi", prompt: "Buat email klarifikasi keamanan mengenai pemakaian kartu kredit nasabah di merchant Shopee CO ID Jakarta senilai 5 juta rupiah yang membutuhkan verifikasi pembatalan segera." },
@@ -663,7 +663,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   key={i}
                   onClick={() => handleSendAiMessage(sug.prompt)}
                   disabled={isAiLoading}
-                  className="px-2.5 py-1.5 bg-white/[0.04] border border-white/10 rounded-full hover:border-white/40 hover:text-white text-[9px] font-extrabold text-white/70 hover:bg-white/[0.08] shrink-0 transition-all cursor-pointer shadow-sm uppercase tracking-tight"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-full hover:border-amber-500 hover:text-amber-600 text-[9px] font-extrabold text-slate-600 hover:bg-amber-50 shrink-0 transition-all cursor-pointer shadow-sm uppercase tracking-tight"
                 >
                   {sug.label}
                 </button>
@@ -671,12 +671,12 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             </div>
 
             {/* Footer Send Prompt Panel */}
-            <div className="p-3 border-t border-white/10 bg-slate-950/50 backdrop-blur-md shrink-0 space-y-2 relative z-10">
+            <div className="p-3 border-t border-slate-200 bg-slate-50 backdrop-blur-md shrink-0 space-y-2 relative z-10">
               {/* Image Preview if selected */}
               {selectedImage && (
-                <div className="flex items-center justify-between p-2 bg-white/[0.03] border border-white/10 rounded-xl">
+                <div className="flex items-center justify-between p-2 bg-white border border-slate-200 rounded-xl">
                   <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 bg-black shrink-0">
+                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200 bg-slate-50 shrink-0">
                       <img 
                         src={`data:${selectedImage.mimeType};base64,${selectedImage.data}`} 
                         alt="Selected" 
@@ -685,10 +685,10 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                       />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] font-bold text-white truncate max-w-[150px]">
+                      <span className="text-[10px] font-bold text-slate-800 truncate max-w-[150px]">
                         {selectedImage.name}
                       </span>
-                      <span className="text-[8px] font-extrabold text-amber-400 uppercase tracking-wider">
+                      <span className="text-[8px] font-extrabold text-amber-500 uppercase tracking-wider">
                         Foto Siap Dikirim
                       </span>
                     </div>
@@ -696,7 +696,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   <button
                     type="button"
                     onClick={() => setSelectedImage(null)}
-                    className="p-1 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-all"
+                    className="p-1 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-lg transition-all"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -723,10 +723,10 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   type="button"
                   disabled={isAiLoading}
                   onClick={() => document.getElementById("ai-image-upload")?.click()}
-                  className={`p-2.5 rounded-xl border border-white/10 transition-all flex items-center justify-center shrink-0 cursor-pointer ${
+                  className={`p-2.5 rounded-xl border transition-all flex items-center justify-center shrink-0 cursor-pointer ${
                     selectedImage 
-                      ? "bg-amber-400/10 text-amber-400 border-amber-400/35" 
-                      : "bg-white/[0.04] text-white/70 hover:bg-white/[0.08] hover:text-white"
+                      ? "bg-amber-100 text-amber-700 border-amber-300" 
+                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                   }`}
                   title="Upload Foto/Gambar"
                 >
@@ -739,12 +739,12 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   value={aiInput}
                   onChange={(e) => setAiInput(e.target.value)}
                   placeholder={selectedImage ? "Beri instruksi draf (opsional)..." : "Tanya AI / Tulis prompt draf email..."}
-                  className="flex-1 px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs font-semibold focus:bg-white/[0.08] focus:outline-none focus:border-white/30 text-white placeholder:text-white/30 transition-all"
+                  className="flex-1 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:outline-none focus:border-amber-500 text-slate-800 placeholder:text-slate-400 transition-all"
                 />
                 <button
                   type="submit"
                   disabled={isAiLoading || (!aiInput.trim() && !selectedImage)}
-                  className="p-2.5 bg-white hover:bg-white/90 text-slate-950 rounded-xl shadow-lg shadow-white/5 border border-white/10 transition-all disabled:opacity-40 flex items-center justify-center shrink-0 cursor-pointer"
+                  className="p-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-md border border-amber-600 transition-all disabled:opacity-40 flex items-center justify-center shrink-0 cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                 </button>

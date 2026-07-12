@@ -12,7 +12,7 @@ interface RichTextEditorProps {
   minHeight?: string;
 }
 
-export const RichTextEditor: React.FC<RichTextEditorProps> = ({
+export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
   value,
   onChange,
   placeholder = "Tulis pesan Anda di sini...",
@@ -166,7 +166,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               type="button"
               onClick={() => executeCommand("bold")}
               className={`p-1.5 rounded-lg transition-all cursor-pointer shrink-0 ${
-                activeFormat.bold ? "bg-[#0050b3] text-white" : "text-slate-600 hover:bg-slate-200"
+                activeFormat.bold ? "bg-amber-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
               }`}
               title="Tebal (Ctrl+B)"
             >
@@ -176,7 +176,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               type="button"
               onClick={() => executeCommand("italic")}
               className={`p-1.5 rounded-lg transition-all cursor-pointer shrink-0 ${
-                activeFormat.italic ? "bg-[#0050b3] text-white" : "text-slate-600 hover:bg-slate-200"
+                activeFormat.italic ? "bg-amber-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
               }`}
               title="Miring (Ctrl+I)"
             >
@@ -186,7 +186,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               type="button"
               onClick={() => executeCommand("underline")}
               className={`p-1.5 rounded-lg transition-all cursor-pointer shrink-0 ${
-                activeFormat.underline ? "bg-[#0050b3] text-white" : "text-slate-600 hover:bg-slate-200"
+                activeFormat.underline ? "bg-amber-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
               }`}
               title="Garis Bawah (Ctrl+U)"
             >
@@ -327,7 +327,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </div>
         ) : (
           <div className="flex-1 overflow-hidden pr-2">
-            <span className="text-[9px] sm:text-[10px] font-bold text-[#0050b3] bg-blue-50 px-2 py-1 rounded border border-blue-200 uppercase tracking-wider block truncate">
+            <span className="text-[9px] sm:text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200 uppercase tracking-wider block truncate shadow-sm">
               Mode Editor HTML (Kode Sumber)
             </span>
           </div>
@@ -483,4 +483,4 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       `}</style>
     </div>
   );
-};
+});

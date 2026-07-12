@@ -17,7 +17,6 @@ import { TerminalTab } from "./components/TerminalTab";
 import { AccountsTab } from "./components/AccountsTab";
 import { AiCopilotWidget } from "./components/AiCopilotWidget";
 import { RichTextEditor } from "./components/RichTextEditor";
-import backgroundImage from "./assets/images/background_wallpaper_1783625776258.jpg";
 
 // Classname utility helper locally
 function hn(...args: any[]) {
@@ -200,9 +199,13 @@ export default function App() {
   };
 
   // Initial Bootup Connection Diagnostics
+  const hasLoggedInit = useRef(false);
   useEffect(() => {
-    addLog("info", "G-Swift Relay active. System ready.");
-    checkBackendHealth();
+    if (!hasLoggedInit.current) {
+      addLog("info", "G-Swift Relay active. System ready.");
+      checkBackendHealth();
+      hasLoggedInit.current = true;
+    }
   }, []);
 
   // Auto-verify PIN when it reaches 6 digits
@@ -364,21 +367,14 @@ export default function App() {
     };
 
     return (
-      <div className="flex min-h-screen bg-[#040914] items-center justify-center p-4 relative overflow-y-auto font-sans select-none text-white overflow-hidden">
+      <div className="flex min-h-screen bg-gradient-to-b from-[#ffd445] via-[#ffb837] to-[#ffa133] items-center justify-center p-4 relative overflow-y-auto font-sans select-none text-[#1a1105] overflow-hidden">
         
-        {/* Fullscreen HD Background Image */}
-        <img 
-          src={backgroundImage} 
-          alt="Background Wallpaper" 
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-80 select-none" 
-          referrerPolicy="no-referrer"
-        />
-        
-        {/* Subtle overlay for high contrast text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0c244b]/10 via-[#040914]/40 to-[#040914]/90 pointer-events-none z-0" />
-
-        {/* Subtle top indicator bar */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600/40 via-sky-400/30 to-blue-600/40 z-[60]" />
+        {/* Version watermark in top-right */}
+        <div className="absolute top-6 right-6 text-right select-none pointer-events-none">
+          <span className="text-[11px] font-medium text-black/45 tracking-tight">
+            Versi 8.90.0 (10290)
+          </span>
+        </div>
 
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }} 
@@ -387,16 +383,13 @@ export default function App() {
           className="max-w-[340px] sm:max-w-sm w-full flex flex-col items-center relative z-10 px-4 py-6"
         >
           {/* Main Title matching the requested screenshot */}
-          <div className="w-full text-center flex flex-col gap-2 mb-8">
-            <h1 className="text-xl sm:text-2xl font-normal text-white/95 tracking-wide">
-              Masukkan Kata sandi
+          <div className="w-full text-center flex flex-col gap-1 mb-8">
+            <h1 className="text-[17px] font-bold text-[#1a1105] tracking-wide">
+              Masukkan PIN kamu
             </h1>
-            <p className="text-[10px] font-medium text-white/40 uppercase tracking-[0.2em]">
-              SwiftRelay Admin
-            </p>
           </div>
 
-          {/* PIN Dots display: thin hollow circles when empty, solid white when filled */}
+          {/* PIN Dots display: circles matching image */}
           <motion.div 
             animate={passcodeError ? { x: [0, -10, 10, -10, 10, 0] } : {}}
             transition={{ duration: 0.4 }}
@@ -407,12 +400,12 @@ export default function App() {
               return (
                 <div
                   key={index}
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 transition-all duration-200 ${
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border transition-all duration-200 ${
                     passcodeError
-                      ? "border-rose-500 bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                      ? "border-rose-600 bg-rose-600 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
                       : isFilled 
-                        ? "border-white bg-white scale-110 shadow-[0_0_12px_rgba(255,255,255,0.8)]" 
-                        : "border-white/30 bg-transparent"
+                        ? "border-[#a23df5] bg-[#a23df5] scale-110 shadow-[0_2px_10px_rgba(162,61,245,0.6)]" 
+                        : "border-white bg-white shadow-sm"
                   }`}
                 />
               );
@@ -426,7 +419,7 @@ export default function App() {
                   initial={{ opacity: 0, y: -5 }} 
                   animate={{ opacity: 1, y: 0 }} 
                   exit={{ opacity: 0, y: -5 }}
-                  className="text-[10px] font-bold text-rose-400 text-center uppercase tracking-wider bg-rose-950/40 px-3 py-1 rounded-full border border-rose-800/30"
+                  className="text-[10px] font-extrabold text-red-950 text-center uppercase tracking-wider bg-white/45 px-3 py-1 rounded-full border border-red-900/10 shadow-sm"
                 >
                   PIN Salah! Silakan coba lagi
                 </motion.p>
@@ -434,71 +427,42 @@ export default function App() {
             </AnimatePresence>
           </div>
 
-          {/* Remember Me toggle (integrated sleekly) */}
-          <label className="flex items-center gap-2 justify-center cursor-pointer mb-8 group w-fit mx-auto">
-            <div 
-              className={`w-4 h-4 rounded-md flex items-center justify-center transition-all border ${
-                rememberMe 
-                  ? "bg-white border-white text-slate-900 shadow-[0_0_8px_rgba(255,255,255,0.5)]" 
-                  : "border-white/30 bg-transparent group-hover:border-white/50 text-transparent"
-              }`}
-            >
-              <CheckCircle className={`w-3 h-3 ${rememberMe ? "text-slate-950" : "text-transparent"}`} strokeWidth={3.5} />
-            </div>
-            <input 
-              type="checkbox" 
-              className="hidden"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-            />
-            <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest select-none pt-0.5 group-hover:text-white/80 transition-colors">
-              Ingat Saya
-            </span>
-          </label>
-
-          {/* Clean Keypad: Round semi-transparent circle buttons matching image */}
+          {/* Clean Keypad: Round solid light yellow-orange buttons matching image */}
           <div className="grid grid-cols-3 gap-y-5 gap-x-6 justify-items-center w-full max-w-[260px] sm:max-w-[280px] mx-auto mb-8">
             {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) => (
               <motion.button
                 key={num}
-                whileTap={{ scale: 0.9, backgroundColor: "rgba(255, 255, 255, 0.22)" }}
+                whileTap={{ scale: 0.92, backgroundColor: "#a2854b", color: "#8ca0b7" }}
                 type="button"
                 onClick={() => handleKeypadPress(num)}
-                className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/[0.08] hover:bg-white/[0.13] text-white font-normal text-3xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md border border-white/[0.03] select-none"
+                className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-[#fed782]/90 hover:bg-[#fee09c] text-neutral-900 font-normal text-3xl flex items-center justify-center transition-all cursor-pointer shadow-[0_6px_16px_rgba(139,60,0,0.26)] select-none outline-none border-none"
               >
                 {num}
               </motion.button>
             ))}
             
-            {/* Row 4: Empty space, "0" button, Empty space */}
-            <div className="w-16 h-16 sm:w-18 sm:h-18" />
+            {/* Row 4: Column 1 is empty, Column 2 is "0", Column 3 is Backspace */}
+            <div className="w-18 h-18 sm:w-20 sm:h-20" />
             <motion.button
-              whileTap={{ scale: 0.9, backgroundColor: "rgba(255, 255, 255, 0.22)" }}
+              whileTap={{ scale: 0.92, backgroundColor: "#a2854b", color: "#8ca0b7" }}
               type="button"
               onClick={() => handleKeypadPress("0")}
-              className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/[0.08] hover:bg-white/[0.13] text-white font-normal text-3xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md border border-white/[0.03] select-none"
+              className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-[#fed782]/90 hover:bg-[#fee09c] text-neutral-900 font-normal text-3xl flex items-center justify-center transition-all cursor-pointer shadow-[0_6px_16px_rgba(139,60,0,0.26)] select-none outline-none border-none"
             >
               0
             </motion.button>
-            <div className="w-16 h-16 sm:w-18 sm:h-18" />
-          </div>
-
-          {/* Bottom Controls: "Darurat" on left, "Kembali" on right matching image */}
-          <div className="flex justify-between items-center w-full max-w-[240px] sm:max-w-[260px] px-2 mt-4 text-xs font-normal text-white/70 select-none">
-            <button 
-              type="button"
-              onClick={handleKeypadClear}
-              className="hover:text-white transition-colors cursor-pointer active:scale-95 py-2 px-1 font-medium tracking-wide"
-            >
-              Darurat
-            </button>
-            <button 
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               type="button"
               onClick={handleKeypadBackspace}
-              className="hover:text-white transition-colors cursor-pointer active:scale-95 py-2 px-1 font-medium tracking-wide"
+              className="w-18 h-18 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-neutral-900 hover:text-black/80 transition-colors cursor-pointer select-none outline-none"
+              aria-label="Backspace"
             >
-              Kembali
-            </button>
+              <svg width="28" height="20" viewBox="0 0 28 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18L2 10L9 2H25C26.1 2 27 2.9 27 4V16C27 17.1 26.1 18 25 18H9Z" />
+                <path d="M14 7L20 13M20 7L14 13" />
+              </svg>
+            </motion.button>
           </div>
 
         </motion.div>
@@ -508,28 +472,15 @@ export default function App() {
 
   // --- RENDER 3: MAIN SYSTEM APLET ---
   return (
-    <div className="flex h-screen bg-[#040914] font-sans text-white overflow-hidden relative">
+    <div className="flex h-screen bg-[#F5F6F8] font-sans text-slate-800 overflow-hidden relative">
       {/* Top glowing bar */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600/40 via-sky-400/30 to-blue-600/40 z-[60]" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-jago-orange via-jago to-jago-orange z-[60] shadow-sm" />
 
-      {/* --- GLOWING AMBIENT BACKGROUND ORBS (Matching the glossy bubbles screenshot) --- */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {/* Fullscreen HD Background Image */}
-        <img 
-          src={backgroundImage} 
-          alt="Background Wallpaper" 
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-75 select-none" 
-          referrerPolicy="no-referrer"
-        />
-        
-        {/* Modern dark luxury overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0c244b]/10 via-[#040914]/45 to-[#040914]/90 pointer-events-none z-0" />
-        
-        {/* Highly realistic Glass floaters - optimized to remove GPU-heavy backdrop-blur */}
-        <div className="absolute top-[15%] left-[25%] w-48 h-48 rounded-full bg-gradient-to-tr from-sky-300/8 to-white/5 border border-white/10 shadow-[inset_0_2px_8px_rgba(255,255,255,0.15)] opacity-75" />
-        <div className="absolute bottom-[20%] right-[30%] w-64 h-64 rounded-full bg-gradient-to-br from-blue-500/8 via-indigo-500/5 to-transparent border border-white/10 shadow-[inset_0_4px_12px_rgba(255,255,255,0.1)] opacity-60" />
-        
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
+      {/* --- GLOWING AMBIENT BACKGROUND (Matching the soft warm-peach gradient in the screenshot) --- */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-[#F5F6F8]">
+        {/* Beautiful warm orange-peach gradient glow at the top-right, perfectly matching the Bank Jago screenshot */}
+        <div className="absolute top-0 right-0 w-full h-[400px] bg-gradient-to-b from-[#FFE6C4] via-[#FFF6E9]/75 to-transparent opacity-100" />
+        <div className="absolute top-0 right-0 w-[70%] h-[400px] bg-[radial-gradient(circle_at_top_right,_rgba(255,160,50,0.32)_0%,_rgba(255,215,160,0.12)_50%,_transparent_100%)] opacity-100" />
       </div>
 
       {/* --- CONFETTI CELEBRATION LAYER --- */}
@@ -567,15 +518,15 @@ export default function App() {
       {/* --- MAIN WORKSPACE --- */}
       <main className="flex-1 flex flex-col overflow-hidden pb-[64px] relative z-10">
         
-        <header className="h-14 bg-[#133566]/80 backdrop-blur-md border-b border-white/10 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-md z-30 relative">
+        <header className="h-14 bg-white/75 backdrop-blur-md border-b border-slate-200/80 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-[0_1px_10px_rgba(0,0,0,0.02)] z-30 relative">
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
             {activeTab !== "send" && (
               <button 
                 onClick={() => setActiveTab("send")}
-                className="p-1.5 hover:bg-white/10 rounded-full transition-colors shrink-0"
+                className="p-1.5 hover:bg-slate-100 rounded-full transition-colors shrink-0"
                 aria-label="Kembali"
               >
-                <ChevronLeft className="w-5 h-5 text-white" />
+                <ChevronLeft className="w-5 h-5 text-slate-800" />
               </button>
             )}
             
@@ -585,20 +536,20 @@ export default function App() {
                 className="flex items-center gap-2 select-none hover:opacity-80 active:scale-[0.97] transition-all text-left focus:outline-none shrink-0 group"
                 title="Buka Asisten AI G-Swift"
               >
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-white/10 border border-white/20 text-white rounded-lg flex items-center justify-center shadow-md shrink-0 relative overflow-hidden">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-jago border border-jago-dark text-white rounded-lg flex items-center justify-center shadow-md shrink-0 relative overflow-hidden">
                   <div className="flex items-center justify-center animate-[spin_12s_linear_infinite]">
                     <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                   </div>
                   <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-white animate-ping" />
                 </div>
-                <span className="font-bold text-white tracking-tight text-xs sm:text-sm uppercase shrink-0 group-hover:text-white/95 transition-colors">
-                  Swift<span className="text-white/60">Relay</span>
+                <span className="font-bold text-slate-900 tracking-tight text-xs sm:text-sm uppercase shrink-0 group-hover:text-jago-dark transition-colors">
+                  Swift<span className="text-jago font-extrabold">Relay</span>
                 </span>
               </button>
               
-              <span className="h-4 w-px bg-white/20 hidden xs:inline shrink-0" />
+              <span className="h-4 w-px bg-slate-200 hidden xs:inline shrink-0" />
               
-              <h1 className="text-xs sm:text-xs font-black text-white uppercase tracking-tight truncate">
+              <h1 className="text-xs sm:text-xs font-black text-slate-800 uppercase tracking-tight truncate">
                 {activeTab === "accounts" 
                   ? "SMTP" 
                   : activeTab === "terminal" 
@@ -615,8 +566,8 @@ export default function App() {
               onClick={() => setActiveTab("accounts")}
               className={`p-1.5 rounded-lg transition-colors cursor-pointer border ${
                 activeTab === "accounts"
-                  ? "bg-white/20 text-white border-white/40 shadow-inner"
-                  : "bg-white/10 hover:bg-white/20 text-white hover:text-white border-white/10"
+                  ? "bg-jago text-white border-jago-dark shadow-sm"
+                  : "bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 border-slate-200 shadow-sm"
               }`}
               title="Pengaturan SMTP"
             >
@@ -628,14 +579,14 @@ export default function App() {
                 setPasscodeChangeSuccess(null);
                 setShowPasscodeModal(true);
               }}
-              className="p-1.5 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white rounded-lg transition-colors cursor-pointer border border-white/10"
+              className="p-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 rounded-lg transition-colors cursor-pointer border border-slate-200 shadow-sm"
               title="Ganti PIN Panel"
             >
               <KeyRound className="w-4 h-4" />
             </button>
             <button 
               onClick={handleLogout}
-              className="bg-white/5 hover:bg-white/10 text-white/90 border border-white/15 px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-extrabold transition-colors shadow-md uppercase cursor-pointer"
+              className="bg-white hover:bg-slate-50 text-slate-700 hover:text-rose-600 border border-slate-200 px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-extrabold transition-colors shadow-sm uppercase cursor-pointer hover:border-rose-100"
             >
               Keluar
             </button>
@@ -645,21 +596,18 @@ export default function App() {
         {/* --- WORKSPACE VIEW CONTROLLER --- */}
         <div className={hn("flex-1 bg-transparent flex flex-col min-h-0", activeTab === "send" ? "overflow-hidden" : "overflow-y-auto")}>
           <AnimatePresence mode="wait">
-            
-            {/* View 1: Send Interface */}
-            {activeTab === "send" && (
+            {activeTab === "send" ? (
               <SendTab 
+                key="send"
                 smtpConfig={smtpConfig}
                 templates={templates}
                 setActiveTab={setActiveTab}
                 addLog={addLog}
                 triggerConfetti={triggerConfetti}
               />
-            )}
-
-            {/* View 2: Templates Management */}
-            {activeTab === "templates" && (
+            ) : activeTab === "templates" ? (
               <TemplatesTab 
+                key="templates"
                 templates={templates}
                 setActiveTab={setActiveTab}
                 setEditingTemplateId={setEditingTemplateId}
@@ -670,19 +618,15 @@ export default function App() {
                 setQuickTestTemplate={setQuickTestTemplate}
                 setQuickTestRecipient={setQuickTestRecipient}
               />
-            )}
-
-            {/* View 3: Terminal Console logs */}
-            {activeTab === "terminal" && (
+            ) : activeTab === "terminal" ? (
               <TerminalTab 
+                key="terminal"
                 logs={logs}
                 setLogs={setLogs}
               />
-            )}
-
-            {/* View 4: SMTP Account Settings */}
-            {activeTab === "accounts" && (
+            ) : activeTab === "accounts" ? (
               <AccountsTab 
+                key="accounts"
                 smtpConfig={smtpConfig}
                 setSmtpConfig={setSmtpConfig}
                 setActiveTab={setActiveTab}
@@ -690,8 +634,7 @@ export default function App() {
                 triggerConfetti={triggerConfetti}
                 checkBackendHealth={checkBackendHealth}
               />
-            )}
-
+            ) : null}
           </AnimatePresence>
         </div>
 
@@ -700,16 +643,16 @@ export default function App() {
         {/* Modal 1: Create or Edit Template Modal */}
         <AnimatePresence>
           {showTemplateModal && (
-            <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-sm">
               <motion.div 
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className="bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-xl rounded-t-[32px] sm:rounded-[32px] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-white"
+                className="bg-white/95 backdrop-blur-md w-full max-w-xl rounded-t-[32px] sm:rounded-[32px] border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-slate-800"
               >
-                <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center shrink-0">
-                  <h3 className="text-lg font-black text-white tracking-tight">
+                <div className="px-6 py-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
+                  <h3 className="text-lg font-black text-slate-900 tracking-tight">
                     {editingTemplateId ? "Ubah Template" : "Template Baru"}
                   </h3>
                   <button 
@@ -718,7 +661,7 @@ export default function App() {
                       setEditingTemplateId(null);
                       setTemplateForm({ name: "", category: "General", subject: "", message: "" });
                     }}
-                    className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full text-white/60 hover:text-white transition-colors border border-white/10"
+                    className="w-10 h-10 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition-colors border border-slate-200"
                   >
                     <ChevronLeft className="w-6 h-6 rotate-45" />
                   </button>
@@ -727,7 +670,7 @@ export default function App() {
                 <div className="p-6 overflow-y-auto space-y-6 no-scrollbar bg-transparent">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest px-1">
+                      <label className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest px-1">
                         Nama Template
                       </label>
                       <input 
@@ -735,28 +678,28 @@ export default function App() {
                         value={templateForm.name}
                         onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
                         placeholder="Contoh: Pembayaran Nasabah"
-                        className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 rounded-2xl text-sm outline-none focus:border-white/30 focus:bg-white/[0.08] transition-all font-bold text-white placeholder:text-white/30"
+                        className="w-full px-4 py-3.5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl text-sm outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-bold text-slate-800 placeholder:text-slate-400 shadow-sm"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest px-1">
+                      <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-widest px-1">
                         Kategori
                       </label>
                       <select 
                         value={templateForm.category}
                         onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value as any })}
-                        className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 rounded-2xl text-sm outline-none focus:border-white/30 focus:bg-white/[0.08] transition-all font-bold text-white"
+                        className="w-full px-4 py-3.5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl text-sm outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-bold text-slate-800 shadow-sm cursor-pointer"
                       >
-                        <option value="General" className="bg-[#0c1f3d] text-white">General</option>
-                        <option value="Marketing" className="bg-[#0c1f3d] text-white">Marketing</option>
-                        <option value="Support" className="bg-[#0c1f3d] text-white">Support</option>
-                        <option value="Personal" className="bg-[#0c1f3d] text-white">Personal</option>
+                        <option value="General" className="bg-white text-slate-800">General</option>
+                        <option value="Marketing" className="bg-white text-slate-800">Marketing</option>
+                        <option value="Support" className="bg-white text-slate-800">Support</option>
+                        <option value="Personal" className="bg-white text-slate-800">Personal</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest px-1">
+                    <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-widest px-1">
                       Subjek Bawaan
                     </label>
                     <input 
@@ -764,12 +707,12 @@ export default function App() {
                       value={templateForm.subject}
                       onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })}
                       placeholder="Subjek email otomatis"
-                      className="w-full px-4 py-3.5 bg-white/[0.04] border border-white/10 rounded-2xl text-sm outline-none focus:border-white/30 focus:bg-white/[0.08] transition-all font-bold text-white placeholder:text-white/30"
+                      className="w-full px-4 py-3.5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl text-sm outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-bold text-slate-800 placeholder:text-slate-400 shadow-sm"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-extrabold text-white/70 uppercase tracking-widest px-1">
+                    <label className="text-[11px] font-extrabold text-slate-500 uppercase tracking-widest px-1">
                       Isi Pesan (HTML)
                     </label>
                     <RichTextEditor 
@@ -781,10 +724,10 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="px-6 py-6 bg-transparent border-t border-white/10 flex flex-col sm:flex-row gap-3 shrink-0">
+                <div className="px-6 py-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row gap-3 shrink-0">
                   <button 
                     onClick={handleSaveTemplateSubmit}
-                    className="w-full sm:flex-1 py-4 bg-white/10 hover:bg-white/15 text-white text-sm font-black rounded-2xl border border-white/20 hover:border-white/30 transition-all shadow-md active:scale-[0.98] order-1 sm:order-2 cursor-pointer uppercase tracking-wider"
+                    className="w-full sm:flex-1 py-4 bg-jago hover:bg-jago-hover text-white text-sm font-black rounded-2xl border border-jago-dark transition-all shadow-md active:scale-[0.98] order-1 sm:order-2 cursor-pointer uppercase tracking-wider"
                   >
                     Simpan Template
                   </button>
@@ -794,7 +737,7 @@ export default function App() {
                       setEditingTemplateId(null);
                       setTemplateForm({ name: "", category: "General", subject: "", message: "" });
                     }}
-                    className="w-full sm:w-auto px-6 py-4 text-sm font-black text-white/60 hover:text-white order-2 sm:order-1 transition-colors cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-4 text-sm font-black text-slate-500 hover:text-slate-800 order-2 sm:order-1 transition-colors cursor-pointer"
                   >
                     Batal
                   </button>
@@ -807,31 +750,31 @@ export default function App() {
         {/* Modal 2: Template Preview Modal */}
         <AnimatePresence>
           {previewTemplate && (
-            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-2xl rounded-[24px] border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-white"
+                className="bg-white/95 backdrop-blur-md w-full max-w-2xl rounded-[24px] border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-slate-800"
               >
-                <div className="px-5 py-4 border-b border-white/10 flex justify-between items-center shrink-0">
+                <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
                   <div>
-                    <h3 className="text-xs font-black text-white uppercase tracking-tight">
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight">
                       {previewTemplate.name}
                     </h3>
-                    <p className="text-[10px] text-white/60 font-bold truncate">
+                    <p className="text-[10px] text-slate-500 font-bold truncate">
                       {previewTemplate.subject}
                     </p>
                   </div>
                   <button 
                     onClick={() => setPreviewTemplate(null)}
-                    className="p-1 hover:bg-white/5 rounded-full"
+                    className="p-1 hover:bg-slate-100 rounded-full"
                   >
-                    <ChevronLeft className="w-5 h-5 rotate-45 text-white/60" />
+                    <ChevronLeft className="w-5 h-5 rotate-45 text-slate-400 hover:text-slate-700" />
                   </button>
                 </div>
 
-                <div className="flex-1 overflow-hidden p-4 bg-slate-950/40 flex flex-col min-h-[380px]">
+                <div className="flex-1 overflow-hidden p-4 bg-slate-100 flex flex-col min-h-[380px]">
                   <iframe
                     title="Real Template Preview"
                     srcDoc={`
@@ -881,7 +824,7 @@ export default function App() {
                                 var targetWidth = viewportWidth - 16;
                                 if (targetWidth < 280) targetWidth = viewportWidth;
                                 var scale = targetWidth / 600;
-                                
+                                  
                                 if (scale < 1) {
                                   wrapper.style.transform = 'translateX(-50%) scale(' + scale + ')';
                                   document.body.style.height = (wrapper.offsetHeight * scale + 24) + 'px';
@@ -913,10 +856,10 @@ export default function App() {
                   />
                 </div>
 
-                <div className="p-4 border-t border-white/10 bg-[#0c1f3d] flex gap-3 shrink-0">
+                <div className="p-4 border-t border-slate-200 bg-slate-50 flex gap-3 shrink-0">
                   <button 
                     onClick={() => setPreviewTemplate(null)}
-                    className="flex-1 py-3 text-[11px] font-black text-white/60 hover:bg-white/5 rounded-xl border border-white/10 transition-all uppercase tracking-wider"
+                    className="flex-1 py-3 text-[11px] font-black text-slate-500 hover:bg-slate-100 rounded-xl border border-slate-200 transition-all uppercase tracking-wider"
                   >
                     TUTUP
                   </button>
@@ -926,7 +869,7 @@ export default function App() {
                       setActiveTab("send");
                       setPreviewTemplate(null);
                     }}
-                    className="flex-1 py-3 bg-white hover:bg-white/90 text-slate-950 text-[11px] font-black rounded-xl border border-white/10 transition-all flex items-center justify-center gap-2 shadow-lg shadow-white/5 uppercase tracking-wider"
+                    className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black rounded-xl border border-amber-600 transition-all flex items-center justify-center gap-2 shadow-md shadow-amber-500/10 uppercase tracking-wider"
                   >
                     <Send className="w-3.5 h-3.5" /> GUNAKAN SEKARANG
                   </button>
@@ -939,29 +882,29 @@ export default function App() {
         {/* Modal: Custom Delete Confirmation */}
         <AnimatePresence>
           {templateToDelete && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-[340px] rounded-3xl p-6 shadow-2xl border border-white/10 flex flex-col items-center text-center relative overflow-hidden text-white"
+                className="bg-white/95 backdrop-blur-md w-full max-w-[340px] rounded-3xl p-6 shadow-2xl border border-slate-200 flex flex-col items-center text-center relative overflow-hidden text-slate-800"
               >
-                <div className="w-14 h-14 bg-rose-950/30 border border-rose-500/20 rounded-full flex items-center justify-center mb-4 text-rose-400">
+                <div className="w-14 h-14 bg-rose-50 border border-rose-100 rounded-full flex items-center justify-center mb-4 text-rose-500">
                   <AlertTriangle className="w-7 h-7" />
                 </div>
                 
-                <h3 className="text-sm font-extrabold text-white mb-1">
+                <h3 className="text-sm font-extrabold text-slate-900 mb-1">
                   Hapus Template?
                 </h3>
                 
-                <p className="text-xs text-white/60 font-bold mb-6">
-                  Apakah Anda yakin ingin menghapus template <span className="text-white">"{templateToDelete.name}"</span>? Tindakan ini tidak dapat dibatalkan.
+                <p className="text-xs text-slate-500 font-bold mb-6">
+                  Apakah Anda yakin ingin menghapus template <span className="text-slate-800">"{templateToDelete.name}"</span>? Tindakan ini tidak dapat dibatalkan.
                 </p>
 
                 <div className="flex gap-3 w-full">
                   <button 
                     onClick={() => setTemplateToDelete(null)}
-                    className="flex-1 py-2 text-[10px] font-black text-white/60 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+                    className="flex-1 py-2 text-[10px] font-black text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all border border-slate-200"
                   >
                     BATAL
                   </button>
@@ -980,35 +923,35 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        {/* Modal 3: Kirim Email Percobaan */}
+        {/* Modal 4: Kirim Email Percobaan */}
         <AnimatePresence>
           {quickTestTemplate && (
-            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-[320px] rounded-2xl border border-white/10 shadow-2xl p-5 text-white"
+                className="bg-white/95 backdrop-blur-md w-full max-w-[320px] rounded-2xl border border-slate-200 shadow-2xl p-5 text-slate-800"
               >
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-[11px] font-black text-white uppercase tracking-tight">
+                  <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-tight">
                     Kirim Email Percobaan
                   </h3>
                   <button 
                     onClick={() => setQuickTestTemplate(null)}
-                    className="text-white/60 hover:text-white"
+                    className="text-slate-400 hover:text-slate-700"
                   >
                     <ChevronLeft className="w-4 h-4 rotate-45" />
                   </button>
                 </div>
 
-                <p className="text-[10px] text-white/80 mb-4 bg-white/5 p-2 rounded-lg border border-white/10 font-medium">
-                  Mengirim: <span className="font-black text-white">{quickTestTemplate.name}</span>
+                <p className="text-[10px] text-slate-600 mb-4 bg-slate-50 p-2 rounded-lg border border-slate-200 font-medium">
+                  Mengirim: <span className="font-black text-slate-800">{quickTestTemplate.name}</span>
                 </p>
 
                 <div className="space-y-4">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[8px] font-black text-white/40 uppercase mb-1 ml-1">
+                    <label className="text-[8px] font-black text-slate-500 uppercase mb-1 ml-1">
                       Alamat Penerima Tes
                     </label>
                     <input 
@@ -1016,7 +959,7 @@ export default function App() {
                       value={quickTestRecipient}
                       onChange={(e) => setQuickTestRecipient(e.target.value)}
                       placeholder="test@example.com"
-                      className="w-full px-3 py-2 bg-white/[0.04] border border-white/10 rounded-lg text-xs focus:outline-none focus:border-white/30 transition-all font-bold text-white placeholder:text-white/30"
+                      className="w-full px-3 py-2 bg-white border border-slate-200/80 hover:border-slate-300 rounded-lg text-xs focus:outline-none focus:border-jago focus:ring-1 focus:ring-jago/20 transition-all font-bold text-slate-800 placeholder:text-slate-400 shadow-sm"
                       autoFocus
                     />
                   </div>
@@ -1029,7 +972,7 @@ export default function App() {
                       setActiveTab("send");
                       setQuickTestTemplate(null);
                     }}
-                    className="w-full py-3 bg-white/10 hover:bg-white/15 text-white text-[10px] font-bold rounded-xl border border-white/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-wider"
+                    className="w-full py-3 bg-jago hover:bg-jago-hover text-white text-[10px] font-bold rounded-xl border border-jago-dark transition-all flex items-center justify-center gap-2 disabled:opacity-50 uppercase tracking-wider shadow-md shadow-jago/10"
                   >
                     <Send className="w-3.5 h-3.5" />
                     KIRIM SEKARANG (FORM)
@@ -1050,7 +993,7 @@ export default function App() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setShowPasscodeModal(false)}
-                className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
               />
 
               {/* Modal Box */}
@@ -1058,43 +1001,43 @@ export default function App() {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="relative bg-[#0c1f3d]/95 backdrop-blur-md w-full max-w-md rounded-3xl p-6 border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] z-[1000] overflow-hidden text-white"
+                className="relative bg-white/95 backdrop-blur-md w-full max-w-md rounded-3xl p-6 border border-slate-200 shadow-2xl z-[1000] overflow-hidden text-slate-800"
               >
                 {/* Accent Line */}
-                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-white/10 via-white/40 to-white/10" />
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-jago-light via-jago to-jago-light" />
 
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-white border border-white/10 shadow-sm shrink-0">
+                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-700 border border-slate-200 shadow-sm shrink-0">
                       <KeyRound className="w-5 h-5 animate-pulse" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
                         Ganti PIN Panel
                       </h3>
-                      <p className="text-[10px] text-white/55 font-semibold leading-none mt-0.5">
+                      <p className="text-[10px] text-slate-500 font-semibold leading-none mt-0.5">
                         Amankan akses konsol admin Anda dengan 6 digit angka
                       </p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setShowPasscodeModal(false)}
-                    className="p-1.5 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all cursor-pointer"
+                    className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-700 transition-all cursor-pointer"
                   >
                     <ChevronLeft className="w-5 h-5 rotate-45" />
                   </button>
                 </div>
 
-                <hr className="border-white/10 mb-4" />
+                <hr className="border-slate-200 mb-4" />
 
                 <form onSubmit={handleChangePasscode} className="space-y-4">
                   {passcodeChangeError && (
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-3 bg-rose-950/20 border border-rose-500/20 text-rose-300 rounded-2xl text-[11px] font-bold flex items-center gap-2"
+                      className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-[11px] font-bold flex items-center gap-2"
                     >
-                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
                       <span>{passcodeChangeError}</span>
                     </motion.div>
                   )}
@@ -1103,16 +1046,16 @@ export default function App() {
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-3 bg-emerald-950/20 border border-emerald-500/20 text-emerald-300 rounded-2xl text-[11px] font-bold flex items-center gap-2"
+                      className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl text-[11px] font-bold flex items-center gap-2"
                     >
-                      <CheckCircle className="w-4 h-4 shrink-0 text-emerald-400" />
+                      <CheckCircle className="w-4 h-4 shrink-0 text-emerald-500" />
                       <span>{passcodeChangeSuccess}</span>
                     </motion.div>
                   )}
 
                   <div className="space-y-3.5">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold text-white/60 px-1 uppercase tracking-wider">
+                      <label className="text-[10px] font-extrabold text-slate-600 px-1 uppercase tracking-wider">
                         PIN Saat Ini
                       </label>
                       <input 
@@ -1124,12 +1067,12 @@ export default function App() {
                         value={currentPasscodeForm}
                         onChange={(e) => setCurrentPasscodeForm(e.target.value.replace(/\D/g, ''))}
                         placeholder="Masukkan PIN lama Anda (6 digit)"
-                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl text-xs font-mono font-semibold focus:bg-white/[0.08] focus:border-white/30 outline-none transition-all text-white placeholder:text-white/30"
+                        className="w-full px-4 py-3 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-mono font-semibold focus:border-jago focus:ring-1 focus:ring-jago/20 outline-none transition-all text-slate-800 placeholder:text-slate-400 shadow-sm"
                       />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold text-white/60 px-1 uppercase tracking-wider">
+                      <label className="text-[10px] font-extrabold text-slate-600 px-1 uppercase tracking-wider">
                         PIN Baru
                       </label>
                       <input 
@@ -1141,12 +1084,12 @@ export default function App() {
                         value={newPasscodeForm}
                         onChange={(e) => setNewPasscodeForm(e.target.value.replace(/\D/g, ''))}
                         placeholder="6 digit angka baru"
-                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl text-xs font-mono font-semibold focus:bg-white/[0.08] focus:border-white/30 outline-none transition-all text-white placeholder:text-white/30"
+                        className="w-full px-4 py-3 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-mono font-semibold focus:border-jago focus:ring-1 focus:ring-jago/20 outline-none transition-all text-slate-800 placeholder:text-slate-400 shadow-sm"
                       />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-extrabold text-white/60 px-1 uppercase tracking-wider">
+                      <label className="text-[10px] font-extrabold text-slate-600 px-1 uppercase tracking-wider">
                         Ulangi PIN Baru
                       </label>
                       <input 
@@ -1158,7 +1101,7 @@ export default function App() {
                         value={confirmPasscodeForm}
                         onChange={(e) => setConfirmPasscodeForm(e.target.value.replace(/\D/g, ''))}
                         placeholder="Ketik ulang PIN baru Anda"
-                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/10 hover:border-white/20 rounded-2xl text-xs font-mono font-semibold focus:bg-white/[0.08] focus:border-white/30 outline-none transition-all text-white placeholder:text-white/30"
+                        className="w-full px-4 py-3 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl text-xs font-mono font-semibold focus:border-jago focus:ring-1 focus:ring-jago/20 outline-none transition-all text-slate-800 placeholder:text-slate-400 shadow-sm"
                       />
                     </div>
                   </div>
@@ -1167,13 +1110,13 @@ export default function App() {
                     <button 
                       type="button"
                       onClick={() => setShowPasscodeModal(false)}
-                      className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white/70 text-[10px] font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider border border-slate-200"
                     >
                       Batal
                     </button>
                     <button 
                       type="submit"
-                      className="px-5 py-2.5 bg-white/10 hover:bg-white/15 text-white text-[10px] font-black rounded-xl border border-white/20 hover:border-white/30 transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
+                      className="px-5 py-2.5 bg-jago hover:bg-jago-hover text-white text-[10px] font-black rounded-xl border border-jago-dark transition-all shadow-md flex items-center gap-1.5 cursor-pointer uppercase tracking-wider"
                     >
                       <KeyRound className="w-3.5 h-3.5" />
                       Perbarui
@@ -1186,8 +1129,8 @@ export default function App() {
         </AnimatePresence>
 
         {/* --- BOTTOM RESPONSIVE VIEWBAR FOR MOBILE/TABLET --- */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#0c1f3d]/95 backdrop-blur-md border-t border-white/5 h-[64px] flex items-center justify-around z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.4)] px-2 safe-area-bottom overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-white/10 via-white/40 to-white/10 z-10" />
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/90 h-[64px] flex items-center justify-around z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] px-2 safe-area-bottom overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-slate-200/10 via-slate-200/50 to-slate-200/10 z-10" />
           {[
             { id: "send", icon: Send, label: "Kirim" },
             { id: "templates", icon: FileText, label: "Templates" },
@@ -1198,24 +1141,26 @@ export default function App() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
-                className="relative flex flex-col items-center justify-center gap-0.5 w-16 h-full transition-all duration-300"
+                className="relative flex flex-col items-center justify-center gap-1 w-16 h-full transition-all duration-300"
               >
                 <div className={hn(
-                  "p-1.5 rounded-xl transition-all duration-300 relative z-10",
-                  isTabActive ? "bg-white/15 text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)] border border-white/10" : "text-white/40 hover:text-white"
+                  "p-1.5 rounded-xl transition-all duration-300 relative z-10 border",
+                  isTabActive 
+                    ? "bg-jago text-white border-jago-dark/20 shadow-md shadow-jago/10" 
+                    : "text-slate-500 hover:text-slate-800 border-transparent hover:bg-slate-50"
                 )}>
-                  <item.icon className={hn("w-5 h-5 transition-transform", isTabActive && "scale-110 animate-pulse")} />
+                  <item.icon className={hn("w-4.5 h-4.5 transition-transform", isTabActive && "scale-105")} />
                 </div>
                 <span className={hn(
-                  "text-[9px] font-extrabold transition-all uppercase tracking-tighter relative z-10",
-                  isTabActive ? "text-white" : "text-white/40"
+                  "text-[9px] font-black transition-all uppercase tracking-tight relative z-10",
+                  isTabActive ? "text-jago-dark font-extrabold" : "text-slate-500"
                 )}>
                   {item.label}
                 </span>
                 {isTabActive && (
                   <motion.div 
                     layoutId="activeTabMobile" 
-                    className="absolute bottom-0 w-12 h-1.5 bg-gradient-to-r from-sky-400 to-blue-500 rounded-t-full shadow-[0_-5px_15px_rgba(56,189,248,0.5)]"
+                    className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-jago to-jago-orange rounded-t-full shadow-[0_-3px_10px_rgba(255,179,0,0.3)]"
                     transition={{ type: "spring", stiffness: 380, damping: 25 }}
                   />
                 )}
