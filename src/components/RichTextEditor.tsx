@@ -38,7 +38,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
 
     const handleResize = () => {
       const rect = element.getBoundingClientRect();
-      setContainerWidth(rect.width);
+      setContainerWidth((prev) => {
+        // Only update if width actually changed by more than 1.5 pixels
+        if (Math.abs(prev - rect.width) > 1.5) {
+          return rect.width;
+        }
+        return prev;
+      });
     };
 
     handleResize();
@@ -61,7 +67,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
     if (!element || isHtmlMode) return;
 
     const handleResize = () => {
-      setContentHeight(element.offsetHeight || element.scrollHeight || 300);
+      const currentHeight = element.offsetHeight || element.scrollHeight || 300;
+      setContentHeight((prev) => {
+        // Only update state if height changes by more than 8px (to avoid updates on every single keystroke)
+        if (Math.abs(prev - currentHeight) > 8) {
+          return currentHeight;
+        }
+        return prev;
+      });
     };
 
     handleResize();
@@ -75,10 +88,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
     }
   }, [isHtmlMode, viewMode]);
 
-  // Keep raw HTML input in sync with value
+  // Keep raw HTML input in sync with value ONLY when transitioning to/from HTML mode or when editor has stopped typing
   useEffect(() => {
-    setHtmlValue(value);
-  }, [value]);
+    if (isHtmlMode) {
+      setHtmlValue(value);
+    }
+  }, [isHtmlMode, value]);
 
   // Handle setting initial value or external value changes without losing focus
   useEffect(() => {
@@ -93,7 +108,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
     if (editorRef.current) {
       const html = editorRef.current.innerHTML;
       onChange(html);
-      setHtmlValue(html);
+      // Avoid calling setHtmlValue(html) in visual mode to save another state update
+      if (isHtmlMode) {
+        setHtmlValue(html);
+      }
     }
   };
 
@@ -107,23 +125,22 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
   };
 
   const updateActiveFormats = () => {
-    setActiveFormat({
-      bold: document.queryCommandState("bold"),
-      italic: document.queryCommandState("italic"),
-      underline: document.queryCommandState("underline"),
+    setActiveFormat((prev) => {
+      const bold = document.queryCommandState("bold");
+      const italic = document.queryCommandState("italic");
+      const underline = document.queryCommandState("underline");
+      // Only set state if any format has actually changed
+      if (prev.bold !== bold || prev.italic !== italic || prev.underline !== underline) {
+        return { bold, italic, underline };
+      }
+      return prev;
     });
   };
 
-  const handleSelectionChange = () => {
+  // We listen to keyup/mouseup/focus events on the editor contentEditable instead of a global document selectionchange
+  const handleEditorInteract = () => {
     updateActiveFormats();
   };
-
-  useEffect(() => {
-    document.addEventListener("selectionchange", handleSelectionChange);
-    return () => {
-      document.removeEventListener("selectionchange", handleSelectionChange);
-    };
-  }, []);
 
   const insertLink = () => {
     const url = prompt("Masukkan URL Link:");
@@ -374,19 +391,22 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
                   className="mx-auto"
                   style={{
                     width: scale < 1 ? `${availableWidth}px` : "600px",
-                    height: `${contentHeight * scale}px`,
-                    overflow: "hidden",
+                    height: scale < 1 ? `${contentHeight * scale}px` : "auto",
+                    overflow: scale < 1 ? "hidden" : "visible",
                     position: "relative",
                   }}
                 >
                   <div
-                    style={{
+                    style={scale < 1 ? {
                       width: "600px",
                       transform: `scale(${scale})`,
                       transformOrigin: "top left",
                       position: "absolute",
                       top: 0,
                       left: 0,
+                    } : {
+                      width: "600px",
+                      position: "relative",
                     }}
                   >
                     <div
@@ -394,6 +414,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
                       contentEditable
                       onInput={handleInput}
                       onPaste={handlePaste}
+                      onKeyUp={handleEditorInteract}
+                      onMouseUp={handleEditorInteract}
+                      onFocus={handleEditorInteract}
                       className="bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.06)] rounded-2xl border border-slate-200/60 text-slate-800 text-sm focus:outline-none leading-relaxed select-text"
                       style={{ 
                         minHeight,
@@ -412,6 +435,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
                 contentEditable
                 onInput={handleInput}
                 onPaste={handlePaste}
+                onKeyUp={handleEditorInteract}
+                onMouseUp={handleEditorInteract}
+                onFocus={handleEditorInteract}
                 className="w-full h-full min-h-[inherit] p-3 text-slate-800 text-sm focus:outline-none overflow-auto leading-relaxed select-text bg-white"
                 style={{ minHeight }}
                 data-placeholder={placeholder}

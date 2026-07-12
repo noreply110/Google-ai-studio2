@@ -98,6 +98,9 @@ export default function App() {
   // --- AI Assistant Toggle State ---
   const [isAiOpen, setIsAiOpen] = useState(false);
 
+  // --- Keyboard Focus Detection ---
+  const [isKeyboardActive, setIsKeyboardActive] = useState(false);
+
   // --- SMTP Configuration State ---
   const [smtpConfig, setSmtpConfig] = useState<SmtpConfig>(() => {
     const defaultLogo = "";
@@ -146,6 +149,45 @@ export default function App() {
     };
     window.addEventListener("banking-notif", handleBankingNotif);
     return () => window.removeEventListener("banking-notif", handleBankingNotif);
+  }, []);
+
+  // Monitor keyboard focus events globally
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.hasAttribute("contenteditable") ||
+          target.isContentEditable)
+      ) {
+        setIsKeyboardActive(true);
+      }
+    };
+
+    const handleFocusOut = (e: FocusEvent) => {
+      setTimeout(() => {
+        const activeEl = document.activeElement;
+        if (
+          !activeEl ||
+          (activeEl.tagName !== "INPUT" &&
+            activeEl.tagName !== "TEXTAREA" &&
+            !activeEl.hasAttribute("contenteditable") &&
+            !(activeEl as HTMLElement).isContentEditable)
+        ) {
+          setIsKeyboardActive(false);
+        }
+      }, 100);
+    };
+
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("focusout", handleFocusOut);
+
+    return () => {
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
+    };
   }, []);
 
 
@@ -486,7 +528,7 @@ export default function App() {
 
   // --- RENDER 3: MAIN SYSTEM APLET ---
   return (
-    <div className="flex h-screen bg-[#F5F6F8] font-sans text-slate-800 overflow-hidden relative">
+    <div className="flex h-screen h-[100dvh] bg-[#F5F6F8] font-sans text-slate-800 overflow-hidden relative">
       {/* Top glowing bar */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-jago-orange via-jago to-jago-orange z-[60] shadow-sm" />
 
@@ -530,7 +572,10 @@ export default function App() {
       )}
 
       {/* --- MAIN WORKSPACE --- */}
-      <main className="flex-1 flex flex-col overflow-hidden pb-[64px] relative z-10">
+      <main className={hn(
+        "flex-1 flex flex-col overflow-hidden relative z-10 transition-all duration-300",
+        isKeyboardActive ? "pb-0" : "pb-[calc(64px+env(safe-area-inset-bottom,0px))]"
+      )}>
         
         <header className="h-14 bg-white/75 backdrop-blur-md border-b border-slate-200/80 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-[0_1px_10px_rgba(0,0,0,0.02)] z-30 relative">
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
@@ -597,7 +642,7 @@ export default function App() {
         </header>
 
         {/* --- WORKSPACE VIEW CONTROLLER --- */}
-        <div className={hn("flex-1 bg-transparent flex flex-col min-h-0", activeTab === "send" ? "overflow-hidden" : "overflow-y-auto")}>
+        <div className={hn("flex-1 bg-transparent flex flex-col min-h-0", activeTab === "send" ? "lg:overflow-hidden overflow-y-auto" : "overflow-y-auto")}>
           <AnimatePresence mode="wait">
             {activeTab === "send" ? (
               <SendTab 
@@ -607,6 +652,7 @@ export default function App() {
                 setActiveTab={setActiveTab}
                 addLog={addLog}
                 triggerConfetti={triggerConfetti}
+                isKeyboardActive={isKeyboardActive}
               />
             ) : activeTab === "templates" ? (
               <TemplatesTab 
@@ -1132,7 +1178,10 @@ export default function App() {
         </AnimatePresence>
 
         {/* --- BOTTOM RESPONSIVE VIEWBAR FOR MOBILE/TABLET --- */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/90 h-[64px] flex items-center justify-around z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] px-2 safe-area-bottom overflow-hidden">
+        <nav className={hn(
+          "fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/90 h-[64px] flex items-center justify-around z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] px-2 safe-area-bottom overflow-hidden transition-all duration-300",
+          isKeyboardActive ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
+        )}>
           <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-slate-200/10 via-slate-200/50 to-slate-200/10 z-10" />
           {[
             { id: "send", icon: Send, label: "Kirim" },

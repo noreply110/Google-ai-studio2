@@ -59,6 +59,7 @@ interface SendTabProps {
   setActiveTab: (tab: "send" | "templates" | "terminal" | "accounts") => void;
   addLog: (type: "info" | "success" | "error" | "warning", msg: string) => void;
   triggerConfetti: () => void;
+  isKeyboardActive?: boolean;
 }
 
 export const SendTab: React.FC<SendTabProps> = React.memo(({
@@ -66,7 +67,8 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
   templates,
   setActiveTab,
   addLog,
-  triggerConfetti
+  triggerConfetti,
+  isKeyboardActive = false
 }) => {
   // --- Email Composer State ---
   const [emailForm, setEmailForm] = useState(() => {
@@ -377,13 +379,13 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98 }}
-        className="p-4 sm:p-5 max-w-[420px] lg:max-w-[960px] xl:max-w-[1100px] mx-auto flex flex-col w-full h-full min-h-0 overflow-hidden"
+        className="p-4 sm:p-5 max-w-[420px] lg:max-w-[960px] xl:max-w-[1100px] mx-auto flex flex-col w-full lg:h-full min-h-0 lg:overflow-hidden"
       >
-        <div className="flex-1 flex flex-col w-full min-h-0 overflow-hidden">
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.04)] flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="flex-1 flex flex-col w-full lg:min-h-0 lg:overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.04)] flex-1 flex flex-col lg:min-h-0 lg:overflow-hidden">
             
             {/* Floating Scan Header Banner */}
-            <div className="px-3.5 py-2.5 border-b border-slate-200 bg-slate-50/50 flex flex-col gap-1.5 relative shrink-0">
+            <div className="px-3.5 py-2.5 border-b border-slate-200 bg-slate-50/50 flex flex-col gap-1.5 relative shrink-0 rounded-t-2xl">
               <div className="flex justify-between items-center">
                 <h2 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                   <div className="relative flex items-center justify-center w-2 h-2">
@@ -434,12 +436,18 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
             </div>
 
             {/* Email Compose Form */}
-            <form onSubmit={handleSendEmailSubmit} className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
+            <form 
+              onSubmit={handleSendEmailSubmit} 
+              className={hn(
+                "p-2.5 sm:p-4 flex-1 flex flex-col justify-between lg:min-h-0 lg:overflow-hidden transition-all duration-300",
+                isKeyboardActive ? "pb-[76px] lg:pb-4" : ""
+              )}
+            >
               {/* Responsive Split Container */}
-              <div className="flex-1 flex flex-col lg:flex-row gap-5 min-h-0 overflow-hidden">
+              <div className="flex-1 flex flex-col lg:flex-row gap-5 lg:min-h-0 lg:overflow-hidden">
                 
                 {/* Left Column: Form Fields */}
-                <div className="flex-1 flex flex-col gap-2.5 min-h-0 overflow-hidden">
+                <div className="flex-1 flex flex-col gap-2.5 lg:min-h-0 lg:overflow-hidden">
                   {/* Banners */}
                   {errorBanner && (
                     <motion.div 
@@ -716,9 +724,14 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
               </div>
 
               {/* Static Footer (Mobile Templates Carousel & Action Button) */}
-              <div className="pt-2 flex flex-col gap-2 shrink-0 border-t border-slate-200 mt-2">
+              <div className={hn(
+                "pt-2 flex flex-col gap-2 shrink-0 border-t border-slate-200 mt-2 transition-all duration-300",
+                isKeyboardActive 
+                  ? "fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-md border-t border-slate-200/80 z-[60] shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:relative lg:p-0 lg:bg-transparent lg:border-t-0 lg:shadow-none lg:mt-2" 
+                  : "relative"
+              )}>
                 {/* Mobile templates carousel only visible on mobile (hidden on desktop right-side is active) */}
-                <div className="lg:hidden">
+                <div className={hn("lg:hidden", isKeyboardActive && "hidden")}>
                   {templates.length > 0 && (
                     <div className="flex flex-col gap-1 px-1">
                       <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
