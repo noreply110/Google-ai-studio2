@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
+import jarvisBg from "./assets/images/jarvis_cool_background_1783882128944.jpg";
 import { 
   Send, Terminal as TerminalIcon, FileText, Settings, KeyRound, CheckCircle, 
   ChevronLeft, Loader2, AlertCircle, AlertTriangle, Mail, Globe, Sparkle, Sparkles, Plus
@@ -532,12 +533,26 @@ export default function App() {
       {/* Top glowing bar */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-jago-orange via-jago to-jago-orange z-[60] shadow-sm" />
 
-      {/* --- GLOWING AMBIENT BACKGROUND (Matching the soft warm-peach gradient in the screenshot) --- */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-[#F5F6F8]">
-        {/* Beautiful warm orange-peach gradient glow at the top-right, perfectly matching the Bank Jago screenshot */}
-        <div className="absolute top-0 right-0 w-full h-[400px] bg-gradient-to-b from-[#FFE6C4] via-[#FFF6E9]/75 to-transparent opacity-100" />
-        <div className="absolute top-0 right-0 w-[70%] h-[400px] bg-[radial-gradient(circle_at_top_right,_rgba(255,160,50,0.32)_0%,_rgba(255,215,160,0.12)_50%,_transparent_100%)] opacity-100" />
-      </div>
+      {/* --- JARVIS BRANDED BACKGROUND (Ultra HD) --- */}
+      <div 
+        className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${jarvisBg})` }}
+      />
+      {/* Subtle metallic texture and 'circuit-board' tech pattern overlay with CSS overlay blend-mode */}
+      <div 
+        className="absolute inset-0 pointer-events-none overflow-hidden z-[1]"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 80%),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 30 h40 l15 15 h30 l10 10 h25 M30 0 v40 l15 15 v20 l15 15 v30 M80 120 v-30 l-15 -15 v-25 l-15 -15 v-35' fill='none' stroke='rgba(255,179,0,0.06)' stroke-width='1.2' stroke-dasharray='3 3' /%3E%3Ccircle cx='40' cy='30' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='55' cy='45' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='85' cy='45' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='95' cy='55' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='45' cy='55' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='60' cy='75' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Cpath d='M10 10 h15 v15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M110 10 h-15 v15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M10 110 h15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M110 110 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3C/svg%3E"),
+            linear-gradient(rgba(255, 179, 0, 0.012) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 179, 0, 0.012) 1px, transparent 1px)
+          `,
+          backgroundSize: "100% 100%, 120px 120px, 30px 30px, 30px 30px",
+          mixBlendMode: "overlay",
+          opacity: 0.9,
+        }}
+      />
 
       {/* --- CONFETTI CELEBRATION LAYER --- */}
       {showConfetti && (
@@ -578,50 +593,9 @@ export default function App() {
       )}>
         
         <header className="h-14 bg-white/75 backdrop-blur-md border-b border-slate-200/80 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-[0_1px_10px_rgba(0,0,0,0.02)] z-30 relative">
-          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
-            {activeTab !== "send" && (
-              <button 
-                onClick={() => setActiveTab("send")}
-                className="p-1.5 hover:bg-slate-100 rounded-full transition-colors shrink-0"
-                aria-label="Kembali"
-              >
-                <ChevronLeft className="w-5 h-5 text-slate-800" />
-              </button>
-            )}
-            
-            <div className="flex items-center gap-2 min-w-0 truncate">
-              <button 
-                onClick={() => setIsAiOpen(!isAiOpen)}
-                className="flex items-center gap-2 select-none hover:opacity-80 active:scale-[0.97] transition-all text-left focus:outline-none shrink-0 group"
-                title="Buka Asisten AI J.A.R.V.I.S"
-              >
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-jago border border-jago-dark text-white rounded-lg flex items-center justify-center shadow-md shrink-0 relative overflow-hidden">
-                  <div className="flex items-center justify-center animate-[spin_12s_linear_infinite]">
-                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                  </div>
-                  <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                </div>
-                <span className="font-bold text-slate-900 tracking-tight text-xs sm:text-sm uppercase shrink-0 group-hover:text-jago-dark transition-colors">
-                  Swift<span className="text-jago font-extrabold">Relay</span>
-                </span>
-              </button>
-              
-              <span className="h-4 w-px bg-slate-200 hidden xs:inline shrink-0" />
-              
-              <h1 className="text-xs sm:text-xs font-black text-slate-800 uppercase tracking-tight truncate">
-                {activeTab === "accounts" 
-                  ? "SMTP" 
-                  : activeTab === "terminal" 
-                  ? "Terminal" 
-                  : activeTab === "templates" 
-                  ? "Templates" 
-                  : "Pengirim"}
-              </h1>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-             <button 
+          {/* Left Area (Key Button & Back Button) */}
+          <div className="flex items-center gap-1.5 min-w-[40px] z-10">
+            <button 
               onClick={() => {
                 setPasscodeChangeError(null);
                 setPasscodeChangeSuccess(null);
@@ -632,6 +606,55 @@ export default function App() {
             >
               <KeyRound className="w-4 h-4" />
             </button>
+            {activeTab !== "send" && (
+              <button 
+                onClick={() => setActiveTab("send")}
+                className="p-1.5 hover:bg-slate-100 rounded-full transition-colors shrink-0"
+                aria-label="Kembali"
+              >
+                <ChevronLeft className="w-5 h-5 text-slate-800" />
+              </button>
+            )}
+          </div>
+          
+          {/* Centered Logo & Brand Text "JARVIS" (No Dots, Consistently Centered) */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-0">
+            <button 
+              onClick={() => setIsAiOpen(!isAiOpen)}
+              className="flex items-center gap-2.5 select-none hover:opacity-95 active:scale-[0.96] transition-all text-center focus:outline-none shrink-0 group relative"
+              title="Buka Asisten AI JARVIS"
+            >
+              {/* Outer sci-fi ring decoration around button when hovered/active */}
+              <div className="absolute -inset-1.5 rounded-xl border border-jago/25 opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 pointer-events-none" />
+              
+              {/* High-tech Icon container */}
+              <div className="w-8 h-8 bg-slate-950 border border-jago/80 text-jago rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(255,179,0,0.25)] shrink-0 relative overflow-hidden group-hover:border-jago transition-all duration-300">
+                {/* Tech background matrix scan */}
+                <div className="absolute inset-0 bg-[radial-gradient(#FFB300_1px,transparent_1px)] [background-size:6px_6px] opacity-25" />
+                <div className="flex items-center justify-center animate-[spin_8s_linear_infinite]">
+                  <Sparkles className="w-4 h-4 text-jago drop-shadow-[0_0_4px_#FFB300]" />
+                </div>
+                {/* Glowing status pulse dot */}
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-jago shadow-[0_0_6px_#FFB300]" />
+              </div>
+              
+              {/* Cool Glowing "JARVIS" Text without dots */}
+              <div className="flex flex-col items-start leading-none">
+                <span 
+                  className="font-mono font-black text-slate-900 tracking-[0.22em] text-sm sm:text-base uppercase transition-all duration-300 drop-shadow-[0_0_6px_rgba(255,179,0,0.15)] group-hover:text-jago group-hover:drop-shadow-[0_0_12px_rgba(255,179,0,0.65)]"
+                  style={{ textShadow: "0 0 10px rgba(255, 179, 0, 0.45)" }}
+                >
+                  JARVIS
+                </span>
+                <span className="text-[7px] font-black tracking-[0.3em] text-jago/60 group-hover:text-jago/95 uppercase transition-colors duration-300 mt-0.5">
+                  SYSTEM CORE
+                </span>
+              </div>
+            </button>
+          </div>
+
+          {/* Right Area (Action buttons) */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 z-10">
             <button 
               onClick={handleLogout}
               className="bg-white hover:bg-slate-50 text-slate-700 hover:text-rose-600 border border-slate-200 px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-extrabold transition-colors shadow-sm uppercase cursor-pointer hover:border-rose-100"

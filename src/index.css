@@ -92,6 +92,16 @@ aside {
   50% { opacity: 0; }
 }
 
+@keyframes scan {
+  0% { top: 0%; opacity: 0.3; }
+  50% { top: 100%; opacity: 1; }
+  100% { top: 0%; opacity: 0.3; }
+}
+
+.animate-scan {
+  animation: scan 3s ease-in-out infinite;
+}
+
 @keyframes eq-bar-1 {
   0%, 100% { transform: scaleY(0.4); }
   50% { transform: scaleY(0.9); }

@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Settings, Info, AlertCircle, Loader2, Sparkles, AlertTriangle, CheckCircle, Mail, ShieldCheck
+  Settings, Info, AlertCircle, Loader2, Sparkles, AlertTriangle, CheckCircle, Mail, ShieldCheck, Check, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { SmtpConfig } from "../types";
+
+// Classname utility helper locally
+function hn(...args: any[]) {
+  return args.filter(Boolean).join(" ");
+}
 
 interface AccountsTabProps {
   smtpConfig: SmtpConfig;
@@ -41,6 +46,11 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
   const [showRocketScreen, setShowRocketScreen] = useState(false);
   const [smtpTestSuccess, setSmtpTestSuccess] = useState(false);
   const [smtpTestError, setSmtpTestError] = useState<string | null>(null);
+
+  // Custom futuristic HUD states for Test Connection
+  const [testProgress, setTestProgress] = useState(0);
+  const [testStage, setTestStage] = useState("");
+  const [testFailed, setTestFailed] = useState(false);
 
   // Auto-detection when email updates
   useEffect(() => {
@@ -199,10 +209,33 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
     }
 
     setIsSending(true);
+    setTestFailed(false);
+    setTestProgress(5);
+    setTestStage("Menghubungkan ke server SMTP...");
     setShowRocketScreen(true);
     setSmtpTestError(null);
     setSmtpTestSuccess(false);
     addLog("info", "Sedang menguji koneksi SMTP...");
+
+    let currentProgress = 5;
+    const progressInterval = setInterval(() => {
+      let increment = 4;
+      if (currentProgress > 40) increment = 2;
+      if (currentProgress > 75) increment = 1;
+      
+      currentProgress = Math.min(95, currentProgress + increment);
+      setTestProgress(Math.floor(currentProgress));
+
+      if (currentProgress < 25) {
+        setTestStage("Inisialisasi handshake aman...");
+      } else if (currentProgress < 50) {
+        setTestStage("Autentikasi kredensial SMTP...");
+      } else if (currentProgress < 75) {
+        setTestStage("Mengonstruksi payload email...");
+      } else {
+        setTestStage("Mengirim pesan pengujian...");
+      }
+    }, 150);
 
     try {
       const response = await fetch("/api/send-email", {
@@ -223,19 +256,55 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
         })
       });
 
-      const data = await response.json();
+      clearInterval(progressInterval);
+      const isJson = response.headers.get("content-type")?.includes("application/json");
+      let data;
+      if (isJson) {
+        data = await response.json();
+      } else {
+        await response.text();
+        throw new Error("Gagal menghubungi server. Silakan coba lagi.");
+      }
+
       if (!response.ok) {
         throw new Error(data.error || "Gagal melakukan pengetesan SMTP");
       }
 
+      setTestFailed(false);
+      setTestProgress(100);
+      setTestStage("Uji Koneksi Berhasil!");
       setSmtpTestSuccess(true);
       triggerConfetti();
       addLog("success", "Uji coba SMTP berhasil. Silakan cek inbox email pengirim.");
-      setTimeout(() => setShowRocketScreen(false), 800);
+      
+      setTimeout(() => {
+        setSmtpTestSuccess(prev => {
+          if (prev) {
+            setShowRocketScreen(false);
+            setTestProgress(0);
+            setTestStage("");
+          }
+          return false;
+        });
+      }, 4000);
     } catch (err: any) {
+      clearInterval(progressInterval);
+      setTestFailed(true);
+      setTestProgress(100);
+      setTestStage("Uji Koneksi Gagal!");
       setSmtpTestError(err.message);
       addLog("error", `Uji koneksi SMTP gagal: ${err.message}`);
-      setShowRocketScreen(false);
+      
+      setTimeout(() => {
+        setTestFailed(prev => {
+          if (prev) {
+            setShowRocketScreen(false);
+            setTestProgress(0);
+            setTestStage("");
+          }
+          return false;
+        });
+      }, 10000);
     } finally {
       setIsSending(false);
     }
@@ -252,96 +321,404 @@ export const AccountsTab: React.FC<AccountsTabProps> = React.memo(({
     <>
       <AnimatePresence>
         {showRocketScreen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] pointer-events-auto flex items-center justify-center overflow-hidden bg-slate-950/80 backdrop-blur-sm"
+            className={hn(
+              "fixed inset-0 z-[200] bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 font-mono select-none transition-colors duration-500",
+              testFailed ? "text-rose-500" : "text-jago"
+            )}
           >
-            <div className="relative flex flex-col items-center justify-center">
-              <motion.div 
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                className="absolute w-48 h-48 border border-dashed border-white/10 rounded-full"
-              />
-              {[...Array(5)].map((_, idx) => (
-                <motion.div 
-                  key={idx}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, delay: idx * 0.2, repeat: Infinity, ease: "linear" }}
-                  className="absolute w-40 h-40"
-                >
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/60 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
-                </motion.div>
-              ))}
+            {/* Sci-Fi Background grid lines */}
+            <div className={hn(
+              "absolute inset-0 pointer-events-none transition-all duration-500",
+              testFailed 
+                ? "bg-[radial-gradient(circle_at_center,_rgba(244,63,94,0.12)_0%,_transparent_65%)]"
+                : "bg-[radial-gradient(circle_at_center,_rgba(255,179,0,0.12)_0%,_transparent_65%)]"
+            )} />
+            <div 
+              className="absolute inset-0 opacity-[0.03] pointer-events-none transition-colors duration-500"
+              style={{
+                backgroundImage: `
+                  linear-gradient(${testFailed ? "#F43F5E" : "#FFB300"} 1px, transparent 1px),
+                  linear-gradient(90deg, ${testFailed ? "#F43F5E" : "#FFB300"} 1px, transparent 1px)
+                `,
+                backgroundSize: "40px 40px"
+              }}
+            />
 
-              <motion.div 
-                initial={{ scale: 0.8, opacity: 0.5 }}
-                animate={{ 
-                  scale: [0.8, 1.2, 0.8],
-                  opacity: [0.5, 1, 0.5],
-                  boxShadow: ["0 0 30px rgba(255,255,255,0.1)", "0 0 90px rgba(255,255,255,0.2)", "0 0 30px rgba(255,255,255,0.1)"]
-                }}
-                transition={{ duration: 0.6, repeat: Infinity }}
-                className="w-32 h-32 bg-slate-900 rounded-full flex items-center justify-center relative z-10 border-4 border-white/15 shadow-2xl overflow-hidden p-0"
-              >
-                <div className="flex flex-col items-center justify-center text-white p-3">
-                  <Mail className="w-10 h-10 mb-1 animate-bounce text-white/95" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Swift</span>
-                </div>
-                <motion.div 
-                  animate={{ x: ["100%", "-100%"] }}
-                  transition={{ duration: 0.7, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -rotate-45"
-                />
-              </motion.div>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: -20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 120 }}
+              className={hn(
+                "w-full max-w-lg bg-black/60 border rounded-3xl p-6 sm:p-8 flex flex-col items-center relative overflow-visible transition-all duration-500",
+                testFailed 
+                  ? "border-rose-500/40 shadow-[0_0_50px_rgba(244,63,94,0.25)]" 
+                  : "border-jago/30 shadow-[0_0_50px_rgba(255,179,0,0.15)]"
+              )}
+            >
+              {/* Tech Corner brackets */}
+              <div className={hn("absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 transition-colors duration-500", testFailed ? "border-rose-500/30" : "border-jago/40")} />
+              <div className={hn("absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 transition-colors duration-500", testFailed ? "border-rose-500/30" : "border-jago/40")} />
+              <div className={hn("absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 transition-colors duration-500", testFailed ? "border-rose-500/30" : "border-jago/40")} />
+              <div className={hn("absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 transition-colors duration-500", testFailed ? "border-rose-500/30" : "border-jago/40")} />
 
-              {[...Array(12)].map((_, idx) => (
-                <motion.div 
-                  key={`p-${idx}`}
-                  initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
-                  animate={{ 
-                    x: (Math.random() - 0.5) * 650, 
-                    y: (Math.random() - 0.5) * 650, 
-                    opacity: [0, 1, 0],
-                    scale: [0, 2.5, 0]
-                  }}
-                  transition={{ duration: 0.5, delay: Math.random() * 0.3, repeat: Infinity, ease: "circOut" }}
-                  className="absolute w-1 h-1 bg-white/40 rounded-full"
-                />
-              ))}
-            </div>
+              {/* Dynamic scanning line */}
+              <div className={hn(
+                "absolute inset-x-0 h-[2px] animate-scan opacity-60 transition-all duration-500",
+                testFailed 
+                  ? "bg-gradient-to-r from-transparent via-rose-500 to-transparent shadow-[0_0_8px_#F43F5E]" 
+                  : "bg-gradient-to-r from-transparent via-jago to-transparent shadow-[0_0_8px_#FFB300]"
+              )} />
 
-            <div className="absolute bottom-1/4 flex flex-col items-center gap-3">
-              <motion.div 
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 0.7, repeat: Infinity }}
-                className="flex items-center gap-2"
-              >
-                <span className="text-white/60 font-mono text-[10px] font-black uppercase tracking-[0.4em]">
-                  Speed Relay Active
-                </span>
-                <div className="flex gap-1">
-                  {[0, 1, 2].map((i) => (
-                    <motion.div 
-                      key={i}
-                      animate={{ scale: [1, 1.5, 1] }}
-                      transition={{ duration: 0.3, delay: i * 0.1, repeat: Infinity }}
-                      className="w-1 h-1 bg-white/60 rounded-full"
-                    />
-                  ))}
-                </div>
-              </motion.div>
-
-              <div className="w-64 h-1 bg-slate-900 rounded-full overflow-hidden border border-white/5">
-                <motion.div 
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "0%" }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className="h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.8)]"
-                />
+              {/* Top Status Header */}
+              <div className={hn(
+                "w-full flex justify-between items-center text-[10px] tracking-widest mb-6 uppercase transition-colors duration-500",
+                testFailed ? "text-rose-500/60" : "text-jago/60"
+              )}>
+                <span>System: {testFailed ? "Error Alert" : "Active"}</span>
+                <span className="animate-pulse">{testFailed ? "● System Failure Warning" : "● Jarvis Core Online"}</span>
+                <span>Log: PRT_3000</span>
               </div>
-            </div>
+
+              {/* Glowing Interactive Cybernetic Target Orbit Centerpiece */}
+              <motion.div 
+                className="relative w-48 h-48 flex items-center justify-center mb-8 shrink-0"
+              >
+                {/* Target Scope Crosshair Lines (Thin Futuristic Grid Coordinates) */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                  <div className={hn(
+                    "w-full h-[1px] transition-colors duration-500",
+                    testFailed 
+                      ? "bg-gradient-to-r from-transparent via-rose-500/40 to-transparent" 
+                      : "bg-gradient-to-r from-transparent via-jago/40 to-transparent"
+                  )} />
+                  <div className={hn(
+                    "absolute h-full w-[1px] transition-colors duration-500",
+                    testFailed 
+                      ? "bg-gradient-to-b from-transparent via-rose-500/40 to-transparent" 
+                      : "bg-gradient-to-b from-transparent via-jago/40 to-transparent"
+                  )} />
+                  {/* Decorative tick bounds */}
+                  <div className={hn(
+                    "absolute w-44 h-44 rounded-full border transition-colors duration-500 opacity-50",
+                    testFailed ? "border-rose-500/10" : "border-jago/5"
+                  )} />
+                </div>
+
+                {/* Outer Orbit */}
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                  className={hn(
+                    "absolute inset-0 rounded-full border border-dashed transition-colors duration-500",
+                    testFailed ? "border-rose-500/25" : "border-jago/25"
+                  )}
+                />
+                {/* Middle Ring with tick marks */}
+                <motion.div 
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                  className={hn(
+                    "absolute inset-4 rounded-full border-2 border-double border-t-transparent border-b-transparent transition-colors duration-500",
+                    testFailed ? "border-rose-500/45" : "border-jago/45"
+                  )}
+                />
+                {/* Inner Fast Orbit */}
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                  className={hn(
+                    "absolute inset-10 rounded-full border border-l-transparent border-r-transparent transition-colors duration-500",
+                    testFailed ? "border-rose-500/75" : "border-jago/75"
+                  )}
+                />
+                {/* Glowing Center Core */}
+                <div className="absolute inset-11 flex flex-col items-center justify-center z-20 pointer-events-none">
+                  {/* Pulsing Core ambient glow behind the text */}
+                  <div className={hn(
+                    "absolute w-24 h-24 rounded-full blur-xl animate-pulse pointer-events-none transition-colors duration-500",
+                    testFailed ? "bg-rose-500/15" : "bg-jago/15"
+                  )} />
+                  
+                  {/* Futuristic Core tech grid lines inside the center space */}
+                  <div 
+                    className="absolute inset-4 opacity-[0.25] [background-size:10px_10px] pointer-events-none transition-all duration-500" 
+                    style={{
+                      backgroundImage: `radial-gradient(${testFailed ? "#F43F5E" : "#FFB300"} 1.5px, transparent 1.5px)`
+                    }}
+                  />
+                  
+                  {/* Modern Stylized Glowing JARVIS text */}
+                  <span className={hn(
+                    "text-[20px] font-black tracking-[0.25em] font-mono animate-pulse uppercase pl-[0.25em] z-10 transition-all duration-500",
+                    testFailed 
+                      ? "text-rose-100 drop-shadow-[0_0_15px_rgba(244,63,94,1)]" 
+                      : "text-white drop-shadow-[0_0_15px_rgba(255,179,0,1)]"
+                  )}>
+                    JARVIS
+                  </span>
+                  <span className={hn(
+                    "text-[8px] font-bold uppercase tracking-[0.3em] mt-2 z-10 transition-all duration-500",
+                    testFailed 
+                      ? "text-rose-400 drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]" 
+                      : "text-jago/90 drop-shadow-[0_0_5px_rgba(255,179,0,0.5)]"
+                  )}>
+                    {testFailed ? "BLOCKED" : "CORE ACTIVE"}
+                  </span>
+                </div>
+
+                {/* Cyber HUD Shockwaves & Spreading Particles at 100% progress */}
+                {testProgress === 100 && (
+                  <>
+                    {/* Central expanding light flare */}
+                    <motion.div
+                      initial={{ scale: 0.2, opacity: 1 }}
+                      animate={{ scale: 6, opacity: 0 }}
+                      transition={{ duration: 1.5, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 rounded-full blur-2xl pointer-events-none z-10",
+                        testFailed ? "bg-rose-500/30" : "bg-jago/30"
+                      )}
+                    />
+
+                    {/* Shockwave circle 1 */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0.95 }}
+                      animate={{ scale: 8.5, opacity: 0 }}
+                      transition={{ duration: 1.8, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 rounded-full border-2 pointer-events-none z-10 transition-all duration-500",
+                        testFailed 
+                          ? "border-rose-500 shadow-[0_0_35px_rgba(244,63,94,0.7)]" 
+                          : "border-jago shadow-[0_0_35px_rgba(255,179,0,0.7)]"
+                      )}
+                    />
+                    {/* Shockwave circle 2 */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0.95 }}
+                      animate={{ scale: 11.0, opacity: 0 }}
+                      transition={{ duration: 1.8, delay: 0.2, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 rounded-full border-2 pointer-events-none z-10 transition-all duration-500",
+                        testFailed 
+                          ? "border-red-600 shadow-[0_0_35px_rgba(220,38,38,0.65)]" 
+                          : "border-jago-orange shadow-[0_0_35px_rgba(255,94,19,0.65)]"
+                      )}
+                    />
+                    {/* Shockwave circle 3 (Outermost Sonic Barrier) */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0.8 }}
+                      animate={{ scale: 14.5, opacity: 0 }}
+                      transition={{ duration: 2.0, delay: 0.4, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 rounded-full border pointer-events-none z-10 transition-all duration-500",
+                        testFailed 
+                          ? "border-rose-400 shadow-[0_0_50px_rgba(244,63,94,0.4)]" 
+                          : "border-amber-400 shadow-[0_0_50px_rgba(251,191,36,0.4)]"
+                      )}
+                    />
+
+                    {/* Rotating Expanding Tech Diamond / Grid Crosshair */}
+                    <motion.div
+                      initial={{ scale: 0.3, rotate: 0, opacity: 0.9 }}
+                      animate={{ scale: 10, rotate: 135, opacity: 0 }}
+                      transition={{ duration: 2.2, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 border-2 border-dashed pointer-events-none z-10 transition-all duration-500",
+                        testFailed ? "border-rose-500/50" : "border-jago/50"
+                      )}
+                    />
+
+                    {/* Cosmic Spreading Particle Dots (Upgraded to 24 particles with multi-range travel) */}
+                    <div className="absolute inset-0 overflow-visible pointer-events-none z-10">
+                      {[...Array(24)].map((_, index) => {
+                        const angle = (index * 360) / 24;
+                        // alternate travel distance for organic explosion layout
+                        const distance = index % 2 === 0 ? 350 : 550; 
+                        const x = Math.cos((angle * Math.PI) / 180) * distance;
+                        const y = Math.sin((angle * Math.PI) / 180) * distance;
+                        const successColors = [
+                          "bg-jago shadow-[0_0_12px_rgba(255,179,0,0.9)]",
+                          "bg-jago-orange shadow-[0_0_12px_rgba(255,94,19,0.9)]",
+                          "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.9)]",
+                          "bg-yellow-300 shadow-[0_0_15px_rgba(253,224,71,0.95)]"
+                        ];
+                        const failedColors = [
+                          "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.9)]",
+                          "bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.9)]",
+                          "bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.9)]",
+                          "bg-red-400 shadow-[0_0_15px_rgba(248,113,113,0.95)]"
+                        ];
+                        const colors = testFailed ? failedColors : successColors;
+                        const colorClass = colors[index % colors.length];
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ x: 0, y: 0, scale: 0.2, opacity: 1 }}
+                            animate={{ x, y, scale: [0.2, 1.8, 0], opacity: [1, 0.9, 0] }}
+                            transition={{ 
+                              duration: 1.8 + (index % 3) * 0.2, 
+                              ease: "easeOut",
+                              delay: (index % 4) * 0.05 
+                            }}
+                            className={`absolute left-[calc(50%-4px)] top-[calc(50%-4px)] w-2.5 h-2.5 rounded-full ${colorClass}`}
+                          />
+                        );
+                      })}
+
+                      {/* Rising Data Packet vertical streak lines */}
+                      {[...Array(6)].map((_, idx) => {
+                        const randomX = (idx - 2.5) * 60;
+                        return (
+                          <motion.div
+                            key={`rising-${idx}`}
+                            initial={{ x: randomX, y: 0, height: 2, opacity: 0.8 }}
+                            animate={{ y: -450, height: [2, 40, 2], opacity: [0, 0.9, 0] }}
+                            transition={{ duration: 1.5, delay: idx * 0.1, ease: "circOut" }}
+                            className={hn(
+                              "absolute left-1/2 top-1/2 w-[1.5px] rounded-full pointer-events-none",
+                              testFailed ? "bg-rose-400" : "bg-jago"
+                            )}
+                          />
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {/* Core tech data overlay readouts (left and right) */}
+                <div className={hn(
+                  "absolute -left-12 top-1/2 -translate-y-1/2 text-[8px] space-y-1 leading-none text-right hidden sm:block transition-colors duration-500",
+                  testFailed ? "text-rose-500/50" : "text-jago/50"
+                )}>
+                  <div>SYS.STAT: {testFailed ? "ERROR" : "OK"}</div>
+                  <div>STB.VAL: {testFailed ? "0.0%" : "99.8%"}</div>
+                  <div>BPS.PORT: 3000</div>
+                </div>
+                <div className={hn(
+                  "absolute -right-12 top-1/2 -translate-y-1/2 text-[8px] space-y-1 leading-none text-left hidden sm:block transition-colors duration-500",
+                  testFailed ? "text-rose-500/50" : "text-jago/50"
+                )}>
+                  <div>ANT.SPM: {testFailed ? "ALERT" : "SECURE"}</div>
+                  <div>MX_DL: ENABLED</div>
+                  <div>CRYP.TLS: v1.3</div>
+                </div>
+              </motion.div>
+
+              {/* Stage and Progress bar */}
+              <div className="w-full space-y-3 px-4">
+                <div className="text-center">
+                  <span className={hn(
+                    "text-[11px] font-black tracking-[0.2em] uppercase transition-all duration-500",
+                    testFailed 
+                      ? "text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]" 
+                      : "text-white drop-shadow-[0_0_8px_rgba(255,179,0,0.3)]"
+                  )}>
+                    {testStage}
+                  </span>
+                </div>
+
+                {/* Animated Matrix style Progress tracker */}
+                <div className="grid grid-cols-10 gap-1.5 py-1">
+                  {Array.from({ length: 10 }).map((_, i) => {
+                    const active = testProgress >= (i + 1) * 10;
+                    return (
+                      <div 
+                        key={i} 
+                        className={hn(
+                          "h-3 rounded-sm border transition-all duration-300", 
+                          active 
+                            ? (testFailed 
+                                ? "bg-rose-600/80 border-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] scale-y-110" 
+                                : "bg-jago/80 border-jago shadow-[0_0_8px_rgba(255,179,0,0.5)] scale-y-110")
+                            : (testFailed ? "bg-slate-950/80 border-rose-950/40" : "bg-slate-950/80 border-jago/20")
+                        )} 
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className={hn("flex justify-between items-center text-[9px] transition-colors duration-500", testFailed ? "text-rose-400/70" : "text-jago/70")}>
+                  <span>CONNECTION STATUS</span>
+                  <span className="font-mono font-bold text-white text-xs">{testFailed ? "FAILED" : `${testProgress}%`}</span>
+                </div>
+              </div>
+
+              {/* Live diagnostics sub-feed */}
+              <div className={hn(
+                "w-full mt-6 bg-slate-950/80 border rounded-xl p-3 h-24 overflow-hidden text-[9px] font-mono space-y-1 relative transition-all duration-500",
+                testFailed ? "border-rose-500/25 text-rose-400/80" : "border-jago/15 text-jago/65"
+              )}>
+                <div className="absolute top-2 right-3 flex items-center gap-1">
+                  <div className={hn("w-1.5 h-1.5 rounded-full animate-ping", testFailed ? "bg-rose-500" : "bg-emerald-500")} />
+                  <span className={hn("text-[7px] tracking-wider", testFailed ? "text-rose-500" : "text-emerald-500")}>
+                    {testFailed ? "ALERT LOG" : "LIVE FEED"}
+                  </span>
+                </div>
+                <div className={hn(
+                  "text-[8px] uppercase tracking-widest border-b pb-1 mb-1.5 flex justify-between transition-colors duration-500",
+                  testFailed ? "border-rose-500/20 text-rose-500/60" : "border-jago/15 text-jago/40"
+                )}>
+                  <span>Diagnostic Logs</span>
+                  <span>{testFailed ? "Connection Disrupted" : "TLS Handshake Active"}</span>
+                </div>
+                <div className="space-y-0.5 max-h-16 overflow-y-auto no-scrollbar">
+                  <div className={testProgress >= 5 ? (testFailed ? "text-rose-400" : "text-jago") : "text-jago/30"}>[0.05s] SYSTEM INIT: JARVIS SMTP tester booted.</div>
+                  <div className={testProgress >= 25 ? (testFailed ? "text-rose-400" : "text-jago") : "text-jago/30"}>[0.42s] HANDSHAKE: Establishing secure TLS channel via Port {smtpConfig.port || "587"}.</div>
+                  <div className={testProgress >= 50 ? (testFailed ? "text-rose-400" : "text-jago") : "text-jago/30"}>[1.15s] CREDENTIALS: Authenticating SMTP credentials.</div>
+                  <div className={testProgress >= 75 ? (testFailed ? "text-rose-400" : "text-jago") : "text-jago/30"}>[1.98s] PAYLOAD: Injecting test email headers & ping message.</div>
+                  {testProgress === 100 && !testFailed && (
+                    <div className="text-emerald-400 font-bold animate-pulse">[2.45s] SUCCESS: Connection verified! Test email dispatched safely.</div>
+                  )}
+                  {testFailed && (
+                    <div className="text-rose-500 font-bold animate-pulse">
+                      [ALERT] TEST_FAILED: {smtpTestError || "SMTP Connection timeout / credentials rejected!"}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Button for finished status (Success / Fail) */}
+              {testProgress === 100 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="z-20 pointer-events-auto"
+                >
+                  {testFailed ? (
+                    <button
+                      onClick={() => {
+                        setTestFailed(false);
+                        setShowRocketScreen(false);
+                        setTestProgress(0);
+                        setTestStage("");
+                      }}
+                      className="mt-5 px-6 py-2.5 border border-rose-500/40 rounded-xl text-[10px] uppercase font-black tracking-widest text-white bg-rose-500/10 hover:bg-rose-500/25 active:scale-95 transition-all shadow-[0_0_15px_rgba(244,63,94,0.15)] flex items-center gap-2 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5 text-rose-400" />
+                      TUTUP DIAGNOSTIK
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setSmtpTestSuccess(false);
+                        setShowRocketScreen(false);
+                        setTestProgress(0);
+                        setTestStage("");
+                      }}
+                      className="mt-5 px-6 py-2.5 border border-jago/30 rounded-xl text-[10px] uppercase font-black tracking-widest text-white bg-jago/10 hover:bg-jago/25 active:scale-95 transition-all shadow-[0_0_15px_rgba(255,179,0,0.1)] flex items-center gap-2 cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5 text-jago animate-pulse" />
+                      TUTUP DIAGNOSTIK
+                    </button>
+                  )}
+                </motion.div>
+              )}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

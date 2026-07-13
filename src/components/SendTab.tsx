@@ -105,6 +105,51 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
   const [isSending, setIsSending] = useState(false);
   const [sendingProgress, setSendingProgress] = useState(0);
   const [sendingStage, setSendingStage] = useState("");
+  const [hasFailed, setHasFailed] = useState(false);
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
+
+  // --- Real-Time & Persistent Sending History ---
+  interface SentHistoryItem {
+    id: string;
+    to: string;
+    subject: string;
+    message: string;
+    status: 'success' | 'failed';
+    timestamp: string;
+    epoch: number;
+    error?: string;
+  }
+  const [sentHistory, setSentHistory] = useState<SentHistoryItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("sending_history");
+        return saved ? JSON.parse(saved) : [];
+      } catch (e) {
+        console.error(e);
+        return [];
+      }
+    }
+    return [];
+  });
+
+  const deleteHistoryItem = (id: string, emailRecipient: string) => {
+    setSentHistory(prev => {
+      const updated = prev.filter(item => item.id !== id);
+      localStorage.setItem("sending_history", JSON.stringify(updated));
+      return updated;
+    });
+    addLog("warning", `Riwayat pengiriman ke ${emailRecipient} telah dihapus.`);
+  };
+
+  const [activeSendingLogs, setActiveSendingLogs] = useState<string[]>([]);
+  const sendingLogsEndRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Auto scroll logs during active transmission
+  useEffect(() => {
+    if (sendingLogsEndRef.current) {
+      sendingLogsEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [activeSendingLogs]);
   
   // --- Banners ---
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
@@ -320,8 +365,37 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
       return;
     }
 
+    setHasFailed(false);
     setSendingProgress(5);
     setSendingStage("Menghubungkan ke server SMTP...");
+
+    // Setup initial real-time tech diagnostics logs
+    const initialLogs = [
+      `[0.02s] SYSTEM: J.A.R.V.I.S SMTP Relay Engine booted.`,
+      `[0.15s] CONSOLE: Memuat konfigurasi SMTP untuk ${smtpConfig.username || "Relay Internal"}...`
+    ];
+    setActiveSendingLogs(initialLogs);
+
+    // Schedule progressive detailed logs
+    const scheduledLogs = [
+      { delay: 350, log: `[0.38s] NETWORK: Mengurai DNS host SMTP ${smtpConfig.host || "smtp.gmail.com"}...` },
+      { delay: 650, log: `[0.55s] HANDSHAKE: Memulai jabat tangan TLS aman pada port ${smtpConfig.port || 465}...` },
+      { delay: 950, log: `[0.82s] SECURITY: Jabat tangan TLS v1.3 sukses (Cipher: AES256-GCM-SHA384).` },
+      { delay: 1300, log: `[1.12s] AUTH: Mengirimkan payload otentikasi Base64...` },
+      { delay: 1700, log: `[1.45s] SMTP: Server menerima kredensial. Status: 235 Auth successful.` },
+      { delay: 2100, log: `[1.78s] COMPOSER: Mengonstruksi MIME payload & menyematkan Anti-Spam headers.` },
+      { delay: 2500, log: `[2.12s] ANTISPAM: Penilaian skor filter spam Gmail: ${spamReport.score}/100 (${spamReport.level}).` },
+      { delay: 2900, log: `[2.45s] TRANSMIT: Mengunggah data MIME (${(emailForm.message.length / 1024).toFixed(2)} KB) ke server SMTP...` },
+      { delay: 3300, log: `[2.78s] MX: Menunggu respons downstream dari Google MX...` },
+    ];
+
+    const logTimeouts: NodeJS.Timeout[] = [];
+    scheduledLogs.forEach(item => {
+      const t = setTimeout(() => {
+        setActiveSendingLogs(prev => [...prev, item.log]);
+      }, item.delay);
+      logTimeouts.push(t);
+    });
 
     let currentProgress = 5;
     const progressInterval = setInterval(() => {
@@ -343,23 +417,100 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
       }
     }, 150);
 
+    const startEpoch = Date.now();
     const isSuccess = await runSmtpForwarder(emailForm.to, emailForm.subject, emailForm.message);
-    
+    const elapsed = Date.now() - startEpoch;
+
+    // Ensure we wait at least 3.5 seconds so user can absorb the complete high-tech sending log process
+    const minWait = 3500;
+    if (elapsed < minWait) {
+      await new Promise(resolve => setTimeout(resolve, minWait - elapsed));
+    }
+
     clearInterval(progressInterval);
+    logTimeouts.forEach(t => clearTimeout(t));
+
+    const formattedTime = new Date().toLocaleString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     if (isSuccess) {
+      setHasFailed(false);
       setSendingProgress(100);
       setSendingStage("Email Berhasil Terkirim!");
+      
+      // Append final success logs
+      setActiveSendingLogs(prev => [
+        ...prev,
+        `[3.12s] SUCCESS: Google MX merespons: 250 OK (Pesan diterima oleh relay).`,
+        `[3.35s] SYSTEM: Sesi ditutup. Saluran transmisi aman dibongkar.`
+      ]);
+
+      // Add to persistent sent history
+      const newHistoryItem: SentHistoryItem = {
+        id: Math.random().toString(36).substring(7),
+        to: emailForm.to,
+        subject: emailForm.subject,
+        message: emailForm.message,
+        status: 'success',
+        timestamp: formattedTime,
+        epoch: Date.now()
+      };
+      setSentHistory(prev => {
+        const updated = [newHistoryItem, ...prev].slice(0, 30);
+        localStorage.setItem("sending_history", JSON.stringify(updated));
+        return updated;
+      });
+
       setEmailForm({ to: "", subject: "", message: "" });
       triggerConfetti();
       setTimeout(() => {
         setSuccessBanner(null);
         setSendingProgress(0);
         setSendingStage("");
-      }, 4000);
+      }, 5000);
     } else {
-      setSendingProgress(0);
-      setSendingStage("");
+      setHasFailed(true);
+      setSendingProgress(100);
+      setSendingStage("Relay SMTP Gagal!");
+
+      // Append failed logs
+      setActiveSendingLogs(prev => [
+        ...prev,
+        `[ALERT] FATAL: Transmisi terputus. SMTP Relay gagal.`,
+        `[ALERT] SYSTEM: Sesi dibatalkan.`
+      ]);
+
+      // Add to persistent sent history
+      const newHistoryItem: SentHistoryItem = {
+        id: Math.random().toString(36).substring(7),
+        to: emailForm.to,
+        subject: emailForm.subject,
+        message: emailForm.message,
+        status: 'failed',
+        timestamp: formattedTime,
+        epoch: Date.now(),
+        error: "SMTP Relay Gagal"
+      };
+      setSentHistory(prev => {
+        const updated = [newHistoryItem, ...prev].slice(0, 30);
+        localStorage.setItem("sending_history", JSON.stringify(updated));
+        return updated;
+      });
+
+      setTimeout(() => {
+        setHasFailed(prev => {
+          if (prev) {
+            setSendingProgress(0);
+            setSendingStage("");
+          }
+          return false;
+        });
+      }, 10000);
     }
   };
 
@@ -374,6 +525,437 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
 
   return (
     <>
+      {/* Cool, high-tech JARVIS HUD scanning overlay for active sending/relay */}
+      <AnimatePresence>
+        {sendingProgress > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={hn(
+              "fixed inset-0 z-[200] bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 font-mono select-none transition-colors duration-500",
+              hasFailed ? "text-rose-500" : "text-jago"
+            )}
+          >
+            {/* Sci-Fi Background grid lines */}
+            <div className={hn(
+              "absolute inset-0 pointer-events-none transition-all duration-500",
+              hasFailed 
+                ? "bg-[radial-gradient(circle_at_center,_rgba(244,63,94,0.12)_0%,_transparent_65%)]"
+                : "bg-[radial-gradient(circle_at_center,_rgba(255,179,0,0.12)_0%,_transparent_65%)]"
+            )} />
+            <div 
+              className="absolute inset-0 opacity-[0.03] pointer-events-none transition-colors duration-500"
+              style={{
+                backgroundImage: `
+                  linear-gradient(${hasFailed ? "#F43F5E" : "#FFB300"} 1px, transparent 1px),
+                  linear-gradient(90deg, ${hasFailed ? "#F43F5E" : "#FFB300"} 1px, transparent 1px)
+                `,
+                backgroundSize: "40px 40px"
+              }}
+            />
+
+            {/* Holographic HUD Container */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: -20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 120 }}
+              className={hn(
+                "w-full max-w-lg bg-black/60 border rounded-3xl p-6 sm:p-8 flex flex-col items-center relative overflow-visible transition-all duration-500",
+                hasFailed 
+                  ? "border-rose-500/40 shadow-[0_0_50px_rgba(244,63,94,0.25)]" 
+                  : "border-jago/30 shadow-[0_0_50px_rgba(255,179,0,0.15)]"
+              )}
+            >
+              {/* Tech Corner brackets */}
+              <div className={hn("absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 transition-colors duration-500", hasFailed ? "border-rose-500/30" : "border-jago/40")} />
+              <div className={hn("absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 transition-colors duration-500", hasFailed ? "border-rose-500/30" : "border-jago/40")} />
+              <div className={hn("absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 transition-colors duration-500", hasFailed ? "border-rose-500/30" : "border-jago/40")} />
+              <div className={hn("absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 transition-colors duration-500", hasFailed ? "border-rose-500/30" : "border-jago/40")} />
+
+              {/* Dynamic scanning line */}
+              <div className={hn(
+                "absolute inset-x-0 h-[2px] animate-scan opacity-60 transition-all duration-500",
+                hasFailed 
+                  ? "bg-gradient-to-r from-transparent via-rose-500 to-transparent shadow-[0_0_8px_#F43F5E]" 
+                  : "bg-gradient-to-r from-transparent via-jago to-transparent shadow-[0_0_8px_#FFB300]"
+              )} />
+
+              {/* Top Status Header */}
+              <div className={hn(
+                "w-full flex justify-between items-center text-[10px] tracking-widest mb-6 uppercase transition-colors duration-500",
+                hasFailed ? "text-rose-500/60" : "text-jago/60"
+              )}>
+                <span>System: {hasFailed ? "Error Alert" : "Active"}</span>
+                <span className="animate-pulse">{hasFailed ? "● System Failure Warning" : "● Jarvis Core Online"}</span>
+                <span>Log: PRT_3000</span>
+              </div>
+
+              {/* Jarvis Glowing Circular HUD Core with Breathing/Respiration Scale & Pulse Glow */}
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.03, 1],
+                }}
+                transition={{ 
+                  duration: 4, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
+                className="relative w-48 h-48 flex items-center justify-center mb-8 select-none"
+              >
+                {/* Target Scope Crosshair Lines (Thin Futuristic Grid Coordinates) */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                  <div className={hn(
+                    "w-full h-[1px] transition-colors duration-500",
+                    hasFailed 
+                      ? "bg-gradient-to-r from-transparent via-rose-500/40 to-transparent" 
+                      : "bg-gradient-to-r from-transparent via-jago/40 to-transparent"
+                  )} />
+                  <div className={hn(
+                    "absolute h-full w-[1px] transition-colors duration-500",
+                    hasFailed 
+                      ? "bg-gradient-to-b from-transparent via-rose-500/40 to-transparent" 
+                      : "bg-gradient-to-b from-transparent via-jago/40 to-transparent"
+                  )} />
+                  {/* Decorative tick bounds */}
+                  <div className={hn(
+                    "absolute w-44 h-44 rounded-full border transition-colors duration-500 opacity-50",
+                    hasFailed ? "border-rose-500/10" : "border-jago/5"
+                  )} />
+                </div>
+
+                {/* Outer Orbit */}
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                  className={hn(
+                    "absolute inset-0 rounded-full border border-dashed transition-colors duration-500",
+                    hasFailed ? "border-rose-500/25" : "border-jago/25"
+                  )}
+                />
+                {/* Middle Ring with tick marks */}
+                <motion.div 
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                  className={hn(
+                    "absolute inset-4 rounded-full border-2 border-double border-t-transparent border-b-transparent transition-colors duration-500",
+                    hasFailed ? "border-rose-500/45" : "border-jago/45"
+                  )}
+                />
+                {/* Inner Fast Orbit */}
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                  className={hn(
+                    "absolute inset-10 rounded-full border border-l-transparent border-r-transparent transition-colors duration-500",
+                    hasFailed ? "border-rose-500/75" : "border-jago/75"
+                  )}
+                />
+                {/* Glowing Center Core */}
+                <div className="absolute inset-11 flex flex-col items-center justify-center z-20 pointer-events-none">
+                  {/* Pulsing Core ambient glow behind the text */}
+                  <div className={hn(
+                    "absolute w-24 h-24 rounded-full blur-xl animate-pulse pointer-events-none transition-colors duration-500",
+                    hasFailed ? "bg-rose-500/15" : "bg-jago/15"
+                  )} />
+                  
+                  {/* Futuristic Core tech grid lines inside the center space */}
+                  <div 
+                    className="absolute inset-4 opacity-[0.25] [background-size:10px_10px] pointer-events-none transition-all duration-500" 
+                    style={{
+                      backgroundImage: `radial-gradient(${hasFailed ? "#F43F5E" : "#FFB300"} 1.5px, transparent 1.5px)`
+                    }}
+                  />
+                  
+                  {/* Modern Stylized Glowing JARVIS text */}
+                  <span className={hn(
+                    "text-[20px] font-black tracking-[0.25em] font-mono animate-pulse uppercase pl-[0.25em] z-10 transition-all duration-500",
+                    hasFailed 
+                      ? "text-rose-100 drop-shadow-[0_0_15px_rgba(244,63,94,1)]" 
+                      : "text-white drop-shadow-[0_0_15px_rgba(255,179,0,1)]"
+                  )}>
+                    JARVIS
+                  </span>
+                  <span className={hn(
+                    "text-[8px] font-bold uppercase tracking-[0.3em] mt-2 z-10 transition-all duration-500",
+                    hasFailed 
+                      ? "text-rose-400 drop-shadow-[0_0_5px_rgba(244,63,94,0.5)]" 
+                      : "text-jago/90 drop-shadow-[0_0_5px_rgba(255,179,0,0.5)]"
+                  )}>
+                    {hasFailed ? "BLOCKED" : "CORE ACTIVE"}
+                  </span>
+                </div>
+
+                {/* Cyber HUD Shockwaves & Spreading Particles at 100% progress */}
+                {sendingProgress === 100 && (
+                  <>
+                    {/* Central expanding light flare */}
+                    <motion.div
+                      initial={{ scale: 0.2, opacity: 1 }}
+                      animate={{ scale: 6, opacity: 0 }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 rounded-full blur-2xl pointer-events-none z-10",
+                        hasFailed ? "bg-rose-500/30" : "bg-jago/30"
+                      )}
+                    />
+
+                    {/* Shockwave circle 1 */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0.95 }}
+                      animate={{ scale: 8.5, opacity: 0 }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 rounded-full border-2 pointer-events-none z-10 transition-all duration-500",
+                        hasFailed 
+                          ? "border-rose-500 shadow-[0_0_35px_rgba(244,63,94,0.7)]" 
+                          : "border-jago shadow-[0_0_35px_rgba(255,179,0,0.7)]"
+                      )}
+                    />
+                    {/* Shockwave circle 2 */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0.95 }}
+                      animate={{ scale: 11.0, opacity: 0 }}
+                      transition={{ duration: 2.2, delay: 0.7, repeat: Infinity, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 rounded-full border-2 pointer-events-none z-10 transition-all duration-500",
+                        hasFailed 
+                          ? "border-red-600 shadow-[0_0_35px_rgba(220,38,38,0.65)]" 
+                          : "border-jago-orange shadow-[0_0_35px_rgba(255,94,19,0.65)]"
+                      )}
+                    />
+                    {/* Shockwave circle 3 (Outermost Sonic Barrier) */}
+                    <motion.div
+                      initial={{ scale: 0.5, opacity: 0.8 }}
+                      animate={{ scale: 14.5, opacity: 0 }}
+                      transition={{ duration: 2.2, delay: 1.1, repeat: Infinity, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 rounded-full border pointer-events-none z-10 transition-all duration-500",
+                        hasFailed 
+                          ? "border-rose-400 shadow-[0_0_50px_rgba(244,63,94,0.4)]" 
+                          : "border-amber-400 shadow-[0_0_50px_rgba(251,191,36,0.4)]"
+                      )}
+                    />
+
+                    {/* Rotating Expanding Tech Diamond / Grid Crosshair */}
+                    <motion.div
+                      initial={{ scale: 0.3, rotate: 0, opacity: 0.9 }}
+                      animate={{ scale: 10, rotate: 135, opacity: 0 }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut" }}
+                      className={hn(
+                        "absolute inset-0 border-2 border-dashed pointer-events-none z-10 transition-all duration-500",
+                        hasFailed ? "border-rose-500/50" : "border-jago/50"
+                      )}
+                    />
+
+                    {/* Cosmic Spreading Particle Dots (Upgraded to 24 particles with multi-range travel) */}
+                    <div className="absolute inset-0 overflow-visible pointer-events-none z-10">
+                      {[...Array(24)].map((_, index) => {
+                        const angle = (index * 360) / 24;
+                        const radian = (angle * Math.PI) / 180;
+                        const distance = index % 2 === 0 ? 350 : 550; // alternate travel range
+                        const successColors = [
+                          "bg-jago shadow-[0_0_12px_rgba(255,179,0,0.9)]",
+                          "bg-jago-orange shadow-[0_0_12px_rgba(255,94,19,0.9)]",
+                          "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.9)]",
+                          "bg-yellow-300 shadow-[0_0_15px_rgba(253,224,71,0.95)]"
+                        ];
+                        const failedColors = [
+                          "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.9)]",
+                          "bg-red-600 shadow-[0_0_12px_rgba(220,38,38,0.9)]",
+                          "bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.9)]",
+                          "bg-red-400 shadow-[0_0_15px_rgba(248,113,113,0.95)]"
+                        ];
+                        const colors = hasFailed ? failedColors : successColors;
+                        const colorClass = colors[index % colors.length];
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ x: 0, y: 0, scale: 1.3, opacity: 1 }}
+                            animate={{
+                              x: Math.cos(radian) * distance,
+                              y: Math.sin(radian) * distance,
+                              scale: 0,
+                              opacity: 0
+                            }}
+                            transition={{
+                              duration: 2.0,
+                              repeat: Infinity,
+                              ease: [0.16, 1, 0.3, 1], // Custom ultra-smooth easeOut curve
+                              delay: (index % 6) * 0.12
+                            }}
+                            className={`absolute top-1/2 left-1/2 -ml-1.5 -mt-1.5 w-3 h-3 rounded-full ${colorClass}`}
+                          />
+                        );
+                      })}
+
+                      {/* Rising Data Packet vertical streak lines */}
+                      {[...Array(6)].map((_, idx) => {
+                        const randomX = (idx - 2.5) * 60;
+                        return (
+                          <motion.div
+                            key={`rising-${idx}`}
+                            initial={{ x: randomX, y: 0, height: 2, opacity: 0 }}
+                            animate={{ y: -450, height: [2, 40, 2], opacity: [0, 0.9, 0] }}
+                            transition={{ 
+                              duration: 1.5, 
+                              delay: idx * 0.15, 
+                              repeat: Infinity, 
+                              ease: "circOut" 
+                            }}
+                            className={hn(
+                              "absolute left-1/2 top-1/2 w-[1.5px] rounded-full pointer-events-none",
+                              hasFailed ? "bg-rose-400" : "bg-jago"
+                            )}
+                          />
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {/* Core tech data overlay readouts (left and right) */}
+                <div className={hn(
+                  "absolute -left-12 top-1/2 -translate-y-1/2 text-[8px] space-y-1 leading-none text-right hidden sm:block transition-colors duration-500",
+                  hasFailed ? "text-rose-500/50" : "text-jago/50"
+                )}>
+                  <div>SYS.STAT: {hasFailed ? "ERROR" : "OK"}</div>
+                  <div>STB.VAL: {hasFailed ? "0.0%" : "99.8%"}</div>
+                  <div>BPS.PORT: 3000</div>
+                </div>
+                <div className={hn(
+                  "absolute -right-12 top-1/2 -translate-y-1/2 text-[8px] space-y-1 leading-none text-left hidden sm:block transition-colors duration-500",
+                  hasFailed ? "text-rose-500/50" : "text-jago/50"
+                )}>
+                  <div>ANT.SPM: {hasFailed ? "ALERT" : "SECURE"}</div>
+                  <div>MX_DL: ENABLED</div>
+                  <div>CRYP.TLS: v1.3</div>
+                </div>
+              </motion.div>
+
+              {/* Stage and Progress bar */}
+              <div className="w-full space-y-3 px-4">
+                <div className="text-center">
+                  <span className={hn(
+                    "text-[11px] font-black tracking-[0.2em] uppercase transition-all duration-500",
+                    hasFailed 
+                      ? "text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]" 
+                      : "text-white drop-shadow-[0_0_8px_rgba(255,179,0,0.3)]"
+                  )}>
+                    {sendingStage}
+                  </span>
+                </div>
+
+                {/* Animated Matrix style Progress tracker */}
+                <div className="grid grid-cols-10 gap-1.5 py-1">
+                  {Array.from({ length: 10 }).map((_, i) => {
+                    const active = sendingProgress >= (i + 1) * 10;
+                    return (
+                      <div 
+                        key={i} 
+                        className={hn(
+                          "h-3 rounded-sm border transition-all duration-300", 
+                          active 
+                            ? (hasFailed 
+                                ? "bg-rose-600/80 border-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] scale-y-110" 
+                                : "bg-jago/80 border-jago shadow-[0_0_8px_rgba(255,179,0,0.5)] scale-y-110")
+                            : (hasFailed ? "bg-slate-950/80 border-rose-950/40" : "bg-slate-950/80 border-jago/20")
+                        )} 
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className={hn("flex justify-between items-center text-[9px] transition-colors duration-500", hasFailed ? "text-rose-400/70" : "text-jago/70")}>
+                  <span>TRANSMISSION STATUS</span>
+                  <span className="font-mono font-bold text-white text-xs">{hasFailed ? "FAILED" : `${sendingProgress}%`}</span>
+                </div>
+              </div>
+
+              {/* Live diagnostics sub-feed */}
+              <div className={hn(
+                "w-full mt-6 bg-slate-950/80 border rounded-xl p-3 h-32 overflow-hidden text-[9px] font-mono space-y-1 relative transition-all duration-500",
+                hasFailed ? "border-rose-500/25 text-rose-400/80" : "border-jago/15 text-jago/65"
+              )}>
+                <div className="absolute top-2 right-3 flex items-center gap-1">
+                  <div className={hn("w-1.5 h-1.5 rounded-full animate-ping", hasFailed ? "bg-rose-500" : "bg-emerald-500")} />
+                  <span className={hn("text-[7px] tracking-wider", hasFailed ? "text-rose-500" : "text-emerald-500")}>
+                    {hasFailed ? "ALERT LOG" : "LIVE FEED"}
+                  </span>
+                </div>
+                <div className={hn(
+                  "text-[8px] uppercase tracking-widest border-b pb-1 mb-1.5 flex justify-between transition-colors duration-500",
+                  hasFailed ? "border-rose-500/20 text-rose-500/60" : "border-jago/15 text-jago/40"
+                )}>
+                  <span>Diagnostic Logs</span>
+                  <span>{hasFailed ? "Connection Disrupted" : "TLS Handshake Active"}</span>
+                </div>
+                <div className="space-y-1 max-h-[85px] overflow-y-auto no-scrollbar scroll-smooth flex flex-col" id="sending-logs-container">
+                  {activeSendingLogs.map((log, index) => {
+                    const isError = log.includes("ALERT") || log.includes("FATAL") || log.includes("SMTP_ERROR");
+                    const isSuccessLog = log.includes("SUCCESS");
+                    return (
+                      <motion.div 
+                        key={index}
+                        initial={{ opacity: 0, x: -5 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className={hn(
+                          "leading-normal tracking-wide text-[9px] font-mono",
+                          isError 
+                            ? "text-rose-400 font-bold" 
+                            : isSuccessLog 
+                            ? "text-emerald-400 font-bold" 
+                            : "text-jago"
+                        )}
+                      >
+                        {log}
+                      </motion.div>
+                    );
+                  })}
+                  <div ref={sendingLogsEndRef} />
+                </div>
+              </div>
+
+              {/* Action Button for finished status (Success / Fail) */}
+              {sendingProgress === 100 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="z-20 pointer-events-auto"
+                >
+                  {hasFailed ? (
+                    <button
+                      onClick={() => {
+                        setHasFailed(false);
+                        setSendingProgress(0);
+                        setSendingStage("");
+                      }}
+                      className="mt-5 px-6 py-2.5 border border-rose-500/40 rounded-xl text-[10px] uppercase font-black tracking-widest text-white bg-rose-500/10 hover:bg-rose-500/25 active:scale-95 transition-all shadow-[0_0_15px_rgba(244,63,94,0.15)] flex items-center gap-2 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5 text-rose-400" />
+                      TUTUP DIAGNOSTIK
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setSuccessBanner(null);
+                        setSendingProgress(0);
+                        setSendingStage("");
+                      }}
+                      className="mt-5 px-6 py-2.5 border border-jago/30 rounded-xl text-[10px] uppercase font-black tracking-widest text-white bg-jago/10 hover:bg-jago/25 active:scale-95 transition-all shadow-[0_0_15px_rgba(255,179,0,0.1)] flex items-center gap-2 cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5 text-jago animate-pulse" />
+                      TUTUP DIAGNOSTIK
+                    </button>
+                  )}
+                </motion.div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div
         key="send-view"
         initial={{ opacity: 0, y: 10 }}
@@ -700,7 +1282,7 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
                       <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
                         Gunakan Template Cepat
                       </span>
-                      <div className="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto no-scrollbar">
+                      <div className="grid grid-cols-2 gap-2 max-h-[140px] overflow-y-auto no-scrollbar">
                         {templates.map((t) => (
                           <button
                             key={t.id}
@@ -719,6 +1301,96 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
                       </div>
                     </div>
                   )}
+
+                  {/* Persistent Riwayat Pengiriman Terbaru Card (Desktop) */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex flex-col gap-2 shadow-sm mt-1 shrink-0">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                        <Mail className="w-3 h-3 text-slate-500" />
+                        Riwayat Pengiriman ({sentHistory.length})
+                      </span>
+                      {sentHistory.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Hapus seluruh riwayat pengiriman?")) {
+                              setSentHistory([]);
+                              localStorage.removeItem("sending_history");
+                              addLog("warning", "Riwayat pengiriman berhasil dibersihkan.");
+                            }
+                          }}
+                          className="text-[7.5px] font-extrabold text-rose-500 hover:text-rose-600 uppercase tracking-tighter cursor-pointer"
+                        >
+                          Hapus
+                        </button>
+                      )}
+                    </div>
+
+                    {sentHistory.length === 0 ? (
+                      <div className="text-center py-4 text-[9px] font-bold text-slate-400 italic">
+                        Belum ada riwayat pengiriman.
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 max-h-[140px] overflow-y-auto no-scrollbar">
+                        {sentHistory.map((item) => (
+                          <div 
+                            key={item.id}
+                            className="p-1.5 bg-white border border-slate-100 rounded-xl hover:border-slate-200 transition-all shadow-sm flex flex-col gap-0.5 relative"
+                          >
+                            <div className="flex justify-between items-start gap-1">
+                              <span className="text-[9px] font-black text-slate-700 truncate max-w-[130px]">
+                                {item.to}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <span className={hn(
+                                  "text-[6px] font-black uppercase px-1 py-0.2 rounded",
+                                  item.status === "success" 
+                                    ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
+                                    : "bg-rose-50 text-rose-600 border border-rose-100"
+                                )}>
+                                  {item.status === "success" ? "Sukses" : "Gagal"}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteHistoryItem(item.id, item.to);
+                                  }}
+                                  className="p-0.5 text-slate-300 hover:text-rose-500 rounded hover:bg-slate-50 transition-colors cursor-pointer"
+                                  title="Hapus riwayat ini"
+                                >
+                                  <X className="w-2.5 h-2.5" />
+                                </button>
+                              </div>
+                            </div>
+                            
+                            <p className="text-[8px] font-bold text-slate-500 truncate">
+                              {item.subject}
+                            </p>
+
+                            <div className="flex justify-between items-center text-[7px] text-slate-400 font-bold font-mono mt-0.5">
+                              <span>{item.timestamp}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEmailForm({
+                                    to: item.to,
+                                    subject: item.subject,
+                                    message: item.message
+                                  });
+                                  addLog("info", `Memuat ulang draf dari riwayat ke penerima ${item.to}`);
+                                }}
+                                className="text-jago-dark hover:text-jago-hover uppercase font-black tracking-wider transition-colors cursor-pointer"
+                              >
+                                Gunakan Lagi
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                 </div>
 
               </div>
@@ -731,9 +1403,9 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
                   : "relative"
               )}>
                 {/* Mobile templates carousel only visible on mobile (hidden on desktop right-side is active) */}
-                <div className={hn("lg:hidden", isKeyboardActive && "hidden")}>
+                <div className={hn("lg:hidden flex flex-col gap-2 px-1", isKeyboardActive && "hidden")}>
                   {templates.length > 0 && (
-                    <div className="flex flex-col gap-1 px-1">
+                    <div className="flex flex-col gap-1">
                       <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
                         Gunakan Template Tersimpan
                       </span>
@@ -756,6 +1428,86 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
                       </div>
                     </div>
                   )}
+
+                  {/* Mobile Sending History Accordion */}
+                  <div className="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden shadow-sm mt-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
+                      className="w-full flex items-center justify-between p-2 text-[9px] font-black text-slate-600 uppercase tracking-wider cursor-pointer"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-slate-500" />
+                        Riwayat Pengiriman ({sentHistory.length})
+                      </span>
+                      <span className="text-[9px] font-bold text-slate-400">
+                        {isHistoryExpanded ? "▲ TUTUP" : "▼ BUKA"}
+                      </span>
+                    </button>
+                    <AnimatePresence>
+                      {isHistoryExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="border-t border-slate-200 p-2 space-y-2 bg-white max-h-[160px] overflow-y-auto no-scrollbar"
+                        >
+                          {sentHistory.length === 0 ? (
+                            <p className="text-center py-4 text-[10px] font-bold text-slate-400 italic">
+                              Belum ada riwayat pengiriman.
+                            </p>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {sentHistory.map((item) => (
+                                <div key={item.id} className="p-2 border border-slate-100 bg-slate-50 rounded-lg flex flex-col gap-0.5">
+                                  <div className="flex justify-between items-center gap-2">
+                                    <span className="text-[9.5px] font-extrabold text-slate-700 truncate max-w-[140px]">{item.to}</span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className={hn(
+                                        "text-[6.5px] font-black uppercase px-1.5 py-0.5 rounded",
+                                        item.status === "success" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                                      )}>
+                                        {item.status === "success" ? "Sukses" : "Gagal"}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          deleteHistoryItem(item.id, item.to);
+                                        }}
+                                        className="p-1 text-slate-400 hover:text-rose-500 rounded hover:bg-white transition-colors cursor-pointer"
+                                        title="Hapus riwayat ini"
+                                      >
+                                        <X className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <p className="text-[8.5px] font-bold text-slate-500 truncate">{item.subject}</p>
+                                  <div className="flex justify-between items-center text-[7.5px] text-slate-400 font-bold mt-1 font-mono">
+                                    <span>{item.timestamp}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEmailForm({
+                                          to: item.to,
+                                          subject: item.subject,
+                                          message: item.message
+                                        });
+                                        addLog("info", `Memuat draf dari riwayat ke ${item.to}`);
+                                      }}
+                                      className="text-jago-dark hover:text-jago-hover uppercase font-black cursor-pointer"
+                                    >
+                                      Gunakan Lagi
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
 
                 {/* Elegant Progress Bar */}

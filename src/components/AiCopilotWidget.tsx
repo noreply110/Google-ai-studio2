@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Sparkles, Plus, Loader2, AlertCircle, Send, FileText, Star, Image, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { EmailTemplate } from "../types";
+import jarvisBg from "../assets/images/jarvis_cool_background_1783882128944.jpg";
 
 // Classname utility helper locally
 function hn(...args: any[]) {
@@ -130,18 +131,42 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     content: string; 
     template?: any;
     image?: { data: string; mimeType: string; name: string };
-  }>>([
-    {
-      role: "model",
-      content: "Halo...Saya J.A.R.V.I.S sistem sudah siap silahkan beri perintah"
+  }>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("jarvis_ai_history");
+        return saved ? JSON.parse(saved) : [
+          {
+            role: "model",
+            content: "Halo...Saya JARVIS sistem sudah siap silahkan beri perintah"
+          }
+        ];
+      } catch (e) {
+        console.error("Gagal membaca riwayat chat JARVIS:", e);
+      }
     }
-  ]);
+    return [
+      {
+        role: "model",
+        content: "Halo...Saya JARVIS sistem sudah siap silahkan beri perintah"
+      }
+    ];
+  });
+
+  // Save history to local backup storage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem("jarvis_ai_history", JSON.stringify(aiHistory));
+    } catch (e) {
+      console.error("Gagal menyimpan riwayat chat JARVIS:", e);
+    }
+  }, [aiHistory]);
   const [selectedImage, setSelectedImage] = useState<{ data: string; mimeType: string; name: string } | null>(null);
   const [editModes, setEditModes] = useState<Record<number, "preview" | "html">>({});
   const [aiInput, setAiInput] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
-  const [thinkingText, setThinkingText] = useState("J.A.R.V.I.S sedang merangkai kata...");
+  const [thinkingText, setThinkingText] = useState("JARVIS sedang merangkai kata...");
 
   const aiChatEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -236,20 +261,20 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     if (!finalMsg) return;
     
     const textLower = finalMsg.toLowerCase();
-    let currentThinking = "J.A.R.V.I.S sedang merangkai kata...";
+    let currentThinking = "JARVIS sedang merangkai kata...";
     
     if (textLower.includes("bukti") || textLower.includes("transaksi") || textLower.includes("resi") || textLower.includes("pembayaran") || textLower.includes("alert") || textLower.includes("pemakaian") || textLower.includes("kartu") || textLower.includes("shopee") || textLower.includes("fraud") || selectedImage) {
-      currentThinking = "J.A.R.V.I.S sedang memproses gambar & merancang email...";
+      currentThinking = "JARVIS sedang memproses gambar & merancang email...";
     } else if (textLower.includes("promosi") || textLower.includes("diskon") || textLower.includes("marketing") || textLower.includes("pemasaran") || textLower.includes("onboarding") || textLower.includes("selamat datang")) {
-      currentThinking = "J.A.R.V.I.S sedang merancang email promosi...";
+      currentThinking = "JARVIS sedang merancang email promosi...";
     } else if (textLower.includes("optimasi") || textLower.includes("poles") || textLower.includes("perbaiki") || textLower.includes("rapikan") || textLower.includes("sunting")) {
-      currentThinking = "J.A.R.V.I.S sedang mengoptimalkan draf email...";
+      currentThinking = "JARVIS sedang mengoptimalkan draf email...";
     } else if (textLower.includes("analis") || textLower.includes("cek") || textLower.includes("kualitas") || textLower.includes("score")) {
-      currentThinking = "J.A.R.V.I.S sedang menganalisis kualitas email...";
+      currentThinking = "JARVIS sedang menganalisis kualitas email...";
     } else if (textLower.includes("terjemah") || textLower.includes("translate") || textLower.includes("inggris") || textLower.includes("english")) {
-      currentThinking = "J.A.R.V.I.S sedang menerjemahkan draf email...";
+      currentThinking = "JARVIS sedang menerjemahkan draf email...";
     } else if (textLower.includes("balas") || textLower.includes("reply") || textLower.includes("jawaban")) {
-      currentThinking = "J.A.R.V.I.S sedang menyusun balasan email...";
+      currentThinking = "JARVIS sedang menyusun balasan email...";
     }
     
     setThinkingText(currentThinking);
@@ -366,38 +391,86 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "100%", opacity: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-slate-200 shadow-[0_0_50px_rgba(0,0,0,0.1)] z-[150] flex flex-col overflow-hidden text-slate-800"
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-[#F5F6F8] border-l border-slate-200 shadow-[-10px_0_40px_rgba(0,0,0,0.08)] z-[150] flex flex-col overflow-hidden text-slate-800"
           >
-            {/* Modern light luxury overlay (Optimized high-performance pure CSS gradient) */}
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-50/20 via-white/80 to-slate-50/95 pointer-events-none z-0" />
+            {/* --- JARVIS BRANDED BACKGROUND inside drawer (Matching other pages perfectly) --- */}
+            <div 
+              className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url(${jarvisBg})` }}
+            />
+            {/* Subtle metallic texture and 'circuit-board' tech pattern overlay with CSS overlay blend-mode */}
+            <div 
+              className="absolute inset-0 pointer-events-none overflow-hidden z-[1]"
+              style={{
+                backgroundImage: `
+                  radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 80%),
+                  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 30 h40 l15 15 h30 l10 10 h25 M30 0 v40 l15 15 v20 l15 15 v30 M80 120 v-30 l-15 -15 v-25 l-15 -15 v-35' fill='none' stroke='rgba(255,179,0,0.06)' stroke-width='1.2' stroke-dasharray='3 3' /%3E%3Ccircle cx='40' cy='30' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='55' cy='45' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='85' cy='45' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='95' cy='55' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='45' cy='55' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='60' cy='75' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Cpath d='M10 10 h15 v15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M110 10 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M10 110 h15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M110 110 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3C/svg%3E"),
+                  linear-gradient(rgba(255, 179, 0, 0.012) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(255, 179, 0, 0.012) 1px, transparent 1px)
+                `,
+                backgroundSize: "100% 100%, 120px 120px, 30px 30px, 30px 30px",
+                mixBlendMode: "overlay",
+                opacity: 0.9,
+              }}
+            />
+
+            {/* No heavy wash-out overlay or double logo, matches other pages perfectly for a clean unified design */}
+
 
             {/* Header Banner */}
-            <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0 relative z-10">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 overflow-hidden">
-                  <motion.div
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-                    className="flex items-center justify-center"
-                  >
-                    <Sparkles className="w-4 h-4 text-amber-500" />
-                  </motion.div>
+            <div className="p-4 border-b border-slate-200/80 bg-white/75 backdrop-blur-md flex justify-between items-center shrink-0 relative z-10 shadow-[0_1px_10px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center gap-3">
+                {/* High-tech Icon container */}
+                <div className="w-8 h-8 bg-slate-950 border border-jago/80 text-jago rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(255,179,0,0.25)] shrink-0 relative overflow-hidden">
+                  {/* Tech background matrix scan */}
+                  <div className="absolute inset-0 bg-[radial-gradient(#FFB300_1px,transparent_1px)] [background-size:6px_6px] opacity-25" />
+                  <div className="flex items-center justify-center animate-[spin_8s_linear_infinite]">
+                    <Sparkles className="w-4 h-4 text-jago drop-shadow-[0_0_4px_#FFB300]" />
+                  </div>
+                  {/* Glowing status pulse dot */}
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-jago shadow-[0_0_6px_#FFB300]" />
                 </div>
-                <div>
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    J.A.R.V.I.S
-                  </h3>
-                  <p className="text-[9px] text-slate-500 font-bold leading-none mt-0.5">
-                    Asisten email profesional berbasis Gemini AI
-                  </p>
+                
+                {/* Cool Glowing "JARVIS" Text without dots */}
+                <div className="flex flex-col items-start leading-none">
+                  <span 
+                    className="font-mono font-black text-slate-900 tracking-[0.22em] text-sm uppercase transition-all duration-300 drop-shadow-[0_0_6px_rgba(255,179,0,0.15)]"
+                    style={{ textShadow: "0 0 10px rgba(255, 179, 0, 0.45)" }}
+                  >
+                    JARVIS
+                  </span>
+                  <span className="text-[7px] font-black tracking-[0.3em] text-jago/60 uppercase transition-colors duration-300 mt-0.5">
+                    SYSTEM CO-PILOT
+                  </span>
                 </div>
               </div>
-              <button
-                onClick={() => setIsAiOpen(false)}
-                className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-700 transition-all cursor-pointer"
-              >
-                <Plus className="w-5 h-5 rotate-45" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                {aiHistory.length > 1 && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Bersihkan seluruh riwayat obrolan dengan JARVIS?")) {
+                        setAiHistory([
+                          {
+                            role: "model",
+                            content: "Halo...Saya JARVIS sistem sudah siap silahkan beri perintah"
+                          }
+                        ]);
+                        addLog("warning", "Riwayat percakapan JARVIS dibersihkan.");
+                      }
+                    }}
+                    className="px-2 py-0.5 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                    title="Reset obrolan"
+                  >
+                    Reset
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsAiOpen(false)}
+                  className="p-1.5 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-700 transition-all cursor-pointer"
+                >
+                  <Plus className="w-5 h-5 rotate-45" />
+                </button>
+              </div>
             </div>
 
             {/* Chat History & Stream Container */}
@@ -413,7 +486,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   )}
                 >
                   <span className={`text-[8px] font-black uppercase tracking-wider mb-1 ${msg.role === "user" ? "text-amber-100" : "text-slate-400"}`}>
-                    {msg.role === "user" ? "Anda" : "J.A.R.V.I.S"}
+                    {msg.role === "user" ? "Anda" : "JARVIS"}
                   </span>
                   
                   {msg.image && (
