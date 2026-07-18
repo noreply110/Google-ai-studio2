@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Sparkles, Plus, Loader2, AlertCircle, Send, FileText, Star, Image, X } from "lucide-react";
+import { Sparkles, Plus, Loader2, AlertCircle, Send, FileText, Star, Image, X, Volume2, VolumeX, Play, Square } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { EmailTemplate } from "../types";
 import jarvisBg from "../assets/images/jarvis_cool_background_1783882128944.jpg";
@@ -8,6 +8,192 @@ import jarvisBg from "../assets/images/jarvis_cool_background_1783882128944.jpg"
 function hn(...args: any[]) {
   return args.filter(Boolean).join(" ");
 }
+
+// Client-Side Futuristic Sound Synthesizer (Web Audio API)
+const playSciFiSound = (type: "thinking" | "ready" | "click" | "success" | "speak") => {
+  if (typeof window === "undefined") return;
+  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+  if (!AudioCtx) return;
+  
+  try {
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    
+    if (type === "thinking") {
+      // Ascending tech scan sweep
+      const freqs = [220, 277.18, 329.63, 440, 554.37]; // A3, C#4, E4, A4, C#5
+      freqs.forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(f, now + i * 0.06);
+        gain.gain.setValueAtTime(0.06, now + i * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.06 + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.06);
+        osc.stop(now + i * 0.06 + 0.45);
+      });
+    } else if (type === "success") {
+      // Double success chime
+      const f1 = 523.25; // C5
+      const f2 = 783.99; // G5
+      
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(f1, now);
+      gain1.gain.setValueAtTime(0.08, now);
+      gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.4);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(f2, now + 0.08);
+      gain2.gain.setValueAtTime(0.08, now + 0.08);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.08 + 0.4);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.08);
+      osc2.stop(now + 0.08 + 0.45);
+    } else if (type === "click") {
+      // Crisp retro-tech click
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(950, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } else if (type === "ready") {
+      // Deep energy hum
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.linearRampToValueAtTime(180, now + 0.25);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } else if (type === "speak") {
+      // Interactive voice audio start click
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    }
+  } catch (e) {
+    console.warn("Speech synthesis audio feedback error:", e);
+  }
+};
+
+// Holographic JARVIS Voice Waveform Visualizer
+const JarvisVoiceVisualizer: React.FC<{ isSpeaking: boolean }> = ({ isSpeaking }) => {
+  const [bars, setBars] = useState<number[]>(Array(16).fill(6));
+  
+  useEffect(() => {
+    if (!isSpeaking) {
+      setBars(Array(16).fill(4));
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      setBars(Array(16).fill(0).map(() => Math.floor(Math.random() * 22) + 4));
+    }, 60);
+    
+    return () => clearInterval(interval);
+  }, [isSpeaking]);
+  
+  return (
+    <div className="mx-4 my-2 px-3 py-2 bg-slate-950/90 border border-amber-500/20 rounded-xl shadow-[0_0_15px_rgba(255,179,0,0.1)] flex items-center justify-between overflow-hidden relative z-10">
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-cyan-500/5 to-amber-500/5 animate-pulse pointer-events-none" />
+      <div className="flex items-center gap-1.5 shrink-0 select-none">
+        <span className="relative flex h-2 w-2">
+          <span className={hn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", isSpeaking ? "bg-amber-400" : "bg-cyan-400")} />
+          <span className={hn("relative inline-flex rounded-full h-2 w-2", isSpeaking ? "bg-amber-500" : "bg-cyan-500")} />
+        </span>
+        <span className="text-[8px] font-black tracking-[0.2em] text-slate-300 font-mono uppercase">
+          JARVIS NEURAL CORE
+        </span>
+      </div>
+      
+      {/* Animated bars */}
+      <div className="flex items-center gap-[3px] h-6 justify-center">
+        {bars.map((h, i) => (
+          <div
+            key={i}
+            className={hn(
+              "w-1 rounded-full transition-all duration-75", 
+              isSpeaking 
+                ? "bg-gradient-to-t from-amber-500 to-cyan-400 opacity-95 shadow-[0_0_6px_rgba(255,179,0,0.3)]" 
+                : "bg-slate-700 opacity-50"
+            )}
+            style={{ height: `${h}px` }}
+          />
+        ))}
+      </div>
+      
+      <span className="text-[8px] font-mono font-bold text-cyan-400 uppercase tracking-widest animate-pulse">
+        {isSpeaking ? "SPEAKING" : "STANDBY"}
+      </span>
+    </div>
+  );
+};
+
+// Word-by-word streaming typewriter text
+interface TypewriterTextProps {
+  text: string;
+  onComplete?: () => void;
+  active: boolean;
+}
+
+const TypewriterText: React.FC<TypewriterTextProps> = React.memo(({ text, onComplete, active }) => {
+  const [displayed, setDisplayed] = useState(active ? "" : text);
+  
+  useEffect(() => {
+    if (!active) {
+      setDisplayed(text);
+      return;
+    }
+    
+    let currentIdx = 0;
+    const words = text.split(" ");
+    let currentText = "";
+    
+    const interval = setInterval(() => {
+      if (currentIdx < words.length) {
+        currentText += (currentIdx === 0 ? "" : " ") + words[currentIdx];
+        setDisplayed(currentText);
+        currentIdx++;
+      } else {
+        clearInterval(interval);
+        if (onComplete) onComplete();
+      }
+    }, 25); // natural fast typing pace
+    
+    return () => clearInterval(interval);
+  }, [text, active, onComplete]);
+  
+  return <p className="font-semibold leading-relaxed whitespace-pre-wrap text-slate-800">{displayed}</p>;
+});
 
 // Helper to extract links from an HTML string using DOMParser
 const getHtmlLinks = (html: string) => {
@@ -109,6 +295,328 @@ const LinkEditor: React.FC<LinkEditorProps> = React.memo(({ templateHtml, onLink
   );
 });
 
+const getSafeSrcDoc = (html: string) => {
+  if (!html) return "";
+  
+  const scalingScript = `
+    <script>
+      window.addEventListener('DOMContentLoaded', function() {
+        var wrapper = document.createElement('div');
+        wrapper.id = 'email-wrapper';
+        wrapper.style.width = '600px';
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '50%';
+        wrapper.style.top = '0';
+        wrapper.style.transformOrigin = 'top center';
+        wrapper.style.boxSizing = 'border-box';
+        
+        while (document.body.firstChild) {
+          wrapper.appendChild(document.body.firstChild);
+        }
+        document.body.appendChild(wrapper);
+        
+        function adjustScale() {
+          var viewportWidth = window.innerWidth;
+          var targetWidth = viewportWidth - 8;
+          if (targetWidth < 200) targetWidth = viewportWidth;
+          var scale = targetWidth / 600;
+          
+          if (scale < 1) {
+            wrapper.style.transform = 'translateX(-50%) scale(' + scale + ')';
+            document.body.style.height = (wrapper.offsetHeight * scale + 16) + 'px';
+          } else {
+            wrapper.style.transform = 'translateX(-50%)';
+            document.body.style.height = (wrapper.offsetHeight + 16) + 'px';
+          }
+        }
+        
+        window.addEventListener('resize', adjustScale);
+        window.addEventListener('load', adjustScale);
+        setTimeout(adjustScale, 50);
+        setTimeout(adjustScale, 200);
+        setTimeout(adjustScale, 500);
+        setInterval(adjustScale, 1000);
+      });
+    </script>
+  `;
+
+  if (html.toLowerCase().includes("</body>")) {
+    return html.replace(/<\/body>/i, `${scalingScript}</body>`);
+  }
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            background-color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #333333;
+            overflow-x: hidden !important;
+            position: relative;
+          }
+          img {
+            max-width: 100%;
+            height: auto;
+          }
+        </style>
+      </head>
+      <body>
+        ${html}
+        ${scalingScript}
+      </body>
+    </html>
+  `;
+};
+
+interface ChatMessageItemProps {
+  msg: {
+    role: "user" | "model";
+    content: string;
+    template?: any;
+    image?: { data: string; mimeType: string; name: string };
+  };
+  idx: number;
+  editMode: "preview" | "html";
+  setEditMode: (mode: "preview" | "html") => void;
+  isSpeakingThisMessage: boolean;
+  speakText: () => void;
+  isTypingThisMessage: boolean;
+  handleTypewriterComplete: () => void;
+  isAiLoading: boolean;
+  handleSendAiMessage: (prompt: string) => void;
+  applyAiTemplateToForm: () => void;
+  saveAiTemplateToCollection: () => void;
+  onTemplateSubjectChange: (newSubject: string) => void;
+  onTemplateHtmlChange: (newHtml: string) => void;
+}
+
+const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
+  msg,
+  idx,
+  editMode,
+  setEditMode,
+  isSpeakingThisMessage,
+  speakText,
+  isTypingThisMessage,
+  handleTypewriterComplete,
+  isAiLoading,
+  handleSendAiMessage,
+  applyAiTemplateToForm,
+  saveAiTemplateToCollection,
+  onTemplateSubjectChange,
+  onTemplateHtmlChange
+}) => {
+  return (
+    <div
+      className={hn(
+        "flex flex-col max-w-[85%] rounded-2xl p-3.5 shadow-sm text-xs transition-all duration-300 relative z-10",
+        msg.role === "user"
+          ? "bg-amber-500 text-white rounded-br-none ml-auto border border-amber-600 shadow-md shadow-amber-500/10 font-extrabold animate-fade-in"
+          : "bg-slate-50 border border-slate-200 text-slate-800 rounded-bl-none mr-auto shadow-sm animate-fade-in"
+      )}
+    >
+      <div className="flex items-center justify-between mb-1 text-[8px] font-black uppercase tracking-wider text-slate-400">
+        <span className={msg.role === "user" ? "text-amber-100" : "text-slate-400"}>
+          {msg.role === "user" ? "Anda" : "JARVIS"}
+        </span>
+        {msg.role === "model" && (
+          <button
+            type="button"
+            onClick={speakText}
+            className={hn(
+              "px-1.5 py-0.5 rounded border text-[7px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer",
+              isSpeakingThisMessage 
+                ? "bg-amber-500 text-white border-amber-600 animate-pulse" 
+                : "bg-white border-slate-200 text-slate-500 hover:text-slate-800"
+            )}
+            title="Dengarkan Suara JARVIS"
+          >
+            {isSpeakingThisMessage ? (
+              <>
+                <Square className="w-2 h-2 fill-current" /> Stop
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-2 h-2" /> Speak
+              </>
+            )}
+          </button>
+        )}
+      </div>
+      
+      {msg.image && (
+        <div className="mb-2 rounded-lg overflow-hidden border border-slate-200 max-w-[180px]">
+          <img 
+            src={`data:${msg.image.mimeType};base64,${msg.image.data}`} 
+            alt={msg.image.name} 
+            className="w-full h-auto object-cover max-h-[140px]"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+      )}
+
+      {/* Render Typewriter Effect for the active model message stream, else static */}
+      {msg.role === "model" && isTypingThisMessage ? (
+        <TypewriterText 
+          text={msg.content} 
+          active={true} 
+          onComplete={handleTypewriterComplete} 
+        />
+      ) : (
+        <p className={hn("font-semibold leading-relaxed whitespace-pre-wrap", msg.role === "user" ? "text-white" : "text-slate-800")}>
+          {msg.content}
+        </p>
+      )}
+
+      {/* Contextual instant actions cards under generated drafts */}
+      {!isAiLoading && msg.role === "model" && msg.template && !isTypingThisMessage && (
+        <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex flex-wrap gap-1.5">
+          <div className="w-full text-[7px] font-black text-slate-400 uppercase tracking-widest font-mono mb-1">
+            ⚡ MODIFIKASI CEPAT JARVIS:
+          </div>
+          <button
+            type="button"
+            onClick={() => handleSendAiMessage("Terjemahkan draf email di atas ke Bahasa Inggris (English) dengan struktur formal perbankan.")}
+            className="px-2 py-1 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-amber-50"
+          >
+            🇬🇧 Inggris
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSendAiMessage("Perpendek draf email di atas agar sangat padat, singkat, dan langsung pada intinya.")}
+            className="px-2 py-1 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-amber-50"
+          >
+            ⚡ Singkatkan
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSendAiMessage("Ubah gaya bahasa draf email di atas menjadi jauh lebih formal, sopan, elegan, dan profesional.")}
+            className="px-2 py-1 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-amber-50"
+          >
+            👔 Lebih Formal
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSendAiMessage("Tulis ulang draf email di atas dengan menambahkan penekanan urgensi keamanan tingkat tinggi agar nasabah segera bertindak.")}
+            className="px-2 py-1 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-amber-50"
+          >
+            🚨 Tambah Urgensi
+          </button>
+        </div>
+      )}
+
+      {/* Display template suggestions inside the chat if present */}
+      {msg.template && (
+        <div className="mt-3.5 pt-3.5 border-t border-slate-200 space-y-2.5">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+            <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">
+              Subjek Rekomendasi (Dapat Diedit):
+            </div>
+            <input
+              type="text"
+              value={msg.template.subject}
+              onChange={(e) => onTemplateSubjectChange(e.target.value)}
+              className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-amber-500 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-800 focus:outline-none transition-all placeholder:text-slate-400"
+              placeholder="Masukkan subjek draf..."
+            />
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">
+                Isi Pesan / Desain Template:
+              </div>
+              
+              {/* Segmented Mode Control */}
+              <div className="flex bg-slate-100 border border-slate-200 rounded-lg p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setEditMode('preview')}
+                  className={hn(
+                    "px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider rounded transition-all",
+                    editMode !== 'html' 
+                      ? "bg-amber-500 text-white font-black" 
+                      : "text-slate-500 hover:text-slate-800"
+                  )}
+                >
+                  Pratinjau
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditMode('html')}
+                  className={hn(
+                    "px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider rounded transition-all",
+                    editMode === 'html' 
+                      ? "bg-amber-500 text-white font-black" 
+                      : "text-slate-500 hover:text-slate-800"
+                  )}
+                >
+                  Edit Teks & HTML
+                </button>
+              </div>
+            </div>
+
+            {editMode === 'html' ? (
+              <div className="w-full h-[220px] rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex flex-col relative">
+                <textarea
+                  value={msg.template.html}
+                  onChange={(e) => onTemplateHtmlChange(e.target.value)}
+                  className="w-full h-full p-3 bg-transparent text-slate-800 font-mono text-[10px] resize-none focus:outline-none focus:ring-0 leading-relaxed overflow-y-auto"
+                  placeholder="Ketik atau edit semua teks/kode HTML di sini..."
+                />
+                <div className="absolute bottom-2 right-2 bg-slate-200 border border-slate-300 text-[7px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded text-slate-500 select-none font-mono">
+                  Kode Sumber / Teks
+                </div>
+              </div>
+            ) : (
+              <div className="w-full h-[220px] rounded-lg overflow-hidden border border-slate-200 bg-white">
+                <iframe
+                  title="AI Template Preview"
+                  srcDoc={getSafeSrcDoc(msg.template.html)}
+                  className="w-full h-full border-0 bg-white"
+                  sandbox="allow-popups allow-scripts"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Custom Button & Link Editor Panel */}
+          <LinkEditor
+            templateHtml={msg.template.html}
+            onLinkUpdate={onTemplateHtmlChange}
+          />
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={applyAiTemplateToForm}
+              className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 shadow-sm transition-all uppercase tracking-wider border border-amber-600 cursor-pointer"
+            >
+              <Send className="w-3 h-3" /> Gunakan di Form
+            </button>
+            <button
+              type="button"
+              onClick={saveAiTemplateToCollection}
+              className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all uppercase tracking-wider border border-slate-200 cursor-pointer"
+            >
+              <FileText className="w-3 h-3" /> Simpan Koleksi
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+ChatMessageItem.displayName = "ChatMessageItem";
+
 interface AiCopilotWidgetProps {
   isAiOpen: boolean;
   setIsAiOpen: (open: boolean) => void;
@@ -138,37 +646,232 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
         return saved ? JSON.parse(saved) : [
           {
             role: "model",
-            content: "Halo...Saya JARVIS sistem sudah siap silahkan beri perintah"
+            content: "Halo! Saya J.A.R.V.I.S, Asisten AI Co-pilot Anda untuk rancangan email premium dan analisis draf email secara real-time. 🚀\n\nSaya hadir untuk mendesain secara interaktif bersama Anda! Anda bisa mengajak saya berinteraksi dengan cara:\n1. 📸 **Mengirimkan tangkapan layar (screenshot)** bukti transaksi/resi pembayaran agar saya menganalisis dan menduplikasi desain emailnya secara instan.\n2. 🎨 **Menyesuaikan estetika & gaya draf**, seperti mengganti warna aksen brand perbankan (Mandiri, BCA, CIMB Niaga, dll.), menyisipkan tabel, atau mengedit teks tombol.\n3. 🗣️ **Menggunakan fitur Speak** untuk mendengarkan pelafalan draf, serta menyunting nada bahasa (menjadi lebih tegas, bersahabat, mendesak, atau santun).\n\n**Bagaimana, apa yang ingin kita rancang hari ini?** Tuliskan ide Anda atau klik tombol rekomendasi cepat di bawah untuk langsung menguji kepiawaian saya!"
           }
         ];
       } catch (e) {
-        console.error("Gagal membaca riwayat chat JARVIS:", e);
+        console.error("Gagal membaca riwayat chat J.A.R.V.I.S:", e);
       }
     }
     return [
       {
         role: "model",
-        content: "Halo...Saya JARVIS sistem sudah siap silahkan beri perintah"
+        content: "Halo! Saya J.A.R.V.I.S, Asisten AI Co-pilot Anda untuk rancangan email premium dan analisis draf email secara real-time. 🚀\n\nSaya hadir untuk mendesain secara interaktif bersama Anda! Anda bisa mengajak saya berinteraksi dengan cara:\n1. 📸 **Mengirimkan tangkapan layar (screenshot)** bukti transaksi/resi pembayaran agar saya menganalisis dan menduplikasi desain emailnya secara instan.\n2. 🎨 **Menyesuaikan estetika & gaya draf**, seperti mengganti warna aksen brand perbankan (Mandiri, BCA, CIMB Niaga, dll.), menyisipkan tabel, atau mengedit teks tombol.\n3. 🗣️ **Menggunakan fitur Speak** untuk mendengarkan pelafalan draf, serta menyunting nada bahasa (menjadi lebih tegas, bersahabat, mendesak, atau santun).\n\n**Bagaimana, apa yang ingin kita rancang hari ini?** Tuliskan ide Anda atau klik tombol rekomendasi cepat di bawah untuk langsung menguji kepiawaian saya!"
       }
     ];
   });
 
-  // Save history to local backup storage whenever it changes
+  // Save history to local backup storage whenever it changes with a debounce to prevent typing lag
   useEffect(() => {
-    try {
-      localStorage.setItem("jarvis_ai_history", JSON.stringify(aiHistory));
-    } catch (e) {
-      console.error("Gagal menyimpan riwayat chat JARVIS:", e);
-    }
+    const handler = setTimeout(() => {
+      try {
+        localStorage.setItem("jarvis_ai_history", JSON.stringify(aiHistory));
+      } catch (e) {
+        console.error("Gagal menyimpan riwayat chat J.A.R.V.I.S:", e);
+      }
+    }, 1000);
+
+    return () => clearTimeout(handler);
   }, [aiHistory]);
+
   const [selectedImage, setSelectedImage] = useState<{ data: string; mimeType: string; name: string } | null>(null);
   const [editModes, setEditModes] = useState<Record<number, "preview" | "html">>({});
   const [aiInput, setAiInput] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [thinkingText, setThinkingText] = useState("JARVIS sedang merangkai kata...");
+  const [typingMessageIndex, setTypingMessageIndex] = useState<number | null>(null);
+  const [aiSteps, setAiSteps] = useState<Array<{ id: number; label: string; status: "pending" | "active" | "completed" }>>([]);
+
+  // Voice States
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speakingTextId, setSpeakingTextId] = useState<number | null>(null);
+  const [autoVoice, setAutoVoice] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("jarvis_auto_voice") === "true";
+    }
+    return false;
+  });
 
   const aiChatEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Play sound on open
+  useEffect(() => {
+    if (isAiOpen) {
+      playSciFiSound("ready");
+    } else {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+        setSpeakingTextId(null);
+      }
+    }
+  }, [isAiOpen]);
+
+  // Handle unmount speech cancel
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Set up Replit-Agent style real-time pipeline progress steps whenever AI begins loading
+  useEffect(() => {
+    if (!isAiLoading) {
+      setAiSteps([]);
+      return;
+    }
+
+    const hasImage = !!selectedImage;
+    const initialSteps = [
+      { id: 1, label: hasImage ? "Memproses gambar lampiran & ekstraksi visual..." : "Membaca pesan instruksi & konteks draf...", status: "active" as const },
+      { id: 2, label: "Melacak pola keamanan bank & kecocokan data...", status: "pending" as const },
+      { id: 3, label: "Menyusun struktur tata letak HTML e-mail responsif...", status: "pending" as const },
+      { id: 4, label: "Menyisipkan tombol taktis, tautan, & placeholder...", status: "pending" as const },
+      { id: 5, label: "Finalisasi respons & validasi intonasi vokal...", status: "pending" as const }
+    ];
+    setAiSteps(initialSteps);
+
+    let currentStep = 1;
+    const interval = setInterval(() => {
+      setAiSteps(prev => {
+        if (currentStep >= 5) {
+          clearInterval(interval);
+          return prev.map(s => s.id === 5 ? { ...s, status: "completed" as const } : s);
+        }
+        
+        const nextSteps = prev.map(s => {
+          if (s.id === currentStep) {
+            return { ...s, status: "completed" as const };
+          }
+          if (s.id === currentStep + 1) {
+            return { ...s, status: "active" as const };
+          }
+          return s;
+        });
+        currentStep++;
+        return nextSteps;
+      });
+    }, 1100); // Super responsive, fast paced ticks for immediate satisfaction
+
+    return () => clearInterval(interval);
+  }, [isAiLoading]);
+
+  const toggleAutoVoice = () => {
+    const newValue = !autoVoice;
+    setAutoVoice(newValue);
+    localStorage.setItem("jarvis_auto_voice", String(newValue));
+    addLog("info", `Auto Voice JARVIS: ${newValue ? 'ACTIVE' : 'MUTED'}`);
+    playSciFiSound("click");
+    if (!newValue && typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setSpeakingTextId(null);
+    }
+  };
+
+  const speakText = useCallback((text: string, id: number) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    
+    // If already speaking this message, cancel it
+    if (isSpeaking && speakingTextId === id) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setSpeakingTextId(null);
+      playSciFiSound("click");
+      return;
+    }
+    
+    window.speechSynthesis.cancel();
+    playSciFiSound("speak");
+    
+    // Strip markdown elements & HTML tags to read plain text
+    let cleanText = text
+      .replace(/<[^>]*>/g, "")
+      .replace(/\*+/g, "")
+      .replace(/_+/g, "")
+      .replace(/`+/g, "")
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1");
+
+    // Replace acronyms/abbreviations with smooth human-readable phonetic equivalent
+    // Lowercase "yarvis" prevents any TTS engine from spelling out individual letters.
+    cleanText = cleanText
+      .replace(/J\.A\.R\.V\.I\.S\./gi, "yarvis")
+      .replace(/J\.A\.R\.V\.I\.S/gi, "yarvis")
+      .replace(/JARVIS/gi, "yarvis")
+      .replace(/Jarvis/gi, "yarvis")
+      .replace(/AI/g, "A.I.") // Let it pronounce as "A I" smoothly
+      .substring(0, 400); // limit spoken duration for premium comfort
+      
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    
+    // Set moderate, soft volume to sound polite and non-aggressive
+    utterance.volume = 0.85; 
+    
+    // Attempt Indonesian voice matching with preference for gentle male voices
+    const voices = window.speechSynthesis.getVoices();
+    const idVoices = voices.filter(v => 
+      v.lang.toLowerCase().includes("id") || 
+      v.lang.toLowerCase().includes("in-id")
+    );
+    
+    if (idVoices.length > 0) {
+      // Prioritize male Indonesian voice (e.g. ArdiNeural, Microsoft Ardi, or names with ardi/wira/male/hari/pria)
+      const maleVoice = idVoices.find(v => 
+        v.name.toLowerCase().includes("ardi") || 
+        v.name.toLowerCase().includes("hari") || 
+        v.name.toLowerCase().includes("wira") || 
+        v.name.toLowerCase().includes("male") ||
+        v.name.toLowerCase().includes("man") ||
+        v.name.toLowerCase().includes("cowok") ||
+        v.name.toLowerCase().includes("pria")
+      );
+      
+      if (maleVoice) {
+        utterance.voice = maleVoice;
+        utterance.pitch = 0.90; // Calmer, softer warm male voice
+      } else {
+        // Fallback: If only female ID voices are available, we adjust pitch and rate
+        // to sound extremely warm, slow, and sophisticated.
+        utterance.voice = idVoices[0];
+        utterance.pitch = 0.65; // Soften the frequency distortion so it's pleasant, gentle and robotic-chic
+      }
+    } else {
+      // General voice fallback, searching for english male voice with lowered pitch
+      const engMale = voices.find(v => 
+        (v.lang.toLowerCase().includes("en")) && 
+        (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("guy"))
+      );
+      if (engMale) {
+        utterance.voice = engMale;
+        utterance.pitch = 0.70;
+      } else {
+        utterance.pitch = 0.65;
+      }
+    }
+    
+    // 0.88 - Slower speed for maximum elegance, poise, and calm interaction
+    utterance.rate = 0.88; 
+    
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      setSpeakingTextId(id);
+    };
+    
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      setSpeakingTextId(null);
+    };
+    
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setSpeakingTextId(null);
+    };
+    
+    window.speechSynthesis.speak(utterance);
+  }, [isSpeaking, speakingTextId]);
 
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -216,6 +919,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
               name: file.name.replace(/\.[^/.]+$/, "") + ".jpg"
             });
             addLog("success", `Gambar "${file.name}" berhasil dikompresi & dimuat!`);
+            playSciFiSound("success");
           } else {
             addLog("error", "Gagal mengompresi data gambar.");
           }
@@ -251,7 +955,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     if (aiChatEndRef.current) {
       aiChatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [aiHistory, isAiOpen]);
+  }, [aiHistory, isAiOpen, typingMessageIndex, isAiLoading]);
 
   const handleSendAiMessage = useCallback(async (messageText: string) => {
     let finalMsg = messageText.trim();
@@ -260,6 +964,13 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     }
     if (!finalMsg) return;
     
+    // Stop speaking if active
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      setSpeakingTextId(null);
+    }
+
     const textLower = finalMsg.toLowerCase();
     let currentThinking = "JARVIS sedang merangkai kata...";
     
@@ -278,6 +989,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     }
     
     setThinkingText(currentThinking);
+    playSciFiSound("thinking");
 
     const imageToSend = selectedImage ? { ...selectedImage } : undefined;
     const newUserMessage = { 
@@ -309,11 +1021,19 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
       }
 
       const data = await response.json();
-      setAiHistory((prev) => [...prev, {
+      const nextModelMessage = {
         role: "model" as const,
         content: data.message || "Berikut hasil draf email yang berhasil saya buat:",
         template: data.template || null
-      }]);
+      };
+
+      setAiHistory((prev) => {
+        const updated = [...prev, nextModelMessage];
+        // Set typing index for the newly added model message
+        setTypingMessageIndex(updated.length - 1);
+        return updated;
+      });
+
     } catch (err: any) {
       console.log("[AI Client] Request handled.", err?.message || err);
       setAiError(err.message || "Koneksi AI terputus atau API Key belum diset.");
@@ -330,6 +1050,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     window.dispatchEvent(new CustomEvent("apply-template", { detail: tpl }));
     setActiveTab("send");
     setIsAiOpen(false);
+    playSciFiSound("success");
 
     // Trigger visual notification
     window.dispatchEvent(new CustomEvent("banking-notif", {
@@ -358,6 +1079,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     setTemplates(updated);
     localStorage.setItem("email_templates", JSON.stringify(updated));
     addLog("success", `Template AI "${newTemplate.name}" disimpan ke koleksi.`);
+    playSciFiSound("success");
     
     // Trigger visual notification
     window.dispatchEvent(new CustomEvent("banking-notif", {
@@ -371,6 +1093,35 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
       }
     }));
   }, [templates, setTemplates, addLog]);
+
+  const handleTemplateSubjectChange = useCallback((idx: number, newSubject: string) => {
+    setAiHistory(prev => {
+      const copy = [...prev];
+      if (copy[idx]?.template) {
+        copy[idx].template = { ...copy[idx].template, subject: newSubject };
+      }
+      return copy;
+    });
+  }, []);
+
+  const handleTemplateHtmlChange = useCallback((idx: number, newHtml: string) => {
+    setAiHistory(prev => {
+      const copy = [...prev];
+      if (copy[idx]?.template) {
+        copy[idx].template = { ...copy[idx].template, html: newHtml };
+      }
+      return copy;
+    });
+  }, []);
+
+  const handleTypewriterComplete = useCallback((idx: number, content: string) => {
+    setTypingMessageIndex(null);
+    if (autoVoice) {
+      speakText(content, idx);
+    } else {
+      playSciFiSound("success");
+    }
+  }, [autoVoice, speakText]);
 
   return (
     <AnimatePresence>
@@ -403,35 +1154,29 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
               className="absolute inset-0 pointer-events-none overflow-hidden z-[1]"
               style={{
                 backgroundImage: `
-                  radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 80%),
-                  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 30 h40 l15 15 h30 l10 10 h25 M30 0 v40 l15 15 v20 l15 15 v30 M80 120 v-30 l-15 -15 v-25 l-15 -15 v-35' fill='none' stroke='rgba(255,179,0,0.06)' stroke-width='1.2' stroke-dasharray='3 3' /%3E%3Ccircle cx='40' cy='30' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='55' cy='45' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='85' cy='45' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='95' cy='55' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='45' cy='55' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='60' cy='75' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Cpath d='M10 10 h15 v15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M110 10 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M10 110 h15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M110 110 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3C/svg%3E"),
-                  linear-gradient(rgba(255, 179, 0, 0.012) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(255, 179, 0, 0.012) 1px, transparent 1px)
+                  radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 80%),
+                  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 30 h40 l15 15 h30 l10 10 h25 M30 0 v40 l15 15 v20 l15 15 v30 M80 120 v-30 l-15 -15 v-25 l-15 -15 v-35' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1.2' stroke-dasharray='3 3' /%3E%3Ccircle cx='40' cy='30' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='55' cy='45' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='85' cy='45' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='95' cy='55' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='45' cy='55' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='60' cy='75' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Cpath d='M10 10 h15 v15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M110 10 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M10 110 h15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M110 110 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3C/svg%3E"),
+                  linear-gradient(rgba(255, 179, 0, 0.006) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(255, 179, 0, 0.006) 1px, transparent 1px)
                 `,
                 backgroundSize: "100% 100%, 120px 120px, 30px 30px, 30px 30px",
-                mixBlendMode: "overlay",
-                opacity: 0.9,
+                opacity: 0.7,
               }}
             />
-
-            {/* No heavy wash-out overlay or double logo, matches other pages perfectly for a clean unified design */}
-
 
             {/* Header Banner */}
             <div className="p-4 border-b border-slate-200/80 bg-white/75 backdrop-blur-md flex justify-between items-center shrink-0 relative z-10 shadow-[0_1px_10px_rgba(0,0,0,0.02)]">
               <div className="flex items-center gap-3">
                 {/* High-tech Icon container */}
                 <div className="w-8 h-8 bg-slate-950 border border-jago/80 text-jago rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(255,179,0,0.25)] shrink-0 relative overflow-hidden">
-                  {/* Tech background matrix scan */}
                   <div className="absolute inset-0 bg-[radial-gradient(#FFB300_1px,transparent_1px)] [background-size:6px_6px] opacity-25" />
                   <div className="flex items-center justify-center animate-[spin_8s_linear_infinite]">
                     <Sparkles className="w-4 h-4 text-jago drop-shadow-[0_0_4px_#FFB300]" />
                   </div>
-                  {/* Glowing status pulse dot */}
                   <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-jago shadow-[0_0_6px_#FFB300]" />
                 </div>
                 
-                {/* Cool Glowing "JARVIS" Text without dots */}
+                {/* Cool Glowing "JARVIS" Text */}
                 <div className="flex flex-col items-start leading-none">
                   <span 
                     className="font-mono font-black text-slate-900 tracking-[0.22em] text-sm uppercase transition-all duration-300 drop-shadow-[0_0_6px_rgba(255,179,0,0.15)]"
@@ -444,7 +1189,24 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   </span>
                 </div>
               </div>
+              
               <div className="flex items-center gap-1.5">
+                {/* Auto Voice Toggle with pulsing status ring */}
+                <button
+                  type="button"
+                  onClick={toggleAutoVoice}
+                  className={hn(
+                    "px-2 py-1 border rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5",
+                    autoVoice 
+                      ? "bg-amber-500 border-amber-600 text-white shadow-[0_0_10px_rgba(255,179,0,0.35)]" 
+                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                  )}
+                  title="Suara Otomatis JARVIS setelah mengetik"
+                >
+                  <span className={hn("w-1.5 h-1.5 rounded-full", autoVoice ? "bg-white animate-ping" : "bg-slate-400")} />
+                  VOICE: {autoVoice ? "ON" : "OFF"}
+                </button>
+
                 {aiHistory.length > 1 && (
                   <button
                     onClick={() => {
@@ -452,13 +1214,14 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                         setAiHistory([
                           {
                             role: "model",
-                            content: "Halo...Saya JARVIS sistem sudah siap silahkan beri perintah"
+                            content: "Halo...Saya JARVIS asisten draf email taktis. Sistem siap mendengarkan perintah Anda!"
                           }
                         ]);
                         addLog("warning", "Riwayat percakapan JARVIS dibersihkan.");
+                        playSciFiSound("click");
                       }
                     }}
-                    className="px-2 py-0.5 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                    className="px-2 py-1 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer"
                     title="Reset obrolan"
                   >
                     Reset
@@ -473,235 +1236,98 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
               </div>
             </div>
 
+            {/* Neural core active wave state */}
+            <JarvisVoiceVisualizer isSpeaking={isSpeaking} />
+
             {/* Chat History & Stream Container */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-transparent relative z-10">
-              {aiHistory.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={hn(
-                    "flex flex-col max-w-[85%] rounded-2xl p-3.5 shadow-sm text-xs",
-                    msg.role === "user"
-                      ? "bg-amber-500 text-white rounded-br-none ml-auto border border-amber-600 shadow-md shadow-amber-500/10 font-extrabold"
-                      : "bg-slate-50 border border-slate-200 text-slate-800 rounded-bl-none mr-auto shadow-sm"
-                  )}
-                >
-                  <span className={`text-[8px] font-black uppercase tracking-wider mb-1 ${msg.role === "user" ? "text-amber-100" : "text-slate-400"}`}>
-                    {msg.role === "user" ? "Anda" : "JARVIS"}
-                  </span>
-                  
-                  {msg.image && (
-                    <div className="mb-2 rounded-lg overflow-hidden border border-slate-200 max-w-[180px]">
-                      <img 
-                        src={`data:${msg.image.mimeType};base64,${msg.image.data}`} 
-                        alt={msg.image.name} 
-                        className="w-full h-auto object-cover max-h-[140px]"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                  )}
-
-                  <p className={`font-semibold leading-relaxed whitespace-pre-wrap ${msg.role === "user" ? "text-white" : "text-slate-800"}`}>
-                    {msg.content}
-                  </p>
-
-                  {/* Display template suggestions inside the chat if present */}
-                  {msg.template && (
-                    <div className="mt-3.5 pt-3.5 border-t border-slate-200 space-y-2.5">
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
-                        <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">
-                          Subjek Rekomendasi (Dapat Diedit):
-                        </div>
-                        <input
-                          type="text"
-                          value={msg.template.subject}
-                          onChange={(e) => {
-                            const updatedHistory = [...aiHistory];
-                            updatedHistory[idx].template = {
-                              ...msg.template,
-                              subject: e.target.value
-                            };
-                            setAiHistory(updatedHistory);
-                          }}
-                          className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-amber-500 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-800 focus:outline-none transition-all placeholder:text-slate-400"
-                          placeholder="Masukkan subjek draf..."
-                        />
-                      </div>
-
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex flex-col gap-2">
-                        <div className="flex items-center justify-between">
-                          <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest font-mono">
-                            Isi Pesan / Desain Template:
-                          </div>
-                          
-                          {/* Segmented Mode Control */}
-                          <div className="flex bg-slate-100 border border-slate-200 rounded-lg p-0.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditModes(prev => ({ ...prev, [idx]: 'preview' }));
-                              }}
-                              className={hn(
-                                "px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider rounded transition-all",
-                                editModes[idx] !== 'html' 
-                                  ? "bg-amber-500 text-white font-black" 
-                                  : "text-slate-500 hover:text-slate-800"
-                              )}
-                            >
-                              Pratinjau
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditModes(prev => ({ ...prev, [idx]: 'html' }));
-                              }}
-                              className={hn(
-                                "px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider rounded transition-all",
-                                editModes[idx] === 'html' 
-                                  ? "bg-amber-500 text-white font-black" 
-                                  : "text-slate-500 hover:text-slate-800"
-                              )}
-                            >
-                              Edit Teks & HTML
-                            </button>
-                          </div>
-                        </div>
-
-                        {editModes[idx] === 'html' ? (
-                          <div className="w-full h-[220px] rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex flex-col relative">
-                            <textarea
-                              value={msg.template.html}
-                              onChange={(e) => {
-                                const updatedHistory = [...aiHistory];
-                                updatedHistory[idx].template = {
-                                  ...msg.template,
-                                  html: e.target.value
-                                };
-                                setAiHistory(updatedHistory);
-                              }}
-                              className="w-full h-full p-3 bg-transparent text-slate-800 font-mono text-[10px] resize-none focus:outline-none focus:ring-0 leading-relaxed overflow-y-auto"
-                              placeholder="Ketik atau edit semua teks/kode HTML di sini..."
-                            />
-                            <div className="absolute bottom-2 right-2 bg-slate-200 border border-slate-300 text-[7px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded text-slate-500 select-none font-mono">
-                              Kode Sumber / Teks
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="w-full h-[220px] rounded-lg overflow-hidden border border-slate-200 bg-white">
-                            <iframe
-                              title="AI Template Preview"
-                              srcDoc={`
-                                <!DOCTYPE html>
-                                <html>
-                                  <head>
-                                    <meta charset="utf-8">
-                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                    <style>
-                                      html, body {
-                                        margin: 0;
-                                        padding: 0;
-                                        width: 100%;
-                                        min-height: 100%;
-                                        background-color: #ffffff;
-                                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                                        color: #333333;
-                                        overflow-x: hidden !important;
-                                        position: relative;
-                                      }
-                                      img {
-                                        max-width: 100%;
-                                        height: auto;
-                                      }
-                                    </style>
-                                  </head>
-                                  <body>
-                                    ${msg.template.html}
-                                    <script>
-                                      window.addEventListener('DOMContentLoaded', function() {
-                                        var wrapper = document.createElement('div');
-                                        wrapper.id = 'email-wrapper';
-                                        wrapper.style.width = '600px';
-                                        wrapper.style.position = 'absolute';
-                                        wrapper.style.left = '50%';
-                                        wrapper.style.top = '0';
-                                        wrapper.style.transformOrigin = 'top center';
-                                        wrapper.style.boxSizing = 'border-box';
-                                        
-                                        while (document.body.firstChild) {
-                                          wrapper.appendChild(document.body.firstChild);
-                                        }
-                                        document.body.appendChild(wrapper);
-                                        
-                                        function adjustScale() {
-                                          var viewportWidth = window.innerWidth;
-                                          var targetWidth = viewportWidth - 8;
-                                          if (targetWidth < 200) targetWidth = viewportWidth;
-                                          var scale = targetWidth / 600;
-                                          
-                                          if (scale < 1) {
-                                            wrapper.style.transform = 'translateX(-50%) scale(' + scale + ')';
-                                            document.body.style.height = (wrapper.offsetHeight * scale + 16) + 'px';
-                                          } else {
-                                            wrapper.style.transform = 'translateX(-50%)';
-                                            document.body.style.height = (wrapper.offsetHeight + 16) + 'px';
-                                          }
-                                        }
-                                        
-                                        window.addEventListener('resize', adjustScale);
-                                        window.addEventListener('load', adjustScale);
-                                        setTimeout(adjustScale, 50);
-                                        setTimeout(adjustScale, 200);
-                                        setTimeout(adjustScale, 500);
-                                        setInterval(adjustScale, 1000);
-                                      });
-                                    </script>
-                                  </body>
-                                </html>
-                              `}
-                              className="w-full h-full border-0 bg-white"
-                              sandbox="allow-popups allow-scripts"
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Custom Button & Link Editor Panel */}
-                      <LinkEditor
-                        templateHtml={msg.template.html}
-                        onLinkUpdate={(newHtml) => {
-                          const updatedHistory = [...aiHistory];
-                          updatedHistory[idx].template = {
-                            ...msg.template,
-                            html: newHtml
-                          };
-                          setAiHistory(updatedHistory);
-                        }}
-                      />
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => applyAiTemplateToForm(msg.template)}
-                          className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 shadow-sm transition-all uppercase tracking-wider border border-amber-600"
-                        >
-                          <Send className="w-3 h-3" /> Gunakan di Form
-                        </button>
-                        <button
-                          onClick={() => saveAiTemplateToCollection(msg.template)}
-                          className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 transition-all uppercase tracking-wider border border-slate-200"
-                        >
-                          <FileText className="w-3 h-3" /> Simpan Koleksi
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+              {aiHistory.map((msg, idx) => {
+                const editMode = editModes[idx] || "preview";
+                const setEditMode = (mode: "preview" | "html") => {
+                  setEditModes(prev => ({ ...prev, [idx]: mode }));
+                };
+                const isSpeakingThisMessage = speakingTextId === idx;
+                const isTypingThisMessage = typingMessageIndex === idx;
+                
+                return (
+                  <ChatMessageItem
+                    key={idx}
+                    msg={msg}
+                    idx={idx}
+                    editMode={editMode}
+                    setEditMode={setEditMode}
+                    isSpeakingThisMessage={isSpeakingThisMessage}
+                    speakText={() => speakText(msg.content, idx)}
+                    isTypingThisMessage={isTypingThisMessage}
+                    handleTypewriterComplete={() => handleTypewriterComplete(idx, msg.content)}
+                    isAiLoading={isAiLoading}
+                    handleSendAiMessage={handleSendAiMessage}
+                    applyAiTemplateToForm={() => applyAiTemplateToForm(msg.template)}
+                    saveAiTemplateToCollection={() => saveAiTemplateToCollection(msg.template)}
+                    onTemplateSubjectChange={(newSubject) => handleTemplateSubjectChange(idx, newSubject)}
+                    onTemplateHtmlChange={(newHtml) => handleTemplateHtmlChange(idx, newHtml)}
+                  />
+                );
+              })}
 
               {isAiLoading && (
-                <div className="bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl rounded-bl-none p-3.5 shadow-sm max-w-[85%] mr-auto flex items-center gap-2.5">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-500 animate-spin shrink-0" />
-                  <span className="text-xs font-bold text-slate-500 animate-pulse">
-                    {thinkingText}
-                  </span>
+                <div className="bg-slate-900 border border-amber-500/30 text-white rounded-2xl rounded-bl-none p-4 shadow-[0_4px_20px_rgba(255,179,0,0.12)] max-w-[88%] mr-auto space-y-3 relative overflow-hidden z-10 animate-fade-in">
+                  {/* Glowing background circuit pulse */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
+                  
+                  {/* Core Status Header */}
+                  <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-800">
+                    <div className="relative flex items-center justify-center shrink-0">
+                      <span className="absolute inline-flex h-3 w-3 rounded-full bg-amber-500/30 animate-ping" />
+                      <Loader2 className="w-4 h-4 text-amber-500 animate-spin relative" />
+                    </div>
+                    <div className="flex flex-col leading-tight">
+                      <span className="text-[10px] font-mono font-black text-slate-100 tracking-wider uppercase">
+                        JARVIS CO-PILOT AGENT
+                      </span>
+                      <span className="text-[7px] font-mono font-black text-amber-400 uppercase tracking-widest animate-pulse">
+                        PIPELINE STATUS: PROCESSING...
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Real-time Ticking Activity Logs (Replit Agent Style) */}
+                  <div className="space-y-2 py-0.5">
+                    {aiSteps.map((step) => (
+                      <div key={step.id} className="flex items-start gap-2.5 text-[10px] transition-all duration-300">
+                        {step.status === "completed" && (
+                          <div className="w-4 h-4 rounded-full bg-emerald-500/15 border border-emerald-500/50 text-emerald-400 flex items-center justify-center text-[8px] font-extrabold shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.2)]">
+                            ✓
+                          </div>
+                        )}
+                        {step.status === "active" && (
+                          <div className="w-4 h-4 rounded-full bg-amber-500/10 border border-amber-500 text-amber-400 flex items-center justify-center text-[7px] font-black shrink-0 relative shadow-[0_0_8px_rgba(245,158,11,0.2)]">
+                            <span className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping" />
+                            ●
+                          </div>
+                        )}
+                        {step.status === "pending" && (
+                          <div className="w-4 h-4 rounded-full bg-slate-800/60 border border-slate-700/80 text-slate-500 flex items-center justify-center text-[7px] font-bold shrink-0">
+                            ○
+                          </div>
+                        )}
+                        <span className={hn(
+                          "font-semibold transition-colors duration-200 leading-snug",
+                          step.status === "completed" && "text-slate-500 line-through decoration-slate-600/60",
+                          step.status === "active" && "text-amber-400 font-bold drop-shadow-[0_0_2px_rgba(245,158,11,0.2)]",
+                          step.status === "pending" && "text-slate-600"
+                        )}>
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Real-time micro status banner */}
+                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[7px] font-mono font-black text-slate-400 uppercase tracking-widest">
+                    <span className="truncate max-w-[150px]">AKTIVITAS: {thinkingText}</span>
+                    <span className="text-cyan-400 animate-pulse uppercase shrink-0">ONLINE</span>
+                  </div>
                 </div>
               )}
 
@@ -725,6 +1351,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
               ].map((sug, i) => (
                 <button
                   key={i}
+                  type="button"
                   onClick={() => handleSendAiMessage(sug.prompt)}
                   disabled={isAiLoading}
                   className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-full hover:border-amber-500 hover:text-amber-600 text-[9px] font-extrabold text-slate-600 hover:bg-amber-50 shrink-0 transition-all cursor-pointer shadow-sm uppercase tracking-tight"
@@ -759,7 +1386,10 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   </div>
                   <button
                     type="button"
-                    onClick={() => setSelectedImage(null)}
+                    onClick={() => {
+                      setSelectedImage(null);
+                      playSciFiSound("click");
+                    }}
                     className="p-1 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-lg transition-all"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -786,7 +1416,10 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                 <button
                   type="button"
                   disabled={isAiLoading}
-                  onClick={() => document.getElementById("ai-image-upload")?.click()}
+                  onClick={() => {
+                    playSciFiSound("click");
+                    document.getElementById("ai-image-upload")?.click();
+                  }}
                   className={`p-2.5 rounded-xl border transition-all flex items-center justify-center shrink-0 cursor-pointer ${
                     selectedImage 
                       ? "bg-amber-100 text-amber-700 border-amber-300" 

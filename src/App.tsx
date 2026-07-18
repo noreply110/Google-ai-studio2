@@ -538,19 +538,18 @@ export default function App() {
         className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${jarvisBg})` }}
       />
-      {/* Subtle metallic texture and 'circuit-board' tech pattern overlay with CSS overlay blend-mode */}
+      {/* Subtle metallic texture and 'circuit-board' tech pattern overlay */}
       <div 
         className="absolute inset-0 pointer-events-none overflow-hidden z-[1]"
         style={{
           backgroundImage: `
-            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 80%),
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 30 h40 l15 15 h30 l10 10 h25 M30 0 v40 l15 15 v20 l15 15 v30 M80 120 v-30 l-15 -15 v-25 l-15 -15 v-35' fill='none' stroke='rgba(255,179,0,0.06)' stroke-width='1.2' stroke-dasharray='3 3' /%3E%3Ccircle cx='40' cy='30' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='55' cy='45' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='85' cy='45' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='95' cy='55' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='45' cy='55' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Ccircle cx='60' cy='75' r='3' fill='rgba(255,179,0,0.14)' /%3E%3Cpath d='M10 10 h15 v15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M110 10 h-15 v15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M10 110 h15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3Cpath d='M110 110 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1' /%3E%3C/svg%3E"),
-            linear-gradient(rgba(255, 179, 0, 0.012) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 179, 0, 0.012) 1px, transparent 1px)
+            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 80%),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 30 h40 l15 15 h30 l10 10 h25 M30 0 v40 l15 15 v20 l15 15 v30 M80 120 v-30 l-15 -15 v-25 l-15 -15 v-35' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1.2' stroke-dasharray='3 3' /%3E%3Ccircle cx='40' cy='30' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='55' cy='45' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='85' cy='45' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='95' cy='55' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='45' cy='55' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='60' cy='75' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Cpath d='M10 10 h15 v15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M110 10 h-15 v15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M10 110 h15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M110 110 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3C/svg%3E"),
+            linear-gradient(rgba(255, 179, 0, 0.006) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 179, 0, 0.006) 1px, transparent 1px)
           `,
           backgroundSize: "100% 100%, 120px 120px, 30px 30px, 30px 30px",
-          mixBlendMode: "overlay",
-          opacity: 0.9,
+          opacity: 0.7,
         }}
       />
 
