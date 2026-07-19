@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Sparkles, Plus, Loader2, AlertCircle, Send, FileText, Star, Image, X, Volume2, VolumeX, Play, Square } from "lucide-react";
+import { Sparkles, Plus, Loader2, AlertCircle, Send, FileText, Star, Image, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { EmailTemplate } from "../types";
 import jarvisBg from "../assets/images/jarvis_cool_background_1783882128944.jpg";
@@ -104,96 +104,6 @@ const playSciFiSound = (type: "thinking" | "ready" | "click" | "success" | "spea
     console.warn("Speech synthesis audio feedback error:", e);
   }
 };
-
-// Holographic JARVIS Voice Waveform Visualizer
-const JarvisVoiceVisualizer: React.FC<{ isSpeaking: boolean }> = ({ isSpeaking }) => {
-  const [bars, setBars] = useState<number[]>(Array(16).fill(6));
-  
-  useEffect(() => {
-    if (!isSpeaking) {
-      setBars(Array(16).fill(4));
-      return;
-    }
-    
-    const interval = setInterval(() => {
-      setBars(Array(16).fill(0).map(() => Math.floor(Math.random() * 22) + 4));
-    }, 60);
-    
-    return () => clearInterval(interval);
-  }, [isSpeaking]);
-  
-  return (
-    <div className="mx-4 my-2 px-3 py-2 bg-slate-950/90 border border-amber-500/20 rounded-xl shadow-[0_0_15px_rgba(255,179,0,0.1)] flex items-center justify-between overflow-hidden relative z-10">
-      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-cyan-500/5 to-amber-500/5 animate-pulse pointer-events-none" />
-      <div className="flex items-center gap-1.5 shrink-0 select-none">
-        <span className="relative flex h-2 w-2">
-          <span className={hn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", isSpeaking ? "bg-amber-400" : "bg-cyan-400")} />
-          <span className={hn("relative inline-flex rounded-full h-2 w-2", isSpeaking ? "bg-amber-500" : "bg-cyan-500")} />
-        </span>
-        <span className="text-[8px] font-black tracking-[0.2em] text-slate-300 font-mono uppercase">
-          JARVIS NEURAL CORE
-        </span>
-      </div>
-      
-      {/* Animated bars */}
-      <div className="flex items-center gap-[3px] h-6 justify-center">
-        {bars.map((h, i) => (
-          <div
-            key={i}
-            className={hn(
-              "w-1 rounded-full transition-all duration-75", 
-              isSpeaking 
-                ? "bg-gradient-to-t from-amber-500 to-cyan-400 opacity-95 shadow-[0_0_6px_rgba(255,179,0,0.3)]" 
-                : "bg-slate-700 opacity-50"
-            )}
-            style={{ height: `${h}px` }}
-          />
-        ))}
-      </div>
-      
-      <span className="text-[8px] font-mono font-bold text-cyan-400 uppercase tracking-widest animate-pulse">
-        {isSpeaking ? "SPEAKING" : "STANDBY"}
-      </span>
-    </div>
-  );
-};
-
-// Word-by-word streaming typewriter text
-interface TypewriterTextProps {
-  text: string;
-  onComplete?: () => void;
-  active: boolean;
-}
-
-const TypewriterText: React.FC<TypewriterTextProps> = React.memo(({ text, onComplete, active }) => {
-  const [displayed, setDisplayed] = useState(active ? "" : text);
-  
-  useEffect(() => {
-    if (!active) {
-      setDisplayed(text);
-      return;
-    }
-    
-    let currentIdx = 0;
-    const words = text.split(" ");
-    let currentText = "";
-    
-    const interval = setInterval(() => {
-      if (currentIdx < words.length) {
-        currentText += (currentIdx === 0 ? "" : " ") + words[currentIdx];
-        setDisplayed(currentText);
-        currentIdx++;
-      } else {
-        clearInterval(interval);
-        if (onComplete) onComplete();
-      }
-    }, 25); // natural fast typing pace
-    
-    return () => clearInterval(interval);
-  }, [text, active, onComplete]);
-  
-  return <p className="font-semibold leading-relaxed whitespace-pre-wrap text-slate-800">{displayed}</p>;
-});
 
 // Helper to extract links from an HTML string using DOMParser
 const getHtmlLinks = (html: string) => {
@@ -300,43 +210,53 @@ const getSafeSrcDoc = (html: string) => {
   
   const scalingScript = `
     <script>
-      window.addEventListener('DOMContentLoaded', function() {
-        var wrapper = document.createElement('div');
-        wrapper.id = 'email-wrapper';
-        wrapper.style.width = '600px';
-        wrapper.style.position = 'absolute';
-        wrapper.style.left = '50%';
-        wrapper.style.top = '0';
-        wrapper.style.transformOrigin = 'top center';
-        wrapper.style.boxSizing = 'border-box';
-        
-        while (document.body.firstChild) {
-          wrapper.appendChild(document.body.firstChild);
-        }
-        document.body.appendChild(wrapper);
-        
-        function adjustScale() {
-          var viewportWidth = window.innerWidth;
-          var targetWidth = viewportWidth - 8;
-          if (targetWidth < 200) targetWidth = viewportWidth;
-          var scale = targetWidth / 600;
+      (function() {
+        function init() {
+          if (document.getElementById('email-wrapper')) return; // already initialized
+          var wrapper = document.createElement('div');
+          wrapper.id = 'email-wrapper';
+          wrapper.style.width = '600px';
+          wrapper.style.position = 'absolute';
+          wrapper.style.left = '50%';
+          wrapper.style.top = '0';
+          wrapper.style.transformOrigin = 'top center';
+          wrapper.style.boxSizing = 'border-box';
           
-          if (scale < 1) {
-            wrapper.style.transform = 'translateX(-50%) scale(' + scale + ')';
-            document.body.style.height = (wrapper.offsetHeight * scale + 16) + 'px';
-          } else {
-            wrapper.style.transform = 'translateX(-50%)';
-            document.body.style.height = (wrapper.offsetHeight + 16) + 'px';
+          while (document.body.firstChild) {
+            wrapper.appendChild(document.body.firstChild);
           }
+          document.body.appendChild(wrapper);
+          
+          function adjustScale() {
+            var viewportWidth = window.innerWidth;
+            var targetWidth = viewportWidth - 8;
+            if (targetWidth < 200) targetWidth = viewportWidth;
+            var scale = targetWidth / 600;
+            
+            if (scale < 1) {
+              wrapper.style.transform = 'translateX(-50%) scale(' + scale + ')';
+              document.body.style.height = (wrapper.offsetHeight * scale + 16) + 'px';
+            } else {
+              wrapper.style.transform = 'translateX(-50%)';
+              document.body.style.height = (wrapper.offsetHeight + 16) + 'px';
+            }
+          }
+          
+          window.addEventListener('resize', adjustScale);
+          window.addEventListener('load', adjustScale);
+          adjustScale();
+          setTimeout(adjustScale, 50);
+          setTimeout(adjustScale, 200);
+          setTimeout(adjustScale, 500);
+          setInterval(adjustScale, 1000);
         }
         
-        window.addEventListener('resize', adjustScale);
-        window.addEventListener('load', adjustScale);
-        setTimeout(adjustScale, 50);
-        setTimeout(adjustScale, 200);
-        setTimeout(adjustScale, 500);
-        setInterval(adjustScale, 1000);
-      });
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          init();
+        } else {
+          document.addEventListener('DOMContentLoaded', init);
+        }
+      })();
     </script>
   `;
 
@@ -386,10 +306,6 @@ interface ChatMessageItemProps {
   idx: number;
   editMode: "preview" | "html";
   setEditMode: (mode: "preview" | "html") => void;
-  isSpeakingThisMessage: boolean;
-  speakText: () => void;
-  isTypingThisMessage: boolean;
-  handleTypewriterComplete: () => void;
   isAiLoading: boolean;
   handleSendAiMessage: (prompt: string) => void;
   applyAiTemplateToForm: () => void;
@@ -403,10 +319,6 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
   idx,
   editMode,
   setEditMode,
-  isSpeakingThisMessage,
-  speakText,
-  isTypingThisMessage,
-  handleTypewriterComplete,
   isAiLoading,
   handleSendAiMessage,
   applyAiTemplateToForm,
@@ -427,29 +339,6 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
         <span className={msg.role === "user" ? "text-amber-100" : "text-slate-400"}>
           {msg.role === "user" ? "Anda" : "JARVIS"}
         </span>
-        {msg.role === "model" && (
-          <button
-            type="button"
-            onClick={speakText}
-            className={hn(
-              "px-1.5 py-0.5 rounded border text-[7px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer",
-              isSpeakingThisMessage 
-                ? "bg-amber-500 text-white border-amber-600 animate-pulse" 
-                : "bg-white border-slate-200 text-slate-500 hover:text-slate-800"
-            )}
-            title="Dengarkan Suara JARVIS"
-          >
-            {isSpeakingThisMessage ? (
-              <>
-                <Square className="w-2 h-2 fill-current" /> Stop
-              </>
-            ) : (
-              <>
-                <Volume2 className="w-2 h-2" /> Speak
-              </>
-            )}
-          </button>
-        )}
       </div>
       
       {msg.image && (
@@ -463,21 +352,12 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
         </div>
       )}
 
-      {/* Render Typewriter Effect for the active model message stream, else static */}
-      {msg.role === "model" && isTypingThisMessage ? (
-        <TypewriterText 
-          text={msg.content} 
-          active={true} 
-          onComplete={handleTypewriterComplete} 
-        />
-      ) : (
-        <p className={hn("font-semibold leading-relaxed whitespace-pre-wrap", msg.role === "user" ? "text-white" : "text-slate-800")}>
-          {msg.content}
-        </p>
-      )}
+      <p className={hn("font-semibold leading-relaxed whitespace-pre-wrap", msg.role === "user" ? "text-white" : "text-slate-800")}>
+        {msg.content}
+      </p>
 
       {/* Contextual instant actions cards under generated drafts */}
-      {!isAiLoading && msg.role === "model" && msg.template && !isTypingThisMessage && (
+      {!isAiLoading && msg.role === "model" && msg.template && (
         <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex flex-wrap gap-1.5">
           <div className="w-full text-[7px] font-black text-slate-400 uppercase tracking-widest font-mono mb-1">
             ⚡ MODIFIKASI CEPAT JARVIS:
@@ -640,15 +520,23 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     template?: any;
     image?: { data: string; mimeType: string; name: string };
   }>>(() => {
+    const defaultGreeting = "Hallo...Saya JARVIS,\nServer ready silahkan berikan perintah..!!";
     if (typeof window !== "undefined") {
       try {
-        const saved = localStorage.getItem("jarvis_ai_history");
-        return saved ? JSON.parse(saved) : [
-          {
-            role: "model",
-            content: "Halo! Saya J.A.R.V.I.S, Asisten AI Co-pilot Anda untuk rancangan email premium dan analisis draf email secara real-time. 🚀\n\nSaya hadir untuk mendesain secara interaktif bersama Anda! Anda bisa mengajak saya berinteraksi dengan cara:\n1. 📸 **Mengirimkan tangkapan layar (screenshot)** bukti transaksi/resi pembayaran agar saya menganalisis dan menduplikasi desain emailnya secara instan.\n2. 🎨 **Menyesuaikan estetika & gaya draf**, seperti mengganti warna aksen brand perbankan (Mandiri, BCA, CIMB Niaga, dll.), menyisipkan tabel, atau mengedit teks tombol.\n3. 🗣️ **Menggunakan fitur Speak** untuk mendengarkan pelafalan draf, serta menyunting nada bahasa (menjadi lebih tegas, bersahabat, mendesak, atau santun).\n\n**Bagaimana, apa yang ingin kita rancang hari ini?** Tuliskan ide Anda atau klik tombol rekomendasi cepat di bawah untuk langsung menguji kepiawaian saya!"
+        const saved = localStorage.getItem("jarvis_ai_history_v3");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Enforce brief sapaan on mount: if the cached sapaan is too long or from old versions, replace it
+            if (parsed[0] && parsed[0].role === "model") {
+              const content = parsed[0].content || "";
+              if (content.length > 100 || content.includes("bantuan") || !content.includes("Server ready")) {
+                parsed[0].content = defaultGreeting;
+              }
+            }
+            return parsed;
           }
-        ];
+        }
       } catch (e) {
         console.error("Gagal membaca riwayat chat J.A.R.V.I.S:", e);
       }
@@ -656,7 +544,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     return [
       {
         role: "model",
-        content: "Halo! Saya J.A.R.V.I.S, Asisten AI Co-pilot Anda untuk rancangan email premium dan analisis draf email secara real-time. 🚀\n\nSaya hadir untuk mendesain secara interaktif bersama Anda! Anda bisa mengajak saya berinteraksi dengan cara:\n1. 📸 **Mengirimkan tangkapan layar (screenshot)** bukti transaksi/resi pembayaran agar saya menganalisis dan menduplikasi desain emailnya secara instan.\n2. 🎨 **Menyesuaikan estetika & gaya draf**, seperti mengganti warna aksen brand perbankan (Mandiri, BCA, CIMB Niaga, dll.), menyisipkan tabel, atau mengedit teks tombol.\n3. 🗣️ **Menggunakan fitur Speak** untuk mendengarkan pelafalan draf, serta menyunting nada bahasa (menjadi lebih tegas, bersahabat, mendesak, atau santun).\n\n**Bagaimana, apa yang ingin kita rancang hari ini?** Tuliskan ide Anda atau klik tombol rekomendasi cepat di bawah untuk langsung menguji kepiawaian saya!"
+        content: defaultGreeting
       }
     ];
   });
@@ -665,7 +553,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
   useEffect(() => {
     const handler = setTimeout(() => {
       try {
-        localStorage.setItem("jarvis_ai_history", JSON.stringify(aiHistory));
+        localStorage.setItem("jarvis_ai_history_v3", JSON.stringify(aiHistory));
       } catch (e) {
         console.error("Gagal menyimpan riwayat chat J.A.R.V.I.S:", e);
       }
@@ -680,18 +568,17 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [thinkingText, setThinkingText] = useState("JARVIS sedang merangkai kata...");
-  const [typingMessageIndex, setTypingMessageIndex] = useState<number | null>(null);
-  const [aiSteps, setAiSteps] = useState<Array<{ id: number; label: string; status: "pending" | "active" | "completed" }>>([]);
+  const [resetConfirm, setResetConfirm] = useState(false);
 
-  // Voice States
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [speakingTextId, setSpeakingTextId] = useState<number | null>(null);
-  const [autoVoice, setAutoVoice] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("jarvis_auto_voice") === "true";
+  // Auto-reset the warning state after 3 seconds of inactivity
+  useEffect(() => {
+    if (resetConfirm) {
+      const timer = setTimeout(() => {
+        setResetConfirm(false);
+      }, 3000);
+      return () => clearTimeout(timer);
     }
-    return false;
-  });
+  }, [resetConfirm]);
 
   const aiChatEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -699,179 +586,83 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
   useEffect(() => {
     if (isAiOpen) {
       playSciFiSound("ready");
-    } else {
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        setIsSpeaking(false);
-        setSpeakingTextId(null);
-      }
     }
   }, [isAiOpen]);
 
-  // Handle unmount speech cancel
+  // Dynamically cycle thinking text during isAiLoading to represent JARVIS workflow step-by-step
   useEffect(() => {
-    return () => {
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
+    if (!isAiLoading) return;
 
-  // Set up Replit-Agent style real-time pipeline progress steps whenever AI begins loading
-  useEffect(() => {
-    if (!isAiLoading) {
-      setAiSteps([]);
-      return;
+    const lastMsg = aiHistory[aiHistory.length - 1];
+    const textLower = (lastMsg?.content || "").toLowerCase();
+    const hasImage = !!lastMsg?.image;
+
+    let steps = [
+      "Membaca pesan instruksi & konteks draf...",
+      "Melacak pola keamanan bank & kecocokan data...",
+      "Menyusun struktur tata letak HTML e-mail responsif...",
+      "Menyisipkan tombol taktis, tautan, & placeholder...",
+      "Finalisasi respons & validasi intonasi vokal..."
+    ];
+
+    if (hasImage) {
+      steps = [
+        "Memproses gambar lampiran & ekstraksi visual...",
+        "Melacak pola keamanan bank & kecocokan data...",
+        "Menyusun struktur tata letak HTML e-mail responsif...",
+        "Menyisipkan tombol taktis, tautan, & placeholder...",
+        "Finalisasi respons & validasi intonasi vokal..."
+      ];
+    } else if (textLower.includes("promosi") || textLower.includes("diskon") || textLower.includes("marketing") || textLower.includes("pemasaran")) {
+      steps = [
+        "Menganalisis segmentasi nasabah & gaya marketing...",
+        "Menghitung kalkulasi diskon & penawaran promosi...",
+        "Menyusun struktur tata letak HTML email promosi...",
+        "Menambahkan tombol CTA (Call-to-Action) interaktif...",
+        "Menyelaraskan intonasi komunikasi promosi..."
+      ];
+    } else if (textLower.includes("optimasi") || textLower.includes("poles") || textLower.includes("perbaiki") || textLower.includes("sunting")) {
+      steps = [
+        "Menganalisis draf email yang ingin dioptimasi...",
+        "Memperbaiki kesalahan tata bahasa & penyusunan kalimat...",
+        "Meningkatkan kompatibilitas HTML & gaya visual...",
+        "Mengoptimalkan performa tombol & tautan penting...",
+        "Mematangkan intonasi vokal profesional..."
+      ];
+    } else if (textLower.includes("analis") || textLower.includes("cek") || textLower.includes("kualitas") || textLower.includes("score")) {
+      steps = [
+        "Mengevaluasi keseluruhan konten draf email...",
+        "Menguji kepatuhan keamanan perbankan (Spam/Phishing)...",
+        "Menilai tingkat keterbacaan & estetika visual...",
+        "Mengkalkulasi skor performa & saran perbaikan...",
+        "Mempersiapkan laporan audit JARVIS..."
+      ];
+    } else if (textLower.includes("terjemah") || textLower.includes("translate") || textLower.includes("inggris") || textLower.includes("english")) {
+      steps = [
+        "Mengidentifikasi bahasa sumber & bahasa tujuan...",
+        "Menerjemahkan kosakata ke padanan terminologi perbankan...",
+        "Menyesuaikan tata bahasa agar terdengar alami...",
+        "Mengintegrasikan kembali teks ke struktur template HTML...",
+        "Menyempurnakan intonasi pelafalan dwi-bahasa..."
+      ];
     }
 
-    const hasImage = !!selectedImage;
-    const initialSteps = [
-      { id: 1, label: hasImage ? "Memproses gambar lampiran & ekstraksi visual..." : "Membaca pesan instruksi & konteks draf...", status: "active" as const },
-      { id: 2, label: "Melacak pola keamanan bank & kecocokan data...", status: "pending" as const },
-      { id: 3, label: "Menyusun struktur tata letak HTML e-mail responsif...", status: "pending" as const },
-      { id: 4, label: "Menyisipkan tombol taktis, tautan, & placeholder...", status: "pending" as const },
-      { id: 5, label: "Finalisasi respons & validasi intonasi vokal...", status: "pending" as const }
-    ];
-    setAiSteps(initialSteps);
+    let currentIdx = 0;
+    setThinkingText(steps[0]);
 
-    let currentStep = 1;
     const interval = setInterval(() => {
-      setAiSteps(prev => {
-        if (currentStep >= 5) {
-          clearInterval(interval);
-          return prev.map(s => s.id === 5 ? { ...s, status: "completed" as const } : s);
-        }
-        
-        const nextSteps = prev.map(s => {
-          if (s.id === currentStep) {
-            return { ...s, status: "completed" as const };
-          }
-          if (s.id === currentStep + 1) {
-            return { ...s, status: "active" as const };
-          }
-          return s;
-        });
-        currentStep++;
-        return nextSteps;
-      });
-    }, 1100); // Super responsive, fast paced ticks for immediate satisfaction
+      currentIdx++;
+      if (currentIdx < steps.length) {
+        setThinkingText(steps[currentIdx]);
+      } else {
+        setThinkingText("Sedang merangkai kata terakhir...");
+      }
+    }, 2500);
 
     return () => clearInterval(interval);
-  }, [isAiLoading]);
+  }, [isAiLoading, aiHistory]);
 
-  const toggleAutoVoice = () => {
-    const newValue = !autoVoice;
-    setAutoVoice(newValue);
-    localStorage.setItem("jarvis_auto_voice", String(newValue));
-    addLog("info", `Auto Voice JARVIS: ${newValue ? 'ACTIVE' : 'MUTED'}`);
-    playSciFiSound("click");
-    if (!newValue && typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-      setSpeakingTextId(null);
-    }
-  };
 
-  const speakText = useCallback((text: string, id: number) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    
-    // If already speaking this message, cancel it
-    if (isSpeaking && speakingTextId === id) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-      setSpeakingTextId(null);
-      playSciFiSound("click");
-      return;
-    }
-    
-    window.speechSynthesis.cancel();
-    playSciFiSound("speak");
-    
-    // Strip markdown elements & HTML tags to read plain text
-    let cleanText = text
-      .replace(/<[^>]*>/g, "")
-      .replace(/\*+/g, "")
-      .replace(/_+/g, "")
-      .replace(/`+/g, "")
-      .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1");
-
-    // Replace acronyms/abbreviations with smooth human-readable phonetic equivalent
-    // Lowercase "yarvis" prevents any TTS engine from spelling out individual letters.
-    cleanText = cleanText
-      .replace(/J\.A\.R\.V\.I\.S\./gi, "yarvis")
-      .replace(/J\.A\.R\.V\.I\.S/gi, "yarvis")
-      .replace(/JARVIS/gi, "yarvis")
-      .replace(/Jarvis/gi, "yarvis")
-      .replace(/AI/g, "A.I.") // Let it pronounce as "A I" smoothly
-      .substring(0, 400); // limit spoken duration for premium comfort
-      
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    
-    // Set moderate, soft volume to sound polite and non-aggressive
-    utterance.volume = 0.85; 
-    
-    // Attempt Indonesian voice matching with preference for gentle male voices
-    const voices = window.speechSynthesis.getVoices();
-    const idVoices = voices.filter(v => 
-      v.lang.toLowerCase().includes("id") || 
-      v.lang.toLowerCase().includes("in-id")
-    );
-    
-    if (idVoices.length > 0) {
-      // Prioritize male Indonesian voice (e.g. ArdiNeural, Microsoft Ardi, or names with ardi/wira/male/hari/pria)
-      const maleVoice = idVoices.find(v => 
-        v.name.toLowerCase().includes("ardi") || 
-        v.name.toLowerCase().includes("hari") || 
-        v.name.toLowerCase().includes("wira") || 
-        v.name.toLowerCase().includes("male") ||
-        v.name.toLowerCase().includes("man") ||
-        v.name.toLowerCase().includes("cowok") ||
-        v.name.toLowerCase().includes("pria")
-      );
-      
-      if (maleVoice) {
-        utterance.voice = maleVoice;
-        utterance.pitch = 0.90; // Calmer, softer warm male voice
-      } else {
-        // Fallback: If only female ID voices are available, we adjust pitch and rate
-        // to sound extremely warm, slow, and sophisticated.
-        utterance.voice = idVoices[0];
-        utterance.pitch = 0.65; // Soften the frequency distortion so it's pleasant, gentle and robotic-chic
-      }
-    } else {
-      // General voice fallback, searching for english male voice with lowered pitch
-      const engMale = voices.find(v => 
-        (v.lang.toLowerCase().includes("en")) && 
-        (v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("guy"))
-      );
-      if (engMale) {
-        utterance.voice = engMale;
-        utterance.pitch = 0.70;
-      } else {
-        utterance.pitch = 0.65;
-      }
-    }
-    
-    // 0.88 - Slower speed for maximum elegance, poise, and calm interaction
-    utterance.rate = 0.88; 
-    
-    utterance.onstart = () => {
-      setIsSpeaking(true);
-      setSpeakingTextId(id);
-    };
-    
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      setSpeakingTextId(null);
-    };
-    
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      setSpeakingTextId(null);
-    };
-    
-    window.speechSynthesis.speak(utterance);
-  }, [isSpeaking, speakingTextId]);
 
   const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -955,7 +746,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     if (aiChatEndRef.current) {
       aiChatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [aiHistory, isAiOpen, typingMessageIndex, isAiLoading]);
+  }, [aiHistory, isAiOpen, isAiLoading]);
 
   const handleSendAiMessage = useCallback(async (messageText: string) => {
     let finalMsg = messageText.trim();
@@ -963,13 +754,6 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
       finalMsg = "Buatkan draf email yang serupa atau berdasarkan gambar yang saya kirim ini.";
     }
     if (!finalMsg) return;
-    
-    // Stop speaking if active
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-      setSpeakingTextId(null);
-    }
 
     const textLower = finalMsg.toLowerCase();
     let currentThinking = "JARVIS sedang merangkai kata...";
@@ -1029,8 +813,9 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
 
       setAiHistory((prev) => {
         const updated = [...prev, nextModelMessage];
-        // Set typing index for the newly added model message
-        setTypingMessageIndex(updated.length - 1);
+        setTimeout(() => {
+          playSciFiSound("success");
+        }, 150);
         return updated;
       });
 
@@ -1114,15 +899,6 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
     });
   }, []);
 
-  const handleTypewriterComplete = useCallback((idx: number, content: string) => {
-    setTypingMessageIndex(null);
-    if (autoVoice) {
-      speakText(content, idx);
-    } else {
-      playSciFiSound("success");
-    }
-  }, [autoVoice, speakText]);
-
   return (
     <AnimatePresence>
       {isAiOpen && (
@@ -1191,40 +967,40 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
               </div>
               
               <div className="flex items-center gap-1.5">
-                {/* Auto Voice Toggle with pulsing status ring */}
-                <button
-                  type="button"
-                  onClick={toggleAutoVoice}
-                  className={hn(
-                    "px-2 py-1 border rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5",
-                    autoVoice 
-                      ? "bg-amber-500 border-amber-600 text-white shadow-[0_0_10px_rgba(255,179,0,0.35)]" 
-                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                  )}
-                  title="Suara Otomatis JARVIS setelah mengetik"
-                >
-                  <span className={hn("w-1.5 h-1.5 rounded-full", autoVoice ? "bg-white animate-ping" : "bg-slate-400")} />
-                  VOICE: {autoVoice ? "ON" : "OFF"}
-                </button>
-
-                {aiHistory.length > 1 && (
+                {aiHistory.length > 0 && (
                   <button
+                    type="button"
                     onClick={() => {
-                      if (window.confirm("Bersihkan seluruh riwayat obrolan dengan JARVIS?")) {
-                        setAiHistory([
+                      if (!resetConfirm) {
+                        setResetConfirm(true);
+                        playSciFiSound("click");
+                      } else {
+                        const cleared = [
                           {
-                            role: "model",
-                            content: "Halo...Saya JARVIS asisten draf email taktis. Sistem siap mendengarkan perintah Anda!"
+                            role: "model" as const,
+                            content: "Hallo...Saya JARVIS,\nServer ready silahkan berikan perintah..!!"
                           }
-                        ]);
+                        ];
+                        setAiHistory(cleared);
+                        try {
+                          localStorage.setItem("jarvis_ai_history_v3", JSON.stringify(cleared));
+                        } catch (e) {
+                          console.error(e);
+                        }
+                        setResetConfirm(false);
                         addLog("warning", "Riwayat percakapan JARVIS dibersihkan.");
                         playSciFiSound("click");
                       }
                     }}
-                    className="px-2 py-1 border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer"
-                    title="Reset obrolan"
+                    className={hn(
+                      "px-2 py-1 border rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer",
+                      resetConfirm 
+                        ? "border-rose-400 bg-rose-500 text-white animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.4)]" 
+                        : "border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600"
+                    )}
+                    title={resetConfirm ? "Klik sekali lagi untuk konfirmasi hapus" : "Reset obrolan"}
                   >
-                    Reset
+                    {resetConfirm ? "YAKIN HAPUS?" : "RESET CHAT"}
                   </button>
                 )}
                 <button
@@ -1236,9 +1012,6 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
               </div>
             </div>
 
-            {/* Neural core active wave state */}
-            <JarvisVoiceVisualizer isSpeaking={isSpeaking} />
-
             {/* Chat History & Stream Container */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-transparent relative z-10">
               {aiHistory.map((msg, idx) => {
@@ -1246,8 +1019,6 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                 const setEditMode = (mode: "preview" | "html") => {
                   setEditModes(prev => ({ ...prev, [idx]: mode }));
                 };
-                const isSpeakingThisMessage = speakingTextId === idx;
-                const isTypingThisMessage = typingMessageIndex === idx;
                 
                 return (
                   <ChatMessageItem
@@ -1256,10 +1027,6 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                     idx={idx}
                     editMode={editMode}
                     setEditMode={setEditMode}
-                    isSpeakingThisMessage={isSpeakingThisMessage}
-                    speakText={() => speakText(msg.content, idx)}
-                    isTypingThisMessage={isTypingThisMessage}
-                    handleTypewriterComplete={() => handleTypewriterComplete(idx, msg.content)}
                     isAiLoading={isAiLoading}
                     handleSendAiMessage={handleSendAiMessage}
                     applyAiTemplateToForm={() => applyAiTemplateToForm(msg.template)}
@@ -1271,62 +1038,19 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
               })}
 
               {isAiLoading && (
-                <div className="bg-slate-900 border border-amber-500/30 text-white rounded-2xl rounded-bl-none p-4 shadow-[0_4px_20px_rgba(255,179,0,0.12)] max-w-[88%] mr-auto space-y-3 relative overflow-hidden z-10 animate-fade-in">
-                  {/* Glowing background circuit pulse */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
-                  
-                  {/* Core Status Header */}
-                  <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-800">
-                    <div className="relative flex items-center justify-center shrink-0">
-                      <span className="absolute inline-flex h-3 w-3 rounded-full bg-amber-500/30 animate-ping" />
-                      <Loader2 className="w-4 h-4 text-amber-500 animate-spin relative" />
-                    </div>
-                    <div className="flex flex-col leading-tight">
-                      <span className="text-[10px] font-mono font-black text-slate-100 tracking-wider uppercase">
-                        JARVIS CO-PILOT AGENT
-                      </span>
-                      <span className="text-[7px] font-mono font-black text-amber-400 uppercase tracking-widest animate-pulse">
-                        PIPELINE STATUS: PROCESSING...
-                      </span>
-                    </div>
+                <div className="bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl rounded-bl-none mr-auto shadow-sm p-3.5 max-w-[85%] flex flex-col gap-1.5 animate-fade-in relative z-10 min-w-0">
+                  <div className="flex items-center justify-between mb-1 text-[8px] font-black uppercase tracking-wider text-slate-400">
+                    <span>JARVIS</span>
                   </div>
-
-                  {/* Real-time Ticking Activity Logs (Replit Agent Style) */}
-                  <div className="space-y-2 py-0.5">
-                    {aiSteps.map((step) => (
-                      <div key={step.id} className="flex items-start gap-2.5 text-[10px] transition-all duration-300">
-                        {step.status === "completed" && (
-                          <div className="w-4 h-4 rounded-full bg-emerald-500/15 border border-emerald-500/50 text-emerald-400 flex items-center justify-center text-[8px] font-extrabold shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.2)]">
-                            ✓
-                          </div>
-                        )}
-                        {step.status === "active" && (
-                          <div className="w-4 h-4 rounded-full bg-amber-500/10 border border-amber-500 text-amber-400 flex items-center justify-center text-[7px] font-black shrink-0 relative shadow-[0_0_8px_rgba(245,158,11,0.2)]">
-                            <span className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping" />
-                            ●
-                          </div>
-                        )}
-                        {step.status === "pending" && (
-                          <div className="w-4 h-4 rounded-full bg-slate-800/60 border border-slate-700/80 text-slate-500 flex items-center justify-center text-[7px] font-bold shrink-0">
-                            ○
-                          </div>
-                        )}
-                        <span className={hn(
-                          "font-semibold transition-colors duration-200 leading-snug",
-                          step.status === "completed" && "text-slate-500 line-through decoration-slate-600/60",
-                          step.status === "active" && "text-amber-400 font-bold drop-shadow-[0_0_2px_rgba(245,158,11,0.2)]",
-                          step.status === "pending" && "text-slate-600"
-                        )}>
-                          {step.label}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Real-time micro status banner */}
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[7px] font-mono font-black text-slate-400 uppercase tracking-widest">
-                    <span className="truncate max-w-[150px]">AKTIVITAS: {thinkingText}</span>
-                    <span className="text-cyan-400 animate-pulse uppercase shrink-0">ONLINE</span>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="flex gap-1 items-center shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500 font-sans tracking-wide animate-pulse whitespace-nowrap truncate max-w-[160px] xs:max-w-[220px] sm:max-w-[340px]" title={thinkingText}>
+                      {thinkingText}
+                    </span>
                   </div>
                 </div>
               )}
