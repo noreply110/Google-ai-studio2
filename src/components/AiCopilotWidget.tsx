@@ -9,100 +9,9 @@ function hn(...args: any[]) {
   return args.filter(Boolean).join(" ");
 }
 
-// Client-Side Futuristic Sound Synthesizer (Web Audio API)
-const playSciFiSound = (type: "thinking" | "ready" | "click" | "success" | "speak") => {
-  if (typeof window === "undefined") return;
-  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-  if (!AudioCtx) return;
-  
-  try {
-    const ctx = new AudioCtx();
-    const now = ctx.currentTime;
-    
-    if (type === "thinking") {
-      // Ascending tech scan sweep
-      const freqs = [220, 277.18, 329.63, 440, 554.37]; // A3, C#4, E4, A4, C#5
-      freqs.forEach((f, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(f, now + i * 0.06);
-        gain.gain.setValueAtTime(0.06, now + i * 0.06);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.06 + 0.4);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now + i * 0.06);
-        osc.stop(now + i * 0.06 + 0.45);
-      });
-    } else if (type === "success") {
-      // Double success chime
-      const f1 = 523.25; // C5
-      const f2 = 783.99; // G5
-      
-      const osc1 = ctx.createOscillator();
-      const gain1 = ctx.createGain();
-      osc1.type = "sine";
-      osc1.frequency.setValueAtTime(f1, now);
-      gain1.gain.setValueAtTime(0.08, now);
-      gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-      osc1.start(now);
-      osc1.stop(now + 0.4);
-
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.type = "sine";
-      osc2.frequency.setValueAtTime(f2, now + 0.08);
-      gain2.gain.setValueAtTime(0.08, now + 0.08);
-      gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.08 + 0.4);
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.start(now + 0.08);
-      osc2.stop(now + 0.08 + 0.45);
-    } else if (type === "click") {
-      // Crisp retro-tech click
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(950, now);
-      osc.frequency.exponentialRampToValueAtTime(300, now + 0.04);
-      gain.gain.setValueAtTime(0.05, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.05);
-    } else if (type === "ready") {
-      // Deep energy hum
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(140, now);
-      osc.frequency.linearRampToValueAtTime(180, now + 0.25);
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.3);
-    } else if (type === "speak") {
-      // Interactive voice audio start click
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(440, now);
-      osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-      gain.gain.setValueAtTime(0.04, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.12);
-    }
-  } catch (e) {
-    console.warn("Speech synthesis audio feedback error:", e);
-  }
+// Client-Side Futuristic Sound Synthesizer (Web Audio API) - REMOVED FOR PERFORMANCE OPTIMIZATION
+const playSciFiSound = (_type: "thinking" | "ready" | "click" | "success" | "speak") => {
+  // Audio disabled to improve performance, save browser memory, and eliminate audio lag
 };
 
 // Helper to extract links from an HTML string using DOMParser
@@ -920,23 +829,18 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
             className="fixed top-0 right-0 h-full w-full max-w-md bg-[#F5F6F8] border-l border-slate-200 shadow-[-10px_0_40px_rgba(0,0,0,0.08)] z-[150] flex flex-col overflow-hidden text-slate-800"
           >
-            {/* --- JARVIS BRANDED BACKGROUND inside drawer (Matching other pages perfectly) --- */}
+            {/* --- HIGH PERFORMANCE SYSTEM BACKGROUND (GPU-OPTIMIZED) --- */}
             <div 
-              className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-cover bg-center bg-no-repeat"
+              className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-cover bg-center bg-no-repeat opacity-[0.05]"
               style={{ backgroundImage: `url(${jarvisBg})` }}
             />
-            {/* Subtle metallic texture and 'circuit-board' tech pattern overlay with CSS overlay blend-mode */}
             <div 
               className="absolute inset-0 pointer-events-none overflow-hidden z-[1]"
               style={{
-                backgroundImage: `
-                  radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 80%),
-                  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 30 h40 l15 15 h30 l10 10 h25 M30 0 v40 l15 15 v20 l15 15 v30 M80 120 v-30 l-15 -15 v-25 l-15 -15 v-35' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1.2' stroke-dasharray='3 3' /%3E%3Ccircle cx='40' cy='30' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='55' cy='45' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='85' cy='45' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='95' cy='55' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='45' cy='55' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='60' cy='75' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Cpath d='M10 10 h15 v15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M110 10 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M10 110 h15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M110 110 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3C/svg%3E"),
-                  linear-gradient(rgba(255, 179, 0, 0.006) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(255, 179, 0, 0.006) 1px, transparent 1px)
+                background: `
+                  radial-gradient(circle at 50% 10%, rgba(255, 179, 0, 0.04) 0%, transparent 80%),
+                  linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)
                 `,
-                backgroundSize: "100% 100%, 120px 120px, 30px 30px, 30px 30px",
-                opacity: 0.7,
               }}
             />
 

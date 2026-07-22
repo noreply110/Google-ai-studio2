@@ -19,6 +19,10 @@ html, body {
   letter-spacing: -0.015em;
   @apply text-slate-900 bg-white;
   
+  /* Safe Area for Mobile Edge-to-Edge display */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  
   /* Performance & Gestures */
   overscroll-behavior-y: contain;
   -webkit-tap-highlight-color: transparent;
@@ -144,4 +148,16 @@ aside {
 .animate-eq-4 {
   animation: eq-bar-4 1.3s infinite ease-in-out;
   transform-origin: bottom;
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-33.333%, 0, 0); }
+}
+
+.animate-marquee-scroll {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee-scroll 25s linear infinite;
+  width: max-content;
 }

@@ -22,6 +22,15 @@ export interface SmtpConfig {
   dailyLimit: string;
   connectionType: "STARTTLS" | "SSL" | "NONE";
   logoUrl: string;
+  // Microsoft Graph API and OAuth2 configuration
+  providerType?: "smtp" | "microsoft_graph";
+  microsoftClientId?: string;
+  microsoftClientSecret?: string;
+  microsoftTenantId?: string;
+  microsoftAuthType?: "client_credentials" | "auth_code";
+  microsoftAccessToken?: string;
+  microsoftRefreshToken?: string;
+  microsoftTokenExpiry?: number;
 }
 
 export interface LogEntry {

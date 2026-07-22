@@ -55,6 +55,7 @@ const updateHtmlLink = (html: string, index: number, newText: string, newHref: s
 
 interface SendTabProps {
   smtpConfig: SmtpConfig;
+  setSmtpConfig?: React.Dispatch<React.SetStateAction<SmtpConfig>>;
   templates: EmailTemplate[];
   setActiveTab: (tab: "send" | "templates" | "terminal" | "accounts") => void;
   addLog: (type: "info" | "success" | "error" | "warning", msg: string) => void;
@@ -64,6 +65,7 @@ interface SendTabProps {
 
 export const SendTab: React.FC<SendTabProps> = React.memo(({
   smtpConfig,
+  setSmtpConfig,
   templates,
   setActiveTab,
   addLog,
@@ -338,6 +340,16 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
       if (!response.ok) {
         const errorMsg = data.error || "Gagal mengirim email";
         throw new Error(errorMsg);
+      }
+
+      if (data.tokensUpdated && setSmtpConfig) {
+        setSmtpConfig(prev => ({
+          ...prev,
+          microsoftAccessToken: data.tokensUpdated.accessToken,
+          microsoftRefreshToken: data.tokensUpdated.refreshToken,
+          microsoftTokenExpiry: data.tokensUpdated.expiry
+        }));
+        console.log("[Microsoft Graph] Token auto-refreshed in state from SendTab response");
       }
 
       setSuccessBanner("Email berhasil dikirim!");
@@ -652,6 +664,17 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
         exit={{ opacity: 0, scale: 0.98 }}
         className="p-4 sm:p-5 max-w-[420px] lg:max-w-[960px] xl:max-w-[1100px] mx-auto flex flex-col w-full lg:h-full min-h-0 lg:overflow-hidden"
       >
+        <div className="mb-4 bg-slate-50 border border-slate-200 rounded-xl py-1.5 px-3 flex items-center gap-2 overflow-hidden shadow-sm shrink-0">
+          <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <div className="flex-1 min-w-0 overflow-hidden relative h-4 flex items-center">
+            <div className="absolute inset-y-0 left-0 animate-marquee-scroll flex gap-8 text-[10px] text-slate-600 font-bold tracking-wide items-center">
+              <span>⚠️ Kebijakan Sistem: Aplikasi ini didesain eksklusif untuk pengiriman outbound SMTP relay saja (Hanya Kirim). Server tidak menyediakan fungsionalitas IMAP/POP3 untuk menerima balasan/pesan masuk (No Incoming / Inbox).</span>
+              <span>⚠️ Kebijakan Sistem: Aplikasi ini didesain eksklusif untuk pengiriman outbound SMTP relay saja (Hanya Kirim). Server tidak menyediakan fungsionalitas IMAP/POP3 untuk menerima balasan/pesan masuk (No Incoming / Inbox).</span>
+              <span>⚠️ Kebijakan Sistem: Aplikasi ini didesain eksklusif untuk pengiriman outbound SMTP relay saja (Hanya Kirim). Server tidak menyediakan fungsionalitas IMAP/POP3 untuk menerima balasan/pesan masuk (No Incoming / Inbox).</span>
+            </div>
+          </div>
+        </div>
+
         <div className="flex-1 flex flex-col w-full lg:min-h-0 lg:overflow-hidden">
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.04)] flex-1 flex flex-col lg:min-h-0 lg:overflow-hidden">
             
@@ -739,6 +762,33 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
                           {errorBanner}
                         </p>
                       </div>
+                      
+                      {(errorBanner.toLowerCase().includes("smtpclientauthentication is disabled") || 
+                        errorBanner.toLowerCase().includes("smtp_auth_disabled") || 
+                        errorBanner.toLowerCase().includes("5.7.139") ||
+                        errorBanner.toLowerCase().includes("outlook") ||
+                        errorBanner.toLowerCase().includes("office365")) && (
+                        <div className="mt-1.5 p-3 bg-blue-50 border border-blue-200 rounded-xl flex flex-col gap-1.5 shadow-sm">
+                          <span className="text-[9px] font-black uppercase text-blue-600 tracking-wider">Rekomendasi Pintar J.A.R.V.I.S:</span>
+                          <p className="text-[10px] text-blue-800 font-semibold leading-relaxed">
+                            Microsoft memblokir SMTP biasa secara default demi keamanan. Anda disarankan untuk beralih menggunakan koneksi aman <strong>Microsoft Graph (OAuth2)</strong>.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (setSmtpConfig) {
+                                setSmtpConfig(prev => ({ ...prev, providerType: "microsoft_graph" }));
+                              }
+                              setErrorBanner(null);
+                              setActiveTab("accounts");
+                            }}
+                            className="text-center text-[10px] font-black text-white bg-blue-600 hover:bg-blue-700 py-2 px-3 rounded-xl shadow-sm transition-all uppercase tracking-wide cursor-pointer"
+                          >
+                            Beralih ke Microsoft Graph (OAuth2) Sekarang
+                          </button>
+                        </div>
+                      )}
+
                       <div className="flex gap-2 mt-1">
                         <button 
                           type="button" 

@@ -96,7 +96,7 @@ export const TerminalTab: React.FC<TerminalTabProps> = React.memo(({ logs, setLo
 
         <div className="p-4 bg-slate-100/80 border-t border-slate-200 flex justify-between items-center px-4 shrink-0">
           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-            Log Count: {logs.length}/50
+            Log Count: {logs.length}/30
           </span>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-jago rounded-full shadow-[0_0_8px_rgba(255,179,0,0.4)]" />

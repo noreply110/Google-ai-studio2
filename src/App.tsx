@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import jarvisBg from "./assets/images/jarvis_cool_background_1783882128944.jpg";
 import { 
   Send, Terminal as TerminalIcon, FileText, Settings, KeyRound, CheckCircle, 
-  ChevronLeft, Loader2, AlertCircle, AlertTriangle, Mail, Globe, Sparkle, Sparkles, Plus
+  ChevronLeft, Loader2, AlertCircle, AlertTriangle, Mail, Globe, Sparkle, Sparkles, Plus,
+  ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -23,6 +24,29 @@ import { RichTextEditor } from "./components/RichTextEditor";
 function hn(...args: any[]) {
   return args.filter(Boolean).join(" ").trim();
 }
+
+// Helper to extract links from an HTML string using DOMParser
+const getHtmlLinks = (html: string) => {
+  if (typeof window === "undefined" || !html) return [];
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const anchors = doc.querySelectorAll("a");
+    const result: Array<{ text: string; href: string }> = [];
+    anchors.forEach((a, index) => {
+      const href = a.getAttribute("href") || "";
+      if (href && href !== "#") {
+        result.push({
+          text: a.textContent || a.innerText || `Link ${index + 1}`,
+          href
+        });
+      }
+    });
+    return result;
+  } catch (e) {
+    return [];
+  }
+};
 
 // Gentle haptic feedback helper for mobile/Android WebViews
 export function triggerVibration(ms = 12) {
@@ -74,6 +98,15 @@ export default function App() {
 
   // --- Streaming Terminal Logs ---
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const logQueueRef = useRef<LogEntry[]>([]);
+  const logBatchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync ref with state when manually cleared
+  useEffect(() => {
+    if (logs.length === 0) {
+      logQueueRef.current = [];
+    }
+  }, [logs]);
 
   // --- Templates CRUD & Modal ---
   const [templates, setTemplates] = useState<EmailTemplate[]>(() => {
@@ -83,6 +116,7 @@ export default function App() {
   });
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [isSuggestingCategory, setIsSuggestingCategory] = useState(false);
   const [templateForm, setTemplateForm] = useState({
     name: "",
     category: "General" as const,
@@ -123,7 +157,15 @@ export default function App() {
       replyTo: "",
       dailyLimit: "200",
       connectionType: "STARTTLS",
-      logoUrl: defaultLogo
+      logoUrl: defaultLogo,
+      providerType: "smtp",
+      microsoftClientId: "",
+      microsoftClientSecret: "",
+      microsoftTenantId: "common",
+      microsoftAuthType: "auth_code",
+      microsoftAccessToken: "",
+      microsoftRefreshToken: "",
+      microsoftTokenExpiry: 0
     };
   });
 
@@ -132,6 +174,11 @@ export default function App() {
   useEffect(() => {
     setLogoLoadError(false);
   }, [smtpConfig.logoUrl]);
+
+  // Auto-persist smtpConfig to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem("relay_smtp_config", JSON.stringify(smtpConfig));
+  }, [smtpConfig]);
 
   // Handle global banking-notif event with auto-dismiss
   useEffect(() => {
@@ -193,7 +240,7 @@ export default function App() {
 
 
 
-  const triggerConfetti = () => {
+  const triggerConfetti = useCallback(() => {
     setShowConfetti(true);
     const colors = ["#fbbf24", "#3b82f6", "#10b981", "#ec4899", "#8b5cf6", "#f43f5e", "#00ffff"];
     const shapes = ["circle", "star", "square", "triangle"];
@@ -220,14 +267,30 @@ export default function App() {
       setShowConfetti(false);
       setConfettiParticles([]);
     }, 4000);
-  };
+  }, []);
 
-  const addLog = (type: "info" | "success" | "error" | "warning", msg: string) => {
+  const addLog = useCallback((type: "info" | "success" | "error" | "warning", msg: string) => {
     const timestamp = new Date().toLocaleTimeString("en-US", { hour12: false });
-    setLogs((prev) => [...prev, { timestamp, type, message: msg }].slice(-50));
-  };
+    const newEntry = { timestamp, type, message: msg };
+    
+    // Sync-append to mutable ref queue immediately (retains exact order)
+    logQueueRef.current.push(newEntry);
+    
+    // Maintain highly performant sliding window size strictly at 30 entries maximum
+    if (logQueueRef.current.length > 30) {
+      logQueueRef.current = logQueueRef.current.slice(-30);
+    }
 
-  const checkBackendHealth = async () => {
+    // Schedule batched state update in 60ms window to completely prevent thread-choking renders
+    if (!logBatchTimeoutRef.current) {
+      logBatchTimeoutRef.current = setTimeout(() => {
+        setLogs([...logQueueRef.current]);
+        logBatchTimeoutRef.current = null;
+      }, 60);
+    }
+  }, []);
+
+  const checkBackendHealth = useCallback(async () => {
     try {
       const res = await fetch("/api/health");
       const contentType = res.headers.get("content-type");
@@ -250,7 +313,7 @@ export default function App() {
     } catch {
       addLog("error", "API tidak terjangkau. Server sedang restart atau belum siap.");
     }
-  };
+  }, [addLog, smtpConfig.username]);
 
   // Initial Bootup Connection Diagnostics
   const hasLoggedInit = useRef(false);
@@ -346,14 +409,48 @@ export default function App() {
     setConfirmPasscodeForm("");
   };
 
-  const deleteTemplate = (id: string) => {
+  const deleteTemplate = useCallback((id: string) => {
     const updated = templates.filter((t) => t.id !== id);
     setTemplates(updated);
     localStorage.setItem("email_templates", JSON.stringify(updated));
     addLog("warning", "Template berhasil dihapus.");
-  };
+  }, [templates, addLog]);
 
-  const handleSaveTemplateSubmit = () => {
+  const handleSuggestCategory = useCallback(async () => {
+    if (!templateForm.subject && !templateForm.message) {
+      return;
+    }
+    setIsSuggestingCategory(true);
+    addLog("info", "Sedang menganalisis konten template untuk rekomendasi kategori...");
+    try {
+      const res = await fetch("/api/gemini/suggest-category", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: templateForm.subject,
+          message: templateForm.message
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.category) {
+          setTemplateForm((prev) => ({ ...prev, category: data.category }));
+          addLog("success", `AI merekomendasikan kategori: ${data.category}`);
+        } else {
+          addLog("warning", "Gagal mendapatkan rekomendasi kategori dari AI.");
+        }
+      } else {
+        addLog("warning", "Gagal menghubungi modul klasifikasi AI.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      addLog("error", "Error mendeteksi rekomendasi kategori otomatis.");
+    } finally {
+      setIsSuggestingCategory(false);
+    }
+  }, [templateForm.subject, templateForm.message, addLog]);
+
+  const handleSaveTemplateSubmit = useCallback(() => {
     if (!templateForm.name || !templateForm.subject || !templateForm.message) {
       return;
     }
@@ -391,14 +488,14 @@ export default function App() {
     setShowTemplateModal(false);
     setEditingTemplateId(null);
     setTemplateForm({ name: "", category: "General", subject: "", message: "" });
-  };
+  }, [templates, templateForm, editingTemplateId, addLog]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setIsLoggedIn(false);
     setPasscode("");
     localStorage.removeItem("admin_logged_in");
     addLog("warning", "Admin keluar dari sistem.");
-  };
+  }, [addLog]);
 
   // --- RENDER 2: LOGIN PAGE ---
   if (!isLoggedIn) {
@@ -530,26 +627,18 @@ export default function App() {
   // --- RENDER 3: MAIN SYSTEM APLET ---
   return (
     <div className="flex h-screen h-[100dvh] bg-[#F5F6F8] font-sans text-slate-800 overflow-hidden relative">
-      {/* Top glowing bar */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-jago-orange via-jago to-jago-orange z-[60] shadow-sm" />
-
-      {/* --- JARVIS BRANDED BACKGROUND (Ultra HD) --- */}
+      {/* --- HIGH PERFORMANCE SYSTEM BACKGROUND (GPU-OPTIMIZED) --- */}
       <div 
-        className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 pointer-events-none overflow-hidden z-0 bg-cover bg-center bg-no-repeat opacity-[0.05]"
         style={{ backgroundImage: `url(${jarvisBg})` }}
       />
-      {/* Subtle metallic texture and 'circuit-board' tech pattern overlay */}
       <div 
         className="absolute inset-0 pointer-events-none overflow-hidden z-[1]"
         style={{
-          backgroundImage: `
-            radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 80%),
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 30 h40 l15 15 h30 l10 10 h25 M30 0 v40 l15 15 v20 l15 15 v30 M80 120 v-30 l-15 -15 v-25 l-15 -15 v-35' fill='none' stroke='rgba(255,179,0,0.04)' stroke-width='1.2' stroke-dasharray='3 3' /%3E%3Ccircle cx='40' cy='30' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='55' cy='45' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='85' cy='45' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='95' cy='55' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='45' cy='55' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Ccircle cx='60' cy='75' r='3' fill='rgba(255,179,0,0.08)' /%3E%3Cpath d='M10 10 h15 v15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M110 10 h-15 v15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M10 110 h15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3Cpath d='M110 110 h-15 v-15' fill='none' stroke='rgba(255,179,0,0.02)' stroke-width='1' /%3E%3C/svg%3E"),
-            linear-gradient(rgba(255, 179, 0, 0.006) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 179, 0, 0.006) 1px, transparent 1px)
+          background: `
+            radial-gradient(circle at 50% 10%, rgba(255, 179, 0, 0.04) 0%, transparent 80%),
+            linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)
           `,
-          backgroundSize: "100% 100%, 120px 120px, 30px 30px, 30px 30px",
-          opacity: 0.7,
         }}
       />
 
@@ -665,48 +754,46 @@ export default function App() {
 
         {/* --- WORKSPACE VIEW CONTROLLER --- */}
         <div className={hn("flex-1 bg-transparent flex flex-col min-h-0", activeTab === "send" ? "lg:overflow-hidden overflow-y-auto" : "overflow-y-auto")}>
-          <AnimatePresence mode="wait">
-            {activeTab === "send" ? (
-              <SendTab 
-                key="send"
-                smtpConfig={smtpConfig}
-                templates={templates}
-                setActiveTab={setActiveTab}
-                addLog={addLog}
-                triggerConfetti={triggerConfetti}
-                isKeyboardActive={isKeyboardActive}
-              />
-            ) : activeTab === "templates" ? (
-              <TemplatesTab 
-                key="templates"
-                templates={templates}
-                setActiveTab={setActiveTab}
-                setEditingTemplateId={setEditingTemplateId}
-                setTemplateForm={setTemplateForm}
-                setShowTemplateModal={setShowTemplateModal}
-                setTemplateToDelete={setTemplateToDelete}
-                setPreviewTemplate={setPreviewTemplate}
-                setQuickTestTemplate={setQuickTestTemplate}
-                setQuickTestRecipient={setQuickTestRecipient}
-              />
-            ) : activeTab === "terminal" ? (
-              <TerminalTab 
-                key="terminal"
-                logs={logs}
-                setLogs={setLogs}
-              />
-            ) : activeTab === "accounts" ? (
-              <AccountsTab 
-                key="accounts"
-                smtpConfig={smtpConfig}
-                setSmtpConfig={setSmtpConfig}
-                setActiveTab={setActiveTab}
-                addLog={addLog}
-                triggerConfetti={triggerConfetti}
-                checkBackendHealth={checkBackendHealth}
-              />
-            ) : null}
-          </AnimatePresence>
+          <div className="flex-1 flex flex-col min-h-0" style={{ display: activeTab === "send" ? "flex" : "none" }}>
+            <SendTab 
+              smtpConfig={smtpConfig}
+              setSmtpConfig={setSmtpConfig}
+              templates={templates}
+              setActiveTab={setActiveTab}
+              addLog={addLog}
+              triggerConfetti={triggerConfetti}
+              isKeyboardActive={isKeyboardActive}
+            />
+          </div>
+          <div className="flex-1 flex flex-col min-h-0" style={{ display: activeTab === "templates" ? "flex" : "none" }}>
+            <TemplatesTab 
+              templates={templates}
+              setActiveTab={setActiveTab}
+              setEditingTemplateId={setEditingTemplateId}
+              setTemplateForm={setTemplateForm}
+              setShowTemplateModal={setShowTemplateModal}
+              setTemplateToDelete={setTemplateToDelete}
+              setPreviewTemplate={setPreviewTemplate}
+              setQuickTestTemplate={setQuickTestTemplate}
+              setQuickTestRecipient={setQuickTestRecipient}
+            />
+          </div>
+          <div className="flex-1 flex flex-col min-h-0" style={{ display: activeTab === "terminal" ? "flex" : "none" }}>
+            <TerminalTab 
+              logs={logs}
+              setLogs={setLogs}
+            />
+          </div>
+          <div className="flex-1 flex flex-col min-h-0" style={{ display: activeTab === "accounts" ? "flex" : "none" }}>
+            <AccountsTab 
+              smtpConfig={smtpConfig}
+              setSmtpConfig={setSmtpConfig}
+              setActiveTab={setActiveTab}
+              addLog={addLog}
+              triggerConfetti={triggerConfetti}
+              checkBackendHealth={checkBackendHealth}
+            />
+          </div>
         </div>
 
         {/* --- GLOBAL APP MODALS CONTROLLERS --- */}
@@ -753,9 +840,30 @@ export default function App() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-widest px-1">
-                        Kategori
-                      </label>
+                      <div className="flex justify-between items-center px-1">
+                        <label className="text-[11px] font-extrabold text-slate-600 uppercase tracking-widest">
+                          Kategori
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleSuggestCategory}
+                          disabled={isSuggestingCategory || (!templateForm.subject && !templateForm.message)}
+                          className="text-[9px] font-black text-amber-600 hover:text-amber-700 disabled:opacity-40 uppercase tracking-wider flex items-center gap-1 cursor-pointer select-none transition-all active:scale-95"
+                          title="Gunakan AI untuk merekomendasikan kategori otomatis berdasarkan subjek/pesan"
+                        >
+                          {isSuggestingCategory ? (
+                            <>
+                              <Loader2 className="w-3 h-3 animate-spin text-amber-500" />
+                              <span>Menganalisis...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500" />
+                              <span>Saran AI ✨</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                       <select 
                         value={templateForm.category}
                         onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value as any })}
@@ -828,21 +936,50 @@ export default function App() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="bg-white/95 backdrop-blur-md w-full max-w-2xl rounded-[24px] border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-slate-800"
               >
-                <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
-                  <div>
-                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight">
-                      {previewTemplate.name}
-                    </h3>
-                    <p className="text-[10px] text-slate-500 font-bold truncate">
-                      {previewTemplate.subject}
-                    </p>
+                <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex flex-col gap-2 shrink-0">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight">
+                        {previewTemplate.name}
+                      </h3>
+                      <p className="text-[10px] text-slate-500 font-bold truncate">
+                        {previewTemplate.subject}
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => setPreviewTemplate(null)}
+                      className="p-1 hover:bg-slate-100 rounded-full"
+                    >
+                      <ChevronLeft className="w-5 h-5 rotate-45 text-slate-400 hover:text-slate-700" />
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => setPreviewTemplate(null)}
-                    className="p-1 hover:bg-slate-100 rounded-full"
-                  >
-                    <ChevronLeft className="w-5 h-5 rotate-45 text-slate-400 hover:text-slate-700" />
-                  </button>
+
+                  {/* Dynamic Flexible Link Detector */}
+                  {(() => {
+                    const detectedLinks = getHtmlLinks(previewTemplate.message);
+                    if (detectedLinks.length === 0) return null;
+                    return (
+                      <div className="pt-2 border-t border-slate-200/60 flex flex-col gap-1">
+                        <div className="text-[9px] font-black text-amber-600 uppercase tracking-wider flex items-center gap-1">
+                          <span>🔗 Link Terdeteksi (Buka di Tab Baru / Bebas Hambatan):</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 max-h-[64px] overflow-y-auto pr-1 py-0.5">
+                          {detectedLinks.map((link, idx) => (
+                            <a
+                              key={idx}
+                              href={link.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-[10px] text-amber-700 font-black hover:bg-amber-100 hover:text-amber-800 transition-colors shrink-0 max-w-full cursor-pointer"
+                            >
+                              <span className="truncate max-w-[150px]">{link.text}</span>
+                              <ExternalLink className="w-2.5 h-2.5 opacity-70 shrink-0" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="flex-1 overflow-hidden p-4 bg-slate-100 flex flex-col min-h-[380px]">
@@ -876,6 +1013,13 @@ export default function App() {
                           ${previewTemplate.message}
                           <script>
                             window.addEventListener('DOMContentLoaded', function() {
+                              // Force target="_blank" and rel="noopener noreferrer" on all links inside the preview iframe
+                              var anchors = document.getElementsByTagName('a');
+                              for (var i = 0; i < anchors.length; i++) {
+                                anchors[i].setAttribute('target', '_blank');
+                                anchors[i].setAttribute('rel', 'noopener noreferrer');
+                              }
+
                               var wrapper = document.createElement('div');
                               wrapper.id = 'email-wrapper';
                               wrapper.style.width = '600px';

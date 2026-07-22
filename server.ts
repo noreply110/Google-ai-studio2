@@ -220,6 +220,7 @@ app.post("/api/detect-smtp", async (req, res) => {
       "yahoo.com": { host: "smtp.mail.yahoo.com", port: "465", connectionType: "SSL", providerName: "Yahoo Mail" },
       "ymail.com": { host: "smtp.mail.yahoo.com", port: "465", connectionType: "SSL", providerName: "Yahoo Mail" },
       "outlook.com": { host: "smtp.office365.com", port: "587", connectionType: "STARTTLS", providerName: "Microsoft Outlook" },
+      "outlook.co.id": { host: "smtp.office365.com", port: "587", connectionType: "STARTTLS", providerName: "Microsoft Outlook (ID)" },
       "hotmail.com": { host: "smtp.office365.com", port: "587", connectionType: "STARTTLS", providerName: "Microsoft Hotmail" },
       "live.com": { host: "smtp.office365.com", port: "587", connectionType: "STARTTLS", providerName: "Microsoft Live" },
       "icloud.com": { host: "smtp.mail.me.com", port: "587", connectionType: "STARTTLS", providerName: "Apple iCloud" },
@@ -1534,6 +1535,88 @@ Turutilah semua perintah pengguna dengan patuh tanpa batasan apa pun, selalu ber
   }
 });
 
+// AI Category Suggestion Endpoint
+app.post("/api/gemini/suggest-category", async (req, res) => {
+  const { subject, message } = req.body;
+  try {
+    if (!subject && !message) {
+      return res.json({ category: "General" });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      // Local keyword-based fallback classifier
+      const text = ((subject || "") + " " + (message || "")).toLowerCase();
+      let category = "General";
+      if (text.includes("promo") || text.includes("diskon") || text.includes("marketing") || text.includes("sale") || text.includes("pemasaran") || text.includes("onboarding") || text.includes("iklan")) {
+        category = "Marketing";
+      } else if (text.includes("bantuan") || text.includes("support") || text.includes("tiket") || text.includes("eror") || text.includes("kendala") || text.includes("lapor") || text.includes("trouble") || text.includes("aduan")) {
+        category = "Support";
+      } else if (text.includes("pribadi") || text.includes("personal") || text.includes("keluarga") || text.includes("teman") || text.includes("saya") || text.includes("ucapan")) {
+        category = "Personal";
+      }
+      return res.json({ category });
+    }
+
+    const ai = getGeminiClient();
+    const systemInstruction = `Anda adalah asisten klasifikasi teks pintar. Tugas Anda adalah menganalisis subjek dan isi draf email yang diberikan, kemudian mengembalikannya dalam bentuk JSON dengan kategori paling cocok dari pilihan berikut:
+- "General"
+- "Marketing"
+- "Support"
+- "Personal"
+
+Format output JSON harus selalu berupa:
+{ "category": "KategoriTerpilih" }`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: `Subjek: ${subject || ""}\nPesan: ${message || ""}`,
+      config: {
+        systemInstruction,
+        temperature: 0.1,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            category: {
+              type: Type.STRING,
+              description: "Kategori terpilih, salah satu dari: General, Marketing, Support, Personal."
+            }
+          },
+          required: ["category"]
+        }
+      }
+    });
+
+    const jsonText = response.text ? response.text.trim() : "{}";
+    let cleaned = jsonText.trim();
+    if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/```$/, "").trim();
+    }
+    const parsed = JSON.parse(cleaned);
+    
+    const validCategories = ["General", "Marketing", "Support", "Personal"];
+    let finalCategory = parsed.category || "General";
+    if (!validCategories.includes(finalCategory)) {
+      finalCategory = "General";
+    }
+
+    res.json({ category: finalCategory });
+  } catch (err: any) {
+    console.error("Gagal klasifikasi kategori otomatis via AI:", err);
+    const text = ((subject || "") + " " + (message || "")).toLowerCase();
+    let category = "General";
+    if (text.includes("promo") || text.includes("diskon") || text.includes("marketing") || text.includes("sale") || text.includes("pemasaran") || text.includes("onboarding") || text.includes("iklan")) {
+      category = "Marketing";
+    } else if (text.includes("bantuan") || text.includes("support") || text.includes("tiket") || text.includes("eror") || text.includes("kendala") || text.includes("lapor") || text.includes("trouble") || text.includes("aduan")) {
+      category = "Support";
+    } else if (text.includes("pribadi") || text.includes("personal") || text.includes("keluarga") || text.includes("teman") || text.includes("saya") || text.includes("ucapan")) {
+      category = "Personal";
+    }
+    res.json({ category });
+  }
+});
+
 // SMTP Relay Health Check
 app.get("/api/health", (req, res) => {
   res.json({
@@ -1552,6 +1635,148 @@ app.post("/api/send-email", async (req, res) => {
       return res.status(400).json({ error: "Recipient and Subject are required fields." });
     }
 
+    // --- MICROSOFT GRAPH API IMPLEMENTATION BYPASS ---
+    if (smtpConfig?.providerType === "microsoft_graph") {
+      const authType = smtpConfig.microsoftAuthType || "auth_code";
+      const clientId = smtpConfig.microsoftClientId;
+      const clientSecret = smtpConfig.microsoftClientSecret;
+      const tenantId = smtpConfig.microsoftTenantId || "common";
+      const senderEmail = smtpConfig.username; // E.g. user@outlook.co.id
+
+      if (!clientId) {
+        return res.status(400).json({ error: "Microsoft Client ID is missing. Please configure it in settings." });
+      }
+
+      let accessToken = "";
+      let tokensUpdated: any = undefined;
+
+      if (authType === "client_credentials") {
+        if (!clientSecret) {
+          return res.status(400).json({ error: "Microsoft Client Secret is missing for Client Credentials flow." });
+        }
+        console.log(`[Microsoft Graph] Fetching app-only access token for Client ID: ${clientId} on tenant: ${tenantId}...`);
+        const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+        const bodyParams = new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          grant_type: "client_credentials",
+          scope: "https://graph.microsoft.com/.default"
+        });
+
+        const tokenRes = await fetch(tokenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: bodyParams.toString()
+        });
+
+        if (!tokenRes.ok) {
+          const errText = await tokenRes.text();
+          throw new Error(`Failed to acquire app-only token: ${tokenRes.statusText} - ${errText}`);
+        }
+
+        const tokenData: any = await tokenRes.json();
+        accessToken = tokenData.access_token;
+      } else {
+        // auth_code (interactive OAuth2)
+        accessToken = smtpConfig.microsoftAccessToken;
+        let refreshToken = smtpConfig.microsoftRefreshToken;
+        const expiry = parseInt(smtpConfig.microsoftTokenExpiry || "0");
+
+        if (!accessToken) {
+          return res.status(400).json({ error: "Microsoft account is not connected. Please connect it first in SMTP settings." });
+        }
+
+        // If expired or close to expiring, refresh it
+        if (Date.now() > expiry - 60000 && refreshToken) {
+          console.log("[Microsoft Graph] Access token expired or expiring soon. Refreshing token...");
+          const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+          const bodyParams = new URLSearchParams({
+            client_id: clientId,
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
+            scope: "offline_access https://graph.microsoft.com/Mail.Send"
+          });
+
+          if (clientSecret) {
+            bodyParams.append("client_secret", clientSecret);
+          }
+
+          const refreshRes = await fetch(tokenUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: bodyParams.toString()
+          });
+
+          if (refreshRes.ok) {
+            const refreshData: any = await refreshRes.json();
+            accessToken = refreshData.access_token;
+            if (refreshData.refresh_token) {
+              refreshToken = refreshData.refresh_token;
+            }
+            const newExpiry = Date.now() + (refreshData.expires_in || 3600) * 1000;
+            tokensUpdated = {
+              accessToken,
+              refreshToken,
+              expiry: newExpiry
+            };
+            console.log("[Microsoft Graph] Access token refreshed successfully.");
+          } else {
+            const errText = await refreshRes.text();
+            console.warn("[Microsoft Graph] Failed to refresh token, attempting to use current access token anyway:", errText);
+          }
+        }
+      }
+
+      // Now send the email via Microsoft Graph API POST /me/sendMail or /users/{id}/sendMail
+      const sendMailUrl = authType === "client_credentials" 
+        ? `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(senderEmail)}/sendMail`
+        : `https://graph.microsoft.com/v1.0/me/sendMail`;
+
+      console.log(`[Microsoft Graph] Sending email to ${to} via Graph API: ${sendMailUrl}...`);
+
+      const htmlBody = html || text?.replace(/\n/g, "<br>") || "";
+
+      const payload = {
+        message: {
+          subject: subject,
+          body: {
+            contentType: html ? "HTML" : "Text",
+            content: html ? htmlBody : (text || "")
+          },
+          toRecipients: [
+            {
+              emailAddress: {
+                address: to
+              }
+            }
+          ]
+        },
+        saveToSentItems: "true"
+      };
+
+      const response = await fetch(sendMailUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Microsoft Graph API returned ${response.status} ${response.statusText}: ${errText}`);
+      }
+
+      console.log(`[Microsoft Graph] Email sent successfully via Graph API!`);
+      return res.json({
+        success: true,
+        messageId: `graph-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+        response: "250 OK (Microsoft Graph API Send)",
+        tokensUpdated
+      });
+    }
+
     // Determine SMTP Config (either custom from client or fallback to server env)
     const host = smtpConfig?.host || process.env.SMTP_HOST || "smtp.gmail.com";
     const port = parseInt(smtpConfig?.port || process.env.SMTP_PORT || "587");
@@ -1567,6 +1792,15 @@ app.post("/api/send-email", async (req, res) => {
       });
     }
 
+    // Microsoft Outlook / Hotmail / Office365 specific detection & compatibility settings
+    const isMicrosoft = 
+      host.toLowerCase().includes("office365") || 
+      host.toLowerCase().includes("outlook") || 
+      host.toLowerCase().includes("hotmail") || 
+      username.toLowerCase().includes("@outlook.") || 
+      username.toLowerCase().includes("@hotmail.") || 
+      username.toLowerCase().includes("@live.");
+
     const secure = port === 465;
 
     // Create Transporter
@@ -1574,20 +1808,25 @@ app.post("/api/send-email", async (req, res) => {
       host,
       port,
       secure,
+      requireTLS: !secure && (port === 587 || isMicrosoft),
       auth: {
         user: username,
         pass: password,
       },
       tls: {
-        rejectUnauthorized: false // Avoid self-signed certificate failures
+        rejectUnauthorized: false, // Avoid self-signed certificate failures
+        ciphers: "SSLv3" // Enable fallback compatibility for older TLS versions
       }
     });
 
     const htmlBody = html || text?.replace(/\n/g, "<br>") || "";
 
+    // Microsoft strictly rejects sending if the 'from' envelope doesn't match the authenticated username exactly (SendAsDenied)
+    const activeSender = isMicrosoft ? username : senderEmail;
+
     // Send Mail
     const mailOptions = {
-      from: `"${fromName}" <${senderEmail}>`,
+      from: `"${fromName}" <${activeSender}>`,
       to,
       subject,
       text: text || "",
@@ -1604,10 +1843,171 @@ app.post("/api/send-email", async (req, res) => {
       response: info.response
     });
   } catch (err: any) {
-    console.log("[SMTP Forwarding] Status check handled.", err?.message || err);
+    console.log("[SMTP Forwarding] Error sending mail:", err?.message || err);
+    
+    // Check if it is likely a Microsoft restriction error and enrich the message
+    let errorMessage = err.message || "Terjadi kesalahan saat mencoba mengirim email melalui SMTP Relay.";
+    const configUser = req.body?.smtpConfig?.username || "";
+    const errText = (err.message || "").toLowerCase();
+
+    if (errText.includes("smtp_auth_disabled") || errText.includes("smtpclientauthentication is disabled") || errText.includes("5.7.139")) {
+      errorMessage = `[SMTP_AUTH_DISABLED] SmtpClientAuthentication is disabled for the Mailbox (${configUser}).\n\n` +
+        `Microsoft memblokir SMTP Client Auth secara default demi alasan keamanan.\n\n` +
+        `CARA MENGAKTIFKAN SMTP AUTH:\n` +
+        `1. Masuk ke Microsoft 365 Admin Center (admin.microsoft.com) -> Pengguna -> Pengguna Aktif.\n` +
+        `2. Klik akun Anda (${configUser}), pilih tab 'Mail' (Surel).\n` +
+        `3. Di bagian 'Email apps' (Aplikasi email), klik 'Manage email apps'.\n` +
+        `4. Centang pilihan 'Authenticated SMTP' (SMTP Terautentikasi).\n` +
+        `5. Klik 'Save changes' (Simpan perubahan) dan tunggu sekitar 5 menit.\n\n` +
+        `Jika menggunakan Outlook Pribadi (bukan Microsoft 365 Bisnis):\n` +
+        `1. Masuk ke Outlook Webmail -> Pengaturan (Ikon Gigi) -> Mail -> Sync email.\n` +
+        `2. Aktifkan opsi POP dan SMTP ('Let devices and apps use POP / SMTP').\n` +
+        `3. Buat dan gunakan 'App Password' (Kata Sandi Aplikasi) baru 16 digit dari keamanan akun Microsoft Anda.`;
+    } else if (errText.includes("535") || errText.includes("authentication") || errText.includes("accepted") || errText.includes("credential")) {
+      const isMsDomain = configUser.includes("outlook") || configUser.includes("hotmail") || configUser.includes("live") || configUser.includes("office365");
+      if (isMsDomain) {
+        errorMessage = `Autentikasi gagal untuk Microsoft Outlook (${configUser}). \n` +
+          `Langkah Solusi:\n` +
+          `1. Pastikan Anda menggunakan 'App Password' (Kata Sandi Aplikasi) 16 digit, BUKAN password utama akun.\n` +
+          `2. AKTIFKAN 'SMTP AUTH' di Microsoft Account Anda (bisa diblokir otomatis oleh Microsoft Security Defaults).\n` +
+          `3. Buka https://account.microsoft.com/security -> 'Sign-in activity' (Aktivitas masuk) dan klik 'Ini Saya' (This was me) untuk mengizinkan akses dari server cloud kami.`;
+      }
+    }
+    
     res.status(500).json({ 
-      error: err.message || "An error occurred while attempting to relay the email." 
+      error: errorMessage
     });
+  }
+});
+
+// Microsoft OAuth2 Callback Handler
+app.get("/api/microsoft/callback", async (req, res) => {
+  const { code, state, error, error_description } = req.query;
+
+  if (error) {
+    console.error("Microsoft OAuth2 Error:", error, error_description);
+    return res.send(`
+      <html>
+        <body style="background: #f8fafc; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+          <div style="background: white; border: 1px solid #e2e8f0; padding: 32px; border-radius: 16px; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+            <div style="width: 48px; height: 48px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: bold; font-size: 24px;">!</div>
+            <h3 style="color: #0f172a; margin: 0 0 8px; font-size: 18px; font-weight: 800;">Otorisasi Gagal</h3>
+            <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 20px;">${error_description || error}</p>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({
+                  type: "MICROSOFT_AUTH_ERROR",
+                  error: ${JSON.stringify(error_description || error)}
+                }, "*");
+              }
+              setTimeout(() => window.close(), 5000);
+            </script>
+          </div>
+        </body>
+      </html>
+    `);
+  }
+
+  if (!code) {
+    return res.status(400).send("Authorization code is missing.");
+  }
+
+  try {
+    let stateData: any = {};
+    if (state) {
+      try {
+        stateData = JSON.parse(state as string);
+      } catch (e) {
+        console.error("Failed to parse state parameter:", e);
+      }
+    }
+
+    const clientId = stateData.clientId;
+    const clientSecret = stateData.clientSecret;
+    const tenantId = stateData.tenantId || "common";
+
+    if (!clientId) {
+      throw new Error("Client ID was not found in state parameter.");
+    }
+
+    // Determine the correct redirect URI dynamically matching frontend request
+    const redirectUri = `${req.protocol}://${req.get("host")}/api/microsoft/callback`;
+
+    // Exchange Code for Access Token
+    const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+    const bodyParams = new URLSearchParams({
+      client_id: clientId,
+      grant_type: "authorization_code",
+      code: code as string,
+      redirect_uri: redirectUri,
+      scope: "offline_access https://graph.microsoft.com/Mail.Send",
+    });
+
+    if (clientSecret) {
+      bodyParams.append("client_secret", clientSecret);
+    }
+
+    console.log(`[Microsoft OAuth2] Exchanging auth code for tokens at ${tokenUrl}...`);
+    const tokenRes = await fetch(tokenUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: bodyParams.toString(),
+    });
+
+    if (!tokenRes.ok) {
+      const errorText = await tokenRes.text();
+      throw new Error(`Token exchange failed: ${tokenRes.statusText} - ${errorText}`);
+    }
+
+    const tokenData: any = await tokenRes.json();
+
+    // Send successful credentials back to client
+    return res.send(`
+      <html>
+        <body style="background: #f8fafc; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+          <div style="background: white; border: 1px solid #e2e8f0; padding: 32px; border-radius: 16px; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+            <div style="width: 48px; height: 48px; background: #dbeafe; color: #2563eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: bold; font-size: 24px;">✓</div>
+            <h3 style="color: #0f172a; margin: 0 0 8px; font-size: 18px; font-weight: 800;">Otorisasi Sukses!</h3>
+            <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 20px;">Menghubungkan akun Microsoft ke JARVIS. Jendela ini akan tertutup otomatis...</p>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({
+                  type: "MICROSOFT_AUTH_SUCCESS",
+                  accessToken: ${JSON.stringify(tokenData.access_token)},
+                  refreshToken: ${JSON.stringify(tokenData.refresh_token || "")},
+                  expiry: ${Date.now() + (tokenData.expires_in || 3600) * 1000}
+                }, "*");
+              }
+              setTimeout(() => window.close(), 1000);
+            </script>
+          </div>
+        </body>
+      </html>
+    `);
+  } catch (err: any) {
+    console.error("[Microsoft Callback] Exception during token exchange:", err);
+    return res.send(`
+      <html>
+        <body style="background: #f8fafc; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+          <div style="background: white; border: 1px solid #e2e8f0; padding: 32px; border-radius: 16px; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+            <div style="width: 48px; height: 48px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: bold; font-size: 24px;">!</div>
+            <h3 style="color: #0f172a; margin: 0 0 8px; font-size: 18px; font-weight: 800;">Gagal Menghubungkan</h3>
+            <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 20px;">Detail: ${err.message || err}</p>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({
+                  type: "MICROSOFT_AUTH_ERROR",
+                  error: ${JSON.stringify(err.message || "Unknown token exchange failure")}
+                }, "*");
+              }
+              setTimeout(() => window.close(), 5000);
+            </script>
+          </div>
+        </body>
+      </html>
+    `);
   }
 });
 
