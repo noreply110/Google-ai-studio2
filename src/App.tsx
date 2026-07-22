@@ -124,6 +124,10 @@ export default function App() {
     message: ""
   });
 
+  const handleTemplateMessageChange = useCallback((val: string) => {
+    setTemplateForm((prev) => ({ ...prev, message: val }));
+  }, []);
+
   // --- Preview & Quick-Test Modals ---
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null);
   const [quickTestTemplate, setQuickTestTemplate] = useState<EmailTemplate | null>(null);
@@ -680,7 +684,7 @@ export default function App() {
         isKeyboardActive ? "pb-0" : "pb-[calc(64px+env(safe-area-inset-bottom,0px))]"
       )}>
         
-        <header className="h-14 bg-white/75 backdrop-blur-md border-b border-slate-200/80 px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-[0_1px_10px_rgba(0,0,0,0.02)] z-30 relative">
+        <header className="h-14 bg-[#00aff0] border-b border-[#009cd8] px-3 sm:px-4 flex items-center justify-between shrink-0 shadow-md z-30 relative text-white">
           {/* Left Area (Key Button & Back Button) */}
           <div className="flex items-center gap-1.5 min-w-[40px] z-10">
             <button 
@@ -689,18 +693,18 @@ export default function App() {
                 setPasscodeChangeSuccess(null);
                 setShowPasscodeModal(true);
               }}
-              className="p-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-950 rounded-lg transition-colors cursor-pointer border border-slate-200 shadow-sm"
+              className="p-1.5 bg-white/15 hover:bg-white/25 text-white rounded-lg transition-colors cursor-pointer border border-white/25 shadow-sm"
               title="Ganti PIN Panel"
             >
-              <KeyRound className="w-4 h-4" />
+              <KeyRound className="w-4 h-4 text-white" />
             </button>
             {activeTab !== "send" && (
               <button 
                 onClick={() => setActiveTab("send")}
-                className="p-1.5 hover:bg-slate-100 rounded-full transition-colors shrink-0"
+                className="p-1.5 hover:bg-white/15 rounded-full transition-colors shrink-0 text-white"
                 aria-label="Kembali"
               >
-                <ChevronLeft className="w-5 h-5 text-slate-800" />
+                <ChevronLeft className="w-5 h-5 text-white" />
               </button>
             )}
           </div>
@@ -713,28 +717,25 @@ export default function App() {
               title="Buka Asisten AI JARVIS"
             >
               {/* Outer sci-fi ring decoration around button when hovered/active */}
-              <div className="absolute -inset-1.5 rounded-xl border border-jago/25 opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 pointer-events-none" />
+              <div className="absolute -inset-1.5 rounded-xl border border-white/30 opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 pointer-events-none" />
               
               {/* High-tech Icon container */}
-              <div className="w-8 h-8 bg-slate-950 border border-jago/80 text-jago rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(255,179,0,0.25)] shrink-0 relative overflow-hidden group-hover:border-jago transition-all duration-300">
-                {/* Tech background matrix scan */}
-                <div className="absolute inset-0 bg-[radial-gradient(#FFB300_1px,transparent_1px)] [background-size:6px_6px] opacity-25" />
+              <div className="w-8 h-8 bg-white/20 border border-white/40 text-white rounded-lg flex items-center justify-center shadow-sm shrink-0 relative overflow-hidden group-hover:border-white transition-all duration-300">
                 <div className="flex items-center justify-center animate-[spin_8s_linear_infinite]">
-                  <Sparkles className="w-4 h-4 text-jago drop-shadow-[0_0_4px_#FFB300]" />
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 {/* Glowing status pulse dot */}
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-jago shadow-[0_0_6px_#FFB300]" />
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_6px_#ffffff]" />
               </div>
               
               {/* Cool Glowing "JARVIS" Text without dots */}
               <div className="flex flex-col items-start leading-none">
                 <span 
-                  className="font-mono font-black text-slate-900 tracking-[0.22em] text-sm sm:text-base uppercase transition-all duration-300 drop-shadow-[0_0_6px_rgba(255,179,0,0.15)] group-hover:text-jago group-hover:drop-shadow-[0_0_12px_rgba(255,179,0,0.65)]"
-                  style={{ textShadow: "0 0 10px rgba(255, 179, 0, 0.45)" }}
+                  className="font-mono font-black text-white tracking-[0.22em] text-sm sm:text-base uppercase transition-all duration-300 drop-shadow-sm"
                 >
                   JARVIS
                 </span>
-                <span className="text-[7px] font-black tracking-[0.3em] text-jago/60 group-hover:text-jago/95 uppercase transition-colors duration-300 mt-0.5">
+                <span className="text-[7px] font-black tracking-[0.3em] text-white/80 uppercase transition-colors duration-300 mt-0.5">
                   SYSTEM CORE
                 </span>
               </div>
@@ -745,7 +746,7 @@ export default function App() {
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 z-10">
             <button 
               onClick={handleLogout}
-              className="bg-white hover:bg-slate-50 text-slate-700 hover:text-rose-600 border border-slate-200 px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-extrabold transition-colors shadow-sm uppercase cursor-pointer hover:border-rose-100"
+              className="bg-white/15 hover:bg-white/25 text-white border border-white/25 px-2.5 sm:px-4 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-extrabold transition-colors shadow-sm uppercase cursor-pointer"
             >
               Keluar
             </button>
@@ -848,17 +849,17 @@ export default function App() {
                           type="button"
                           onClick={handleSuggestCategory}
                           disabled={isSuggestingCategory || (!templateForm.subject && !templateForm.message)}
-                          className="text-[9px] font-black text-amber-600 hover:text-amber-700 disabled:opacity-40 uppercase tracking-wider flex items-center gap-1 cursor-pointer select-none transition-all active:scale-95"
+                          className="text-[9px] font-black text-[#00aff0] hover:text-[#008cc3] disabled:opacity-40 uppercase tracking-wider flex items-center gap-1 cursor-pointer select-none transition-all active:scale-95"
                           title="Gunakan AI untuk merekomendasikan kategori otomatis berdasarkan subjek/pesan"
                         >
                           {isSuggestingCategory ? (
                             <>
-                              <Loader2 className="w-3 h-3 animate-spin text-amber-500" />
+                              <Loader2 className="w-3 h-3 animate-spin text-[#00aff0]" />
                               <span>Menganalisis...</span>
                             </>
                           ) : (
                             <>
-                              <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500" />
+                              <Sparkles className="w-3 h-3 text-[#00aff0] fill-[#00aff0]" />
                               <span>Saran AI ✨</span>
                             </>
                           )}
@@ -896,7 +897,7 @@ export default function App() {
                     </label>
                     <RichTextEditor 
                       value={templateForm.message}
-                      onChange={(val) => setTemplateForm({ ...templateForm, message: val })}
+                      onChange={handleTemplateMessageChange}
                       placeholder="Tulis draft template Anda di sini... (Mendukung visual kustom & HTML)"
                       minHeight="180px"
                     />
@@ -906,7 +907,7 @@ export default function App() {
                 <div className="px-6 py-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row gap-3 shrink-0">
                   <button 
                     onClick={handleSaveTemplateSubmit}
-                    className="w-full sm:flex-1 py-4 bg-jago hover:bg-jago-hover text-white text-sm font-black rounded-2xl border border-jago-dark transition-all shadow-md active:scale-[0.98] order-1 sm:order-2 cursor-pointer uppercase tracking-wider"
+                    className="w-full sm:flex-1 py-4 bg-[#00aff0] hover:bg-[#009bc3] text-white text-sm font-black rounded-2xl border border-[#008cc3] transition-all shadow-md active:scale-[0.98] order-1 sm:order-2 cursor-pointer uppercase tracking-wider"
                   >
                     Simpan Template
                   </button>
@@ -960,7 +961,7 @@ export default function App() {
                     if (detectedLinks.length === 0) return null;
                     return (
                       <div className="pt-2 border-t border-slate-200/60 flex flex-col gap-1">
-                        <div className="text-[9px] font-black text-amber-600 uppercase tracking-wider flex items-center gap-1">
+                        <div className="text-[9px] font-black text-[#00aff0] uppercase tracking-wider flex items-center gap-1">
                           <span>🔗 Link Terdeteksi (Buka di Tab Baru / Bebas Hambatan):</span>
                         </div>
                         <div className="flex flex-wrap gap-1.5 max-h-[64px] overflow-y-auto pr-1 py-0.5">
@@ -970,7 +971,7 @@ export default function App() {
                               href={link.href}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-[10px] text-amber-700 font-black hover:bg-amber-100 hover:text-amber-800 transition-colors shrink-0 max-w-full cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200 text-[10px] text-[#008cc3] font-black hover:bg-sky-100 hover:text-[#00aff0] transition-colors shrink-0 max-w-full cursor-pointer"
                             >
                               <span className="truncate max-w-[150px]">{link.text}</span>
                               <ExternalLink className="w-2.5 h-2.5 opacity-70 shrink-0" />
@@ -1060,7 +1061,6 @@ export default function App() {
                               setTimeout(adjustScale, 50);
                               setTimeout(adjustScale, 200);
                               setTimeout(adjustScale, 500);
-                              setInterval(adjustScale, 1000);
                             });
                           </script>
                         </body>
@@ -1084,7 +1084,7 @@ export default function App() {
                       setActiveTab("send");
                       setPreviewTemplate(null);
                     }}
-                    className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black rounded-xl border border-amber-600 transition-all flex items-center justify-center gap-2 shadow-md shadow-amber-500/10 uppercase tracking-wider"
+                    className="flex-1 py-3 bg-[#00aff0] hover:bg-[#009bc3] text-white text-[11px] font-black rounded-xl border border-[#008cc3] transition-all flex items-center justify-center gap-2 shadow-md shadow-[#00aff0]/20 uppercase tracking-wider"
                   >
                     <Send className="w-3.5 h-3.5" /> GUNAKAN SEKARANG
                   </button>
@@ -1345,10 +1345,9 @@ export default function App() {
 
         {/* --- BOTTOM RESPONSIVE VIEWBAR FOR MOBILE/TABLET --- */}
         <nav className={hn(
-          "fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/90 h-[64px] flex items-center justify-around z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] px-2 safe-area-bottom overflow-hidden transition-all duration-300",
+          "fixed bottom-0 left-0 right-0 bg-[#00aff0] border-t border-[#009cd8] h-[64px] flex items-center justify-around z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.1)] px-2 safe-area-bottom overflow-hidden transition-all duration-300",
           isKeyboardActive ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
         )}>
-          <div className="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-slate-200/10 via-slate-200/50 to-slate-200/10 z-10" />
           {[
             { id: "send", icon: Send, label: "Kirim" },
             { id: "templates", icon: FileText, label: "Templates" },
@@ -1368,21 +1367,21 @@ export default function App() {
                 <div className={hn(
                   "p-1.5 rounded-xl transition-all duration-300 relative z-10 border",
                   isTabActive 
-                    ? "bg-jago text-white border-jago-dark/20 shadow-md shadow-jago/10" 
-                    : "text-slate-500 hover:text-slate-800 border-transparent hover:bg-slate-50"
+                    ? "bg-white text-[#00aff0] border-white shadow-md" 
+                    : "text-white/75 hover:text-white border-transparent hover:bg-white/10"
                 )}>
                   <item.icon className={hn("w-4.5 h-4.5 transition-transform", isTabActive && "scale-105")} />
                 </div>
                 <span className={hn(
                   "text-[9px] font-black transition-all uppercase tracking-tight relative z-10",
-                  isTabActive ? "text-jago-dark font-extrabold" : "text-slate-500"
+                  isTabActive ? "text-white font-extrabold" : "text-white/75"
                 )}>
                   {item.label}
                 </span>
                 {isTabActive && (
                   <motion.div 
                     layoutId="activeTabMobile" 
-                    className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-jago to-jago-orange rounded-t-full shadow-[0_-3px_10px_rgba(255,179,0,0.3)]"
+                    className="absolute bottom-0 w-12 h-1 bg-white rounded-t-full shadow-[0_-2px_8px_rgba(255,255,255,0.5)]"
                     transition={{ type: "spring", stiffness: 380, damping: 25 }}
                   />
                 )}

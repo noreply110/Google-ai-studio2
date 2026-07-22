@@ -67,8 +67,8 @@ const LinkEditor: React.FC<LinkEditorProps> = React.memo(({ templateHtml, onLink
 
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
-      <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-amber-600 uppercase tracking-widest font-mono">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+      <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-[#00aff0] uppercase tracking-widest font-mono">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#00aff0] animate-pulse" />
         Kustomisasi Tombol & Link Draf:
       </div>
       <div className="space-y-2.5 max-h-[160px] overflow-y-auto pr-1 no-scrollbar">
@@ -89,7 +89,7 @@ const LinkEditor: React.FC<LinkEditorProps> = React.memo(({ templateHtml, onLink
                     const newHtml = updateHtmlLink(templateHtml, link.index, e.target.value, link.href);
                     onLinkUpdate(newHtml);
                   }}
-                  className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-500 text-slate-800 placeholder:text-slate-400 transition-all"
+                  className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-[10px] font-semibold focus:outline-none focus:border-[#00aff0] text-slate-800 placeholder:text-slate-400 transition-all"
                 />
               </div>
               <div>
@@ -103,7 +103,7 @@ const LinkEditor: React.FC<LinkEditorProps> = React.memo(({ templateHtml, onLink
                     const newHtml = updateHtmlLink(templateHtml, link.index, link.text, e.target.value);
                     onLinkUpdate(newHtml);
                   }}
-                  className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-[10px] font-semibold focus:outline-none focus:border-amber-500 text-slate-800 placeholder:text-slate-400 transition-all font-mono"
+                  className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-md text-[10px] font-semibold focus:outline-none focus:border-[#00aff0] text-slate-800 placeholder:text-slate-400 transition-all font-mono"
                 />
               </div>
             </div>
@@ -157,7 +157,6 @@ const getSafeSrcDoc = (html: string) => {
           setTimeout(adjustScale, 50);
           setTimeout(adjustScale, 200);
           setTimeout(adjustScale, 500);
-          setInterval(adjustScale, 1000);
         }
         
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
@@ -240,12 +239,12 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
       className={hn(
         "flex flex-col max-w-[85%] rounded-2xl p-3.5 shadow-sm text-xs transition-all duration-300 relative z-10",
         msg.role === "user"
-          ? "bg-amber-500 text-white rounded-br-none ml-auto border border-amber-600 shadow-md shadow-amber-500/10 font-extrabold animate-fade-in"
+          ? "bg-[#00aff0] text-white rounded-br-none ml-auto border border-[#008cc3] shadow-md shadow-[#00aff0]/20 font-extrabold animate-fade-in"
           : "bg-slate-50 border border-slate-200 text-slate-800 rounded-bl-none mr-auto shadow-sm animate-fade-in"
       )}
     >
       <div className="flex items-center justify-between mb-1 text-[8px] font-black uppercase tracking-wider text-slate-400">
-        <span className={msg.role === "user" ? "text-amber-100" : "text-slate-400"}>
+        <span className={msg.role === "user" ? "text-sky-100" : "text-slate-400"}>
           {msg.role === "user" ? "Anda" : "JARVIS"}
         </span>
       </div>
@@ -274,28 +273,28 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
           <button
             type="button"
             onClick={() => handleSendAiMessage("Terjemahkan draf email di atas ke Bahasa Inggris (English) dengan struktur formal perbankan.")}
-            className="px-2 py-1 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-amber-50"
+            className="px-2 py-1 bg-white border border-slate-200 hover:border-[#00aff0] hover:text-[#00aff0] rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-sky-50"
           >
             🇬🇧 Inggris
           </button>
           <button
             type="button"
             onClick={() => handleSendAiMessage("Perpendek draf email di atas agar sangat padat, singkat, dan langsung pada intinya.")}
-            className="px-2 py-1 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-amber-50"
+            className="px-2 py-1 bg-white border border-slate-200 hover:border-[#00aff0] hover:text-[#00aff0] rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-sky-50"
           >
             ⚡ Singkatkan
           </button>
           <button
             type="button"
             onClick={() => handleSendAiMessage("Ubah gaya bahasa draf email di atas menjadi jauh lebih formal, sopan, elegan, dan profesional.")}
-            className="px-2 py-1 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-amber-50"
+            className="px-2 py-1 bg-white border border-slate-200 hover:border-[#00aff0] hover:text-[#00aff0] rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-sky-50"
           >
             👔 Lebih Formal
           </button>
           <button
             type="button"
             onClick={() => handleSendAiMessage("Tulis ulang draf email di atas dengan menambahkan penekanan urgensi keamanan tingkat tinggi agar nasabah segera bertindak.")}
-            className="px-2 py-1 bg-white border border-slate-200 hover:border-amber-500 hover:text-amber-600 rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-amber-50"
+            className="px-2 py-1 bg-white border border-slate-200 hover:border-[#00aff0] hover:text-[#00aff0] rounded-lg text-[9px] font-black text-slate-600 transition-all cursor-pointer hover:bg-sky-50"
           >
             🚨 Tambah Urgensi
           </button>
@@ -313,7 +312,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
               type="text"
               value={msg.template.subject}
               onChange={(e) => onTemplateSubjectChange(e.target.value)}
-              className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-amber-500 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-800 focus:outline-none transition-all placeholder:text-slate-400"
+              className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-[#00aff0] rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-800 focus:outline-none transition-all placeholder:text-slate-400"
               placeholder="Masukkan subjek draf..."
             />
           </div>
@@ -332,7 +331,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
                   className={hn(
                     "px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider rounded transition-all",
                     editMode !== 'html' 
-                      ? "bg-amber-500 text-white font-black" 
+                      ? "bg-[#00aff0] text-white font-black" 
                       : "text-slate-500 hover:text-slate-800"
                   )}
                 >
@@ -344,7 +343,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
                   className={hn(
                     "px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider rounded transition-all",
                     editMode === 'html' 
-                      ? "bg-amber-500 text-white font-black" 
+                      ? "bg-[#00aff0] text-white font-black" 
                       : "text-slate-500 hover:text-slate-800"
                   )}
                 >
@@ -387,7 +386,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = React.memo(({
             <button
               type="button"
               onClick={applyAiTemplateToForm}
-              className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 shadow-sm transition-all uppercase tracking-wider border border-amber-600 cursor-pointer"
+              className="flex-1 py-2 bg-[#00aff0] hover:bg-[#009bc3] text-white text-[9px] font-bold rounded-lg flex items-center justify-center gap-1 shadow-sm transition-all uppercase tracking-wider border border-[#008cc3] cursor-pointer"
             >
               <Send className="w-3 h-3" /> Gunakan di Form
             </button>
@@ -838,7 +837,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
               className="absolute inset-0 pointer-events-none overflow-hidden z-[1]"
               style={{
                 background: `
-                  radial-gradient(circle at 50% 10%, rgba(255, 179, 0, 0.04) 0%, transparent 80%),
+                  radial-gradient(circle at 50% 10%, rgba(0, 175, 240, 0.04) 0%, transparent 80%),
                   linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)
                 `,
               }}
@@ -848,19 +847,19 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
             <div className="p-4 border-b border-slate-200/80 bg-white/75 backdrop-blur-md flex justify-between items-center shrink-0 relative z-10 shadow-[0_1px_10px_rgba(0,0,0,0.02)]">
               <div className="flex items-center gap-3">
                 {/* High-tech Icon container */}
-                <div className="w-8 h-8 bg-slate-950 border border-jago/80 text-jago rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(255,179,0,0.25)] shrink-0 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(#FFB300_1px,transparent_1px)] [background-size:6px_6px] opacity-25" />
+                <div className="w-8 h-8 bg-slate-950 border border-jago/80 text-jago rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,175,240,0.25)] shrink-0 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[radial-gradient(#00aff0_1px,transparent_1px)] [background-size:6px_6px] opacity-25" />
                   <div className="flex items-center justify-center animate-[spin_8s_linear_infinite]">
-                    <Sparkles className="w-4 h-4 text-jago drop-shadow-[0_0_4px_#FFB300]" />
+                    <Sparkles className="w-4 h-4 text-jago drop-shadow-[0_0_4px_#00aff0]" />
                   </div>
-                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-jago shadow-[0_0_6px_#FFB300]" />
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-jago shadow-[0_0_6px_#00aff0]" />
                 </div>
                 
                 {/* Cool Glowing "JARVIS" Text */}
                 <div className="flex flex-col items-start leading-none">
                   <span 
-                    className="font-mono font-black text-slate-900 tracking-[0.22em] text-sm uppercase transition-all duration-300 drop-shadow-[0_0_6px_rgba(255,179,0,0.15)]"
-                    style={{ textShadow: "0 0 10px rgba(255, 179, 0, 0.45)" }}
+                    className="font-mono font-black text-slate-900 tracking-[0.22em] text-sm uppercase transition-all duration-300 drop-shadow-[0_0_6px_rgba(0,175,240,0.15)]"
+                    style={{ textShadow: "0 0 10px rgba(0, 175, 240, 0.45)" }}
                   >
                     JARVIS
                   </span>
@@ -948,9 +947,9 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <div className="flex gap-1 items-center shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00aff0] animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00aff0] animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00aff0] animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                     <span className="text-[10px] font-bold text-slate-500 font-sans tracking-wide animate-pulse whitespace-nowrap truncate max-w-[160px] xs:max-w-[220px] sm:max-w-[340px]" title={thinkingText}>
                       {thinkingText}
@@ -982,7 +981,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   type="button"
                   onClick={() => handleSendAiMessage(sug.prompt)}
                   disabled={isAiLoading}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-full hover:border-amber-500 hover:text-amber-600 text-[9px] font-extrabold text-slate-600 hover:bg-amber-50 shrink-0 transition-all cursor-pointer shadow-sm uppercase tracking-tight"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-full hover:border-[#00aff0] hover:text-[#00aff0] text-[9px] font-extrabold text-slate-600 hover:bg-sky-50 shrink-0 transition-all cursor-pointer shadow-sm uppercase tracking-tight"
                 >
                   {sug.label}
                 </button>
@@ -1007,7 +1006,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                       <span className="text-[10px] font-bold text-slate-800 truncate max-w-[150px]">
                         {selectedImage.name}
                       </span>
-                      <span className="text-[8px] font-extrabold text-amber-500 uppercase tracking-wider">
+                      <span className="text-[8px] font-extrabold text-[#00aff0] uppercase tracking-wider">
                         Foto Siap Dikirim
                       </span>
                     </div>
@@ -1050,7 +1049,7 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   }}
                   className={`p-2.5 rounded-xl border transition-all flex items-center justify-center shrink-0 cursor-pointer ${
                     selectedImage 
-                      ? "bg-amber-100 text-amber-700 border-amber-300" 
+                      ? "bg-sky-100 text-[#008cc3] border-sky-300" 
                       : "bg-white border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                   }`}
                   title="Upload Foto/Gambar"
@@ -1064,12 +1063,12 @@ export const AiCopilotWidget: React.FC<AiCopilotWidgetProps> = React.memo(({
                   value={aiInput}
                   onChange={(e) => setAiInput(e.target.value)}
                   placeholder={selectedImage ? "Beri instruksi draf (opsional)..." : "Tanya AI / Tulis prompt draf email..."}
-                  className="flex-1 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:outline-none focus:border-amber-500 text-slate-800 placeholder:text-slate-400 transition-all"
+                  className="flex-1 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:outline-none focus:border-[#00aff0] text-slate-800 placeholder:text-slate-400 transition-all"
                 />
                 <button
                   type="submit"
                   disabled={isAiLoading || (!aiInput.trim() && !selectedImage)}
-                  className="p-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-md border border-amber-600 transition-all disabled:opacity-40 flex items-center justify-center shrink-0 cursor-pointer"
+                  className="p-2.5 bg-[#00aff0] hover:bg-[#009bc3] text-white rounded-xl shadow-md border border-[#008cc3] transition-all disabled:opacity-40 flex items-center justify-center shrink-0 cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                 </button>

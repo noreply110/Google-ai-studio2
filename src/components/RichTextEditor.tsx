@@ -64,13 +64,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
   // ResizeObserver for the contenteditable height
   useEffect(() => {
     const element = editorRef.current;
-    if (!element || isHtmlMode) return;
+    if (!element || isHtmlMode || viewMode !== "original") return;
 
     const handleResize = () => {
       const currentHeight = element.offsetHeight || element.scrollHeight || 300;
       setContentHeight((prev) => {
-        // Only update state if height changes by more than 8px (to avoid updates on every single keystroke)
-        if (Math.abs(prev - currentHeight) > 8) {
+        if (Math.abs(prev - currentHeight) > 20) {
           return currentHeight;
         }
         return prev;
@@ -95,10 +94,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
     }
   }, [isHtmlMode, value]);
 
-  // Handle setting initial value or external value changes without losing focus
+  // Handle setting initial value or external value changes without resetting cursor while typing
   useEffect(() => {
     if (editorRef.current) {
-      if (editorRef.current.innerHTML !== value) {
+      if (document.activeElement !== editorRef.current && editorRef.current.innerHTML !== value) {
         editorRef.current.innerHTML = value;
       }
     }
@@ -183,7 +182,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
               type="button"
               onClick={() => executeCommand("bold")}
               className={`p-1.5 rounded-lg transition-all cursor-pointer shrink-0 ${
-                activeFormat.bold ? "bg-amber-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
+                activeFormat.bold ? "bg-[#00aff0] text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
               }`}
               title="Tebal (Ctrl+B)"
             >
@@ -193,7 +192,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
               type="button"
               onClick={() => executeCommand("italic")}
               className={`p-1.5 rounded-lg transition-all cursor-pointer shrink-0 ${
-                activeFormat.italic ? "bg-amber-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
+                activeFormat.italic ? "bg-[#00aff0] text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
               }`}
               title="Miring (Ctrl+I)"
             >
@@ -203,7 +202,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
               type="button"
               onClick={() => executeCommand("underline")}
               className={`p-1.5 rounded-lg transition-all cursor-pointer shrink-0 ${
-                activeFormat.underline ? "bg-amber-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
+                activeFormat.underline ? "bg-[#00aff0] text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
               }`}
               title="Garis Bawah (Ctrl+U)"
             >
@@ -344,7 +343,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(({
           </div>
         ) : (
           <div className="flex-1 overflow-hidden pr-2">
-            <span className="text-[9px] sm:text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200 uppercase tracking-wider block truncate shadow-sm">
+            <span className="text-[9px] sm:text-[10px] font-bold text-[#008cc3] bg-sky-50 px-2 py-1 rounded border border-sky-200 uppercase tracking-wider block truncate shadow-sm">
               Mode Editor HTML (Kode Sumber)
             </span>
           </div>

@@ -110,6 +110,10 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
   const [hasFailed, setHasFailed] = useState(false);
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
 
+  const handleMessageChange = React.useCallback((val: string) => {
+    setEmailForm(prev => ({ ...prev, message: val }));
+  }, []);
+
   // --- Real-Time & Persistent Sending History ---
   interface SentHistoryItem {
     id: string;
@@ -929,7 +933,7 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
                     <div className="flex-1 min-h-0 flex flex-col gap-1.5">
                       <RichTextEditor 
                         value={emailForm.message}
-                        onChange={(val) => setEmailForm({ ...emailForm, message: val })}
+                        onChange={handleMessageChange}
                         placeholder="Tulis pesan Anda... (Mendukung paste Rich Text / HTML)"
                         minHeight="120px"
                       />
@@ -1284,7 +1288,7 @@ export const SendTab: React.FC<SendTabProps> = React.memo(({
                 <button 
                   type="submit"
                   disabled={isSending}
-                  className="w-full py-2 sm:py-2.5 bg-jago hover:bg-jago-hover text-white text-[11px] font-extrabold rounded-xl transition-all shadow-md shadow-jago/10 border border-jago-dark flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.08em] cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 bg-[#00aff0] hover:bg-[#009bc3] text-white text-[11px] font-black rounded-xl transition-all shadow-md shadow-[#00aff0]/25 border border-[#008cc3] flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.08em] cursor-pointer"
                 >
                   {isSending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

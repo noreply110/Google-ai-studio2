@@ -4,11 +4,11 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  --color-jago: #FFB300;
-  --color-jago-hover: #FFA200;
-  --color-jago-dark: #E09E00;
-  --color-jago-light: #FFF8E7;
-  --color-jago-orange: #FF5E13;
+  --color-jago: #00aff0;
+  --color-jago-hover: #009bc3;
+  --color-jago-dark: #008cc3;
+  --color-jago-light: #e6f7ff;
+  --color-jago-orange: #008cc3;
 }
 
 html, body {
@@ -52,15 +52,13 @@ html, body {
   -webkit-backdrop-filter: none !important;
 }
 
-/* Ensure all translucent cards and navigation panes use light mode styles */
+/* Navigation and bar styling without forced white background */
 header {
-  background-color: rgba(255, 255, 255, 0.75) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 nav {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 aside {
